@@ -83,7 +83,29 @@ class LaserSettings:
             "exposure_time": self.exposure_time,
             "colour": self.colour,
         }
-    
+@dataclass
+class LaserControllerSettings:
+    """Laser controller settings"""
+
+    name: str
+    serial_settings: SerialSettings
+
+    @staticmethod
+    def __from_dict__(settings: dict) -> "LaserControllerSettings":
+
+        laser_controller_settings = LaserControllerSettings(
+            name=settings["name"],
+            serial_settings=SerialSettings.__from_dict__(settings["serial"]),
+        )
+        return laser_controller_settings
+
+    @staticmethod
+    def __to_dict__(self) -> dict:
+        return {
+            "name": self.name,
+            "serial_settings": SerialSettings.__to_dict__(self.serial_settings),
+        }
+
 @dataclass
 class DetectorSettings:
     """Detector settings"""
@@ -94,13 +116,13 @@ class DetectorSettings:
 
     @staticmethod
     def __from_dict__(settings: dict) -> "DetectorSettings":
-            
-            detector_settings = DetectorSettings(
-                name=settings["name"],
-                pixel_size=settings["pixel_size"],
-                resolution=settings["resolution"],
-            )
-            return detector_settings
+        
+        detector_settings = DetectorSettings(
+            name=settings["name"],
+            pixel_size=settings["pixel_size"],
+            resolution=settings["resolution"],
+        )
+        return detector_settings
     
     @staticmethod
     def __to_dict__(self) -> dict:
@@ -117,18 +139,17 @@ class MicroscopeSettings:
 
     name: str
     detector: DetectorSettings
-    image_settings: ImageSettings
-    serial_settings: SerialSettings
-    lasers: list
+    laser_controller: LaserControllerSettings
+    lasers: list[LaserSettings]
 
     @staticmethod
     def __from_dict__(settings: dict) -> "MicroscopeSettings":
 
         microscope_settings = MicroscopeSettings(
             name=settings["name"],
-            image_settings=ImageSettings.__from_dict__(settings["image_settings"]),
-            serial_settings=SerialSettings.__from_dict__(settings["serial_settings"]),
-            lasers=[LaserSettings.__from_dict__(laser) for laser in settings["lasers"]],
+            detector=DetectorSettings.__from_dict__(settings["detector"]),
+            laser_controller=LaserControllerSettings.__from_dict__(settings["laser_controller"]),
+            lasers=[LaserSettings.__from_dict__(laser) for laser in settings["laser_controller"]["lasers"]],
         )
         return microscope_settings
 
@@ -136,7 +157,7 @@ class MicroscopeSettings:
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
-            "image_settings": ImageSettings.__to_dict__(self.image_settings),
-            "serial_settings": SerialSettings.__to_dict__(self.serial_settings),
+            "detector": DetectorSettings.__to_dict__(self.detector),
+            "laser_controller": LaserControllerSettings.__to_dict__(self.laser_controller),
             "lasers": [LaserSettings.__to_dict__(laser) for laser in self.lasers],
         }
