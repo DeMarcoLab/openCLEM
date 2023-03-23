@@ -1,5 +1,7 @@
-matplotlib
-pyqt5
-qimage2ndarray
-scikit-image>=0.15.0
-scipy
+# matplotlib
+# pyqt5
+# qimage2ndarray
+# scikit-image>=0.15.0
+# scipy
+pyserial
+numpy

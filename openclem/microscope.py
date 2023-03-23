@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from structures import ImageSettings
+from openclem.structures import ImageSettings
 
 class LightMicroscope(ABC):
     """Abstract class for light microscope"""

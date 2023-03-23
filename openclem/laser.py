@@ -1,28 +1,22 @@
 from abc import ABC, abstractmethod
 
 class Laser(ABC):
+    def __init__(self, wavelength):
+        self._wavelength = wavelength
+
+    @property
     @abstractmethod
-    def connect(self):
+    def power(self):
         pass
 
+    @power.setter
     @abstractmethod
-    def disconnect(self):
+    def power(self, value):
         pass
-
+    
+    @property
     @abstractmethod
-    def set_power(self, power):
-        pass
-
-    @abstractmethod
-    def get_power(self):
-        pass
-
-    @abstractmethod
-    def set_wavelength(self, wavelength):
-        pass
-
-    @abstractmethod
-    def get_wavelength(self):
+    def wavelength(self):
         pass
 
     @abstractmethod
