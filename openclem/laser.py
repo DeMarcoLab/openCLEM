@@ -23,6 +23,22 @@ class Laser(ABC):
     def wavelength(self, value: float) -> None:
         pass
 
+    @abstractmethod
+    def emission_on(self) -> None:
+        pass
+
+    @abstractmethod
+    def emission_off(self) -> None:
+        pass
+
+    @abstractmethod
+    def enable(self) -> None:
+        pass
+
+    @abstractmethod
+    def disable(self) -> None:
+        pass
+        
 
 class LaserController(ABC):
     def __init__(self):
@@ -37,19 +53,3 @@ class LaserController(ABC):
     def disconnect(self) -> None:
         pass
 
-    @abstractmethod
-    def emission_on(self, laser: Laser) -> None:
-        pass
-
-    @abstractmethod
-    def emission_off(self, laser: Laser) -> None:
-        pass
-
-    @abstractmethod
-    def enable(self, laser: Laser) -> None:
-        pass
-
-    @abstractmethod
-    def disable(self, laser: Laser) -> None:
-        pass
-        

@@ -68,6 +68,18 @@ class LdiLaser(Laser):
     def check_response(self, response):
         return response == b'ok\n'
 
+    def emission_on(self):
+        print('Emission on')
+
+    def emission_off(self):
+        print('Emission off')
+
+    def enable(self):
+        print('Enable')
+
+    def disable(self):
+        print('Disable')
+
 class LdiLaserController(LaserController):
     def __init__(self):
         self.serial_connection = None
@@ -88,16 +100,3 @@ class LdiLaserController(LaserController):
         if self.serial_connection is None: return
         self.serial_connection.close()
         self.serial_connection = None
-
-    def emission_on(self):
-        print('Emission on')
-
-    def emission_off(self):
-        print('Emission off')
-
-    def enable(self):
-        print('Enable')
-
-    def disable(self):
-        print('Disable')
-
