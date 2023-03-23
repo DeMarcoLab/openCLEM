@@ -8,11 +8,11 @@ class LdiLaserController(LaserController):
         self.serial_connection = None
         self.lasers = [Laser(name='laser_1', serial_id='405', wavelength=405.0, power=0.0,
                             exposure_time=1.0, enabled=False, colour=[0, 0, 0]),
-                       Laser(name='laser_1', serial_id='488', wavelength=488.0, power=0.0,
+                       Laser(name='laser_2', serial_id='488', wavelength=488.0, power=0.0,
                             exposure_time=1.0, enabled=False, colour=[0, 0, 0]),
-                       Laser(name='laser_1', serial_id='555', wavelength=561.0, power=0.0,
+                       Laser(name='laser_3', serial_id='555', wavelength=561.0, power=0.0,
                             exposure_time=1.0, enabled=False, colour=[0, 0, 0]),
-                       Laser(name='laser_1', serial_id='640', wavelength=640.0, power=0.0,
+                       Laser(name='laser_4', serial_id='640', wavelength=640.0, power=0.0,
                             exposure_time=1.0, enabled=False, colour=[0, 0, 0])]
 
     def connect(self, serial_settings: SerialSettings):
