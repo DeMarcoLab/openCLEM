@@ -1,43 +1,46 @@
 from abc import ABC, abstractmethod
+from openclem.structures import ImageSettings
+import numpy as np
+
 
 class Detector(ABC):
-    @property
+
+    # assumption is that the detector is connected to the computer via a serial port
     @abstractmethod
-    def name(self):
-        pass
-    
-    @abstractmethod
-    def connect(self):
+    def connect(self, port: str, baudrate: int, timeout: float) -> None:
         pass
 
     @abstractmethod
-    def disconnect(self):
-        pass
-
-    @abstractmethod
-    def grab_single_image(self):
-        pass
-
-    @abstractmethod
-    def grab_continuous_images(self):
-        pass
-
-    @abstractmethod
-    def close(self):
-        pass
-
-    @abstractmethod
-    def open(self):
-        pass
-
-    @abstractmethod
-    def set_image_settings(self, image_settings):
-        pass
-
-    @abstractmethod
-    def get_image_settings(self):
+    def disconnect(self) -> None:
         pass
 
     @abstractmethod
     def init_camera(self):
+        pass
+
+    @abstractmethod
+    def open_camera(self):
+        pass
+
+    @abstractmethod
+    def close_camera(self):
+        pass
+
+    @property
+    @abstractmethod
+    def exposure_mode(self):
+        pass
+
+    @property
+    @abstractmethod
+    def exposure_time(self):
+        pass
+
+    @property
+    @abstractmethod
+    def pixel_size(self):
+        pass
+
+    @abstractmethod
+    def grab_image(self, image_settings: ImageSettings = None) -> np.ndarray:
         pass

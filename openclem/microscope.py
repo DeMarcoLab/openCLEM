@@ -12,10 +12,10 @@ class LightMicroscope(ABC):
     def disconnect(self):
         pass
 
-    @abstractmethod
-    def acquire_image(self, image_settings:ImageSettings):
-        pass
+    # @abstractmethod
+    # def acquire_image(self, image_settings:ImageSettings):
+    #     pass
 
-    @abstractmethod
-    def live_image(self, image_settings:ImageSettings):
-        pass
+    # @abstractmethod
+    # def live_image(self, image_settings:ImageSettings):
+    #     pass

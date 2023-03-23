@@ -1,5 +1,6 @@
 import serial
 import serial.tools.list_ports
+from openclem.structures import SerialSettings
 
 def write_serial_command(serial_port, command):
     serial_port.close()
@@ -16,6 +17,10 @@ def get_port_names(ports):
     port_names = [port.device for port in ports]
     return port_names
 
-def connect_to_serial_port(port_name, baudrate=9600, timeout=0.1):
-    serial_port = serial.Serial(port=port_name, baudrate=baudrate, timeout=timeout)
-    return serial_port
+def connect_to_serial_port(serial_settings: SerialSettings):
+    port_name = serial_settings.serial_port
+    baudrate = serial_settings.baudrate
+    timeout = serial_settings.timeout
+    
+    serial_connection = serial.Serial(port=port_name, baudrate=baudrate, timeout=timeout)
+    return serial_connection

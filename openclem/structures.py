@@ -1,46 +1,53 @@
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
 
-class TriggerMode(Enum):
-    """Trigger mode"""
-    INTERNAL = 1
-    EXTERNAL = 2
-    SOFTWARE = 3
 
-class TriggerEdge(Enum):
-    """Trigger edge"""
-    RISING = 1
-    FALLING = 2
+# class TriggerEdge(Enum):
+#     """Trigger edge"""
 
-class ExposureMode(Enum):
-    """Exposure mode"""
-    EXPOSURE = 1
-    TRIGGERWIDTH = 2
+#     RISING = 1
+#     FALLING = 2
+
+
+# class ExposureMode(Enum):
+#     """Exposure mode"""
+
+#     TIMED = 1
+#     TRIGGER_WIDTH = 2
+
 
 @dataclass
 class ImageSettings:
     """Image settings"""
+
+    pixel_size: float = 0.0
     exposure: float = 0.0
-    trigger_mode: TriggerMode = TriggerMode.SOFTWARE
-    trigger_edge: TriggerEdge = TriggerEdge.RISING
-    exposure_mode: ExposureMode = ExposureMode.EXPOSURE
-    trigger_width: float = 0.0
-    binning: int = 1
-    gain: int = 1
-    offset: int = 0
-    roi: tuple = (0, 0, 0, 0)
-    image_format: str = 'tiff'
+    image_format: str = "tiff"
+
 
 @dataclass
-class LaserSettings:
-    """Laser settings"""
-    wavelength: float = 0.0
-    power: float = 0.0
+class SerialSettings:
+    """Serial settings"""
 
-@dataclass
-class AvailableLasers:
-    """Laser group"""
-    lasers: list = None
+    serial_port: str = None
+    baudrate: int = 9600
+    timeout: float = 0.1
+
+    @staticmethod
+    def __from_dict__(settings: dict) -> "SerialSettings":
+        return SerialSettings(
+            serial_port=settings["serial_port"],
+            baudrate=settings["baudrate"],
+            timeout=settings["timeout"],
+        )
+
+    @staticmethod
+    def __to_dict__(settings: "SerialSettings") -> dict:
+        return {
+            "serial_port": settings.serial_port,
+            "baudrate": settings.baudrate,
+            "timeout": settings.timeout,
+        }
 
 @dataclass
 class Laser:
@@ -48,14 +55,12 @@ class Laser:
     serial_id: str
     wavelength: float
     power: float
-    exposure_time: float  # us
+    exposure_time: float  # s
     enabled: bool
-    pin: str
-    volume_enabled: bool
     colour: list
 
     @staticmethod
-    def __from_dict__(settings: dict) -> 'Laser':
+    def __from_dict__(settings: dict) -> "Laser":
 
         laser = Laser(
             name=settings["name"],
@@ -69,6 +74,20 @@ class Laser:
             colour=settings["colour"],
             spinBox=None,
             lineEdit=None,
-            volumeCheckBox=None
+            volumeCheckBox=None,
         )
         return laser
+
+    @staticmethod
+    def __to_dict__(settings: "Laser") -> dict:
+        return {
+            "name": settings.name,
+            "ID": settings.serial_id,
+            "wavelength": settings.wavelength,
+            "power": settings.power,
+            "exposure_time": settings.exposure_time,
+            "pin": settings.pin,
+            "volume_enabled": settings.volume_enabled,
+            "colour": settings.colour,
+        }
+    
