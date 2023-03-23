@@ -13,6 +13,7 @@ class HamamatsuOrcaFlash4(Detector):
         self.serial_connection = None
         self.camera = None
         self._pixel_size = 6.5e-6 
+        self._connected = False
 
     @classmethod
     def __id__(self):
@@ -20,21 +21,19 @@ class HamamatsuOrcaFlash4(Detector):
 
     def connect(self) -> None:
         try:
-            serial_settings = self.settings.serial_settings
-            logging.info("Connecting to Hamamatsu detector on port: %s", serial_settings.port)
-            self.serial_connection = utils.connect_to_serial_port(
-                serial_settings=serial_settings
-            )
-            logging.info("Connected to Hamamatsu detector on port: %s", serial_settings.port)
+            if Dcamapi.init() is not False:
+                self._connected = True
+                logging.info("DCAM-API initialized")
         except Exception as e:
-            logging.error("Could not connect to Hamamatsu detector on port: %s", serial_settings.port)
+            self._connected = False
+            logging.error(f"Could not connect to Hamamatsu detector")
             logging.error(e)
-
+            
     def disconnect(self) -> None:
         if self.serial_port is not None:
             try:
                 logging.info("Disconnecting from Hamamatsu detector")
-                self.serial_connection.close()
+                Dcamapi.uninit()
                 logging.info("Disconnected from Hamamatsu detector")
             except Exception as e:
                 logging.error("Could not disconnect from Hamamatsu detector")
@@ -44,9 +43,9 @@ class HamamatsuOrcaFlash4(Detector):
 
     def init_camera(self):  
         try:    
-            if Dcamapi.init() is not False:
-                print("DCAM-API initialized")
-                self.camera = Dcam(0)
+            if not self._connected: self.connect() 
+            self.camera = Dcam(0)
+            logging.info("Hamamatsu camera initialized")
         except Exception as e:
             logging.error("Could not initialize Hamamatsu camera")
             logging.error(e)

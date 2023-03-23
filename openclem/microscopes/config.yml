@@ -43,7 +43,4 @@ microscope:
     name: hamamatsu
     pixel_size: 6.5e-6
     resolution: [2048, 2048]
-    serial:
-      serial_port: COM3
-      baudrate: 9600
-      timeout: 1
+    serial: null

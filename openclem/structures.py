@@ -35,6 +35,9 @@ class SerialSettings:
 
     @staticmethod
     def __from_dict__(settings: dict) -> "SerialSettings":
+        # TODO: check if this is ok
+        if settings is None:
+            return None
         return SerialSettings(
             serial_port=settings["serial_port"],
             baudrate=settings["baudrate"],

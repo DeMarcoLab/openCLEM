@@ -4,10 +4,7 @@ import time
 # get path of openclem
 import openclem
 from openclem import utils
-from openclem.detector import Detector
-from openclem.laser import Laser, LaserController
-from openclem.lasers.ldi.ldi import LdiLaser, LdiLaserController
-from openclem.structures import LaserSettings, MicroscopeSettings, SerialSettings
+from openclem.structures import MicroscopeSettings, ImageSettings
 
 openclem_path = openclem.__path__[0]
 
@@ -27,33 +24,29 @@ if __name__ == "__main__":
         microscope_settings=microscope_settings
     )
 
-    print(laser_controller.lasers)
+    # print(laser_controller.lasers)
 
-    laser_controller.connect()
-    laser_controller.set_power("laser_2", 1)
-    print(laser_controller.get_power("laser_2"))
-    laser_controller.lasers["laser_2"].emission_on()
-    time.sleep(1)
-    laser_controller.lasers["laser_2"].emission_off()
+    # laser_controller.connect()
+    # laser_controller.set_power("laser_2", -1)
+    # print(laser_controller.get_power("laser_2"))
+    # laser_controller.lasers["laser_2"].emission_on()
+    # time.sleep(1)
+    # laser_controller.lasers["laser_2"].emission_off()
 
-    laser_controller.set_power("laser_2", 5)
-    print(laser_controller.get_power("laser_2"))
-    laser_controller.lasers["laser_2"].emission_on()
-    time.sleep(1)
-    laser_controller.lasers["laser_2"].emission_off()
+    # laser_controller.set_power("laser_2", 3)
+    # print(laser_controller.get_power("laser_2"))
+    # laser_controller.lasers["laser_2"].emission_on()
+    # time.sleep(1)
+    # laser_controller.lasers["laser_2"].emission_off()
 
-
-
-# for laser in system_config.get("lasers"):
-#     laser_settings = LaserSettings.__from_dict__(laser)
-#     laser_controller.add_laser(LdiLaser(laser_settings=laser_settings, parent=laser_controller))
+    image_settings = ImageSettings(pixel_size=6.5e-6, exposure=0.1, 
+                                   image_format="tiff")
 
 
-# # serial_settings = SerialSettings(serial_port='COM8',
-# #                                  baudrate=9600,
-# #                                  timeout=1)
+    detector.connect()
+    detector.init_camera()
+    detector.open_camera()
+    image = detector.grab_image(image_settings=image_settings)
 
-
-# # laser_controller = LdiLaserController()
-# # laser_controller.connect(serial_settings=serial_settings)
-# # lasers = laser_controller.lasers
+    print(image)
+    # print(detector)
