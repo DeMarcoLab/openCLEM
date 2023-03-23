@@ -1,8 +1,8 @@
-from openclem.laser import Laser
+from openclem.laser import LaserController, Laser
 from openclem import utils
 import numpy as np
 
-class iCLE(Laser):
+class iCLE(LaserController):
     def __init__(self, wavelength):
         self._wavelength = wavelength
         self._power = 0.0
@@ -32,3 +32,6 @@ class iCLE(Laser):
 
     def disable(self):
         print('Disable')
+
+class iCLELaser(Laser):
+    pass

@@ -1,0 +1,35 @@
+name: piedisc
+
+laser_controller: ldi
+detector: hamamatsu
+
+lasers:
+  - name: 'laser_1'
+    serial_id: '405'
+    wavelength: 405.
+    power: 0.
+    exposure_time: 1.
+    enabled: False
+    colour: [0, 0, 0]   
+  - name: 'laser_2'
+    serial_id: '488'
+    wavelength: 488.
+    power: 0.
+    exposure_time: 1.
+    enabled: False
+    colour: [0, 0, 0] 
+  - name: 'laser_3'
+    serial_id: '550'
+    wavelength: 550.
+    power: 0.
+    exposure_time: 1.
+    enabled: False
+    colour: [0, 0, 0]
+  - name: 'laser_4'
+    serial_id: '640'
+    wavelength: 640.
+    power: 0.
+    exposure_time: 1.
+    enabled: False
+    colour: [0, 0, 0]
+    
