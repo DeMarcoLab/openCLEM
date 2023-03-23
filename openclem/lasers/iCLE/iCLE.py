@@ -8,6 +8,10 @@ class iCLE(LaserController):
         self._power = 0.0
         self.serial_id = None
 
+    @classmethod
+    def __id__(self):
+        return "iCLE"
+    
     @property
     def power(self):
         return self._power

@@ -106,12 +106,15 @@ class LdiLaser(Laser):
     def check_response(self, response):
         return response == b'ok\n' or response == b'ok\r' or response == b'ok\r\n'
 
-
 class LdiLaserController(LaserController):
     def __init__(self):
         self.serial_connection = None
         self.lasers = []
 
+    @classmethod
+    def __id__(self):
+        return "ldi"
+    
     def add_laser(self, laser: Laser):
         self.lasers.append(laser)
 

@@ -3,6 +3,12 @@ from openclem.structures import SerialSettings
                                 
 class Laser(ABC):
     
+    @classmethod
+    @abstractmethod
+    def __id__(self):
+        """the string by which you will import from config"""
+        pass
+
     @property
     @abstractmethod
     def power(self) -> float:

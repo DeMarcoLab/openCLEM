@@ -14,7 +14,11 @@ class BasleracA1920_155um(Detector):
         self.serial_connection = None
         self.camera = None
         self._pixel_size = 5.86e-6
-
+    
+    @classmethod
+    def __id__(self):
+        return "basler"
+    
     def connect(self, serial_settings: SerialSettings) -> None:
         try:
             logging.info("Connecting to Basler detector on port: %s", serial_settings.port)

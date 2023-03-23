@@ -5,9 +5,14 @@ import numpy as np
 
 class Detector(ABC):
 
-    # assumption is that the detector is connected to the computer via a serial port
+    @classmethod
     @abstractmethod
-    def connect(self, port: str, baudrate: int, timeout: float) -> None:
+    def __id__(self):
+        """the string by which you will import from config"""
+        pass
+
+    @abstractmethod
+    def connect(self) -> None:
         pass
 
     @abstractmethod

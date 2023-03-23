@@ -13,6 +13,10 @@ class HamamatsuOrcaFlash4(Detector):
         self.camera = None
         self._pixel_size = 6.5e-6 
 
+    @classmethod
+    def __id__(self):
+        return "hamamatsu"
+
     def connect(self, serial_settings: SerialSettings) -> None:
         try:
             logging.info("Connecting to Hamamatsu detector on port: %s", serial_settings.port)

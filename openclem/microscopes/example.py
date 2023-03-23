@@ -1,5 +1,6 @@
 from openclem.structures import SerialSettings, LaserSettings, MicroscopeSettings
-from openclem.laser import LaserController
+from openclem.laser import LaserController, Laser
+from openclem.detector import Detector
 from openclem.lasers.ldi.ldi import LdiLaserController, LdiLaser
 import time
 import os
@@ -8,19 +9,18 @@ from openclem import utils
 # get path of openclem
 import openclem
 openclem_path = openclem.__path__[0]
+
 config_path = os.path.join(openclem_path, 'microscopes/config.yml')
 
 system_config = utils.load_yaml(config_path)
 
-# get subclasses of LaserController
-import inspect
-from openclem.laser import LaserController
-subclasses = inspect.getmembers(LaserController, inspect.isclass)
-
-print(subclasses)
-
-
-
+if __name__ == "__main__":
+    subclasses = utils.get_subclasses(cls=LaserController, path=os.path.join("lasers"))
+    subclasses2 = utils.get_subclasses(cls=Detector, path=os.path.join("detectors"))
+    for subclass in subclasses:
+        print(subclass.__id__())
+    for subclass in subclasses2:
+        print(subclass.__id__())
 
 # microscope_settings = MicroscopeSettings.__from_dict__(system_config.get("microscope"))
 
