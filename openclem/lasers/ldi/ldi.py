@@ -1,11 +1,11 @@
 from openclem.laser import LaserController, Laser
-from openclem.structures import LaserSettings, SerialSettings
+from openclem.structures import LaserSettings, LaserControllerSettings
 import numpy as np
 from openclem import utils
 
 class LdiLaser(Laser):
     def __init__(self, laser_settings: LaserSettings, parent: LaserController):
-        
+        self.settings = laser_settings
         self._name = laser_settings.name
         self._serial_id = laser_settings.serial_id
         self._wavelength = laser_settings.wavelength
@@ -19,6 +19,10 @@ class LdiLaser(Laser):
             self.disable()
         self._colour = laser_settings.colour
 
+    @classmethod
+    def __id__(self):
+        return "ldilaser"
+    
     @property
     def name(self):
         return self._name
@@ -95,7 +99,7 @@ class LdiLaser(Laser):
             self._shutter_open = False
             print(f"Shutter closed for {self.name}")
         else:
-            raise ValueError(f"Error opening shutter for {self.name}")
+            raise ValueError(f"Error closing shutter for {self.name}")
 
     def decode_power(self, response: str):
         response = response.decode('utf-8')
@@ -107,7 +111,10 @@ class LdiLaser(Laser):
         return response == b'ok\n' or response == b'ok\r' or response == b'ok\r\n'
 
 class LdiLaserController(LaserController):
-    def __init__(self):
+    def __init__(self, laser_controller_settings: LaserControllerSettings):
+        self.settings = laser_controller_settings
+        self._name = self.settings.name
+        self._laser_type = self.settings.laser_type
         self.serial_connection = None
         self.lasers = []
 
@@ -115,11 +122,15 @@ class LdiLaserController(LaserController):
     def __id__(self):
         return "ldi"
     
+    @property
+    def name(self):
+        return self._name
+    
     def add_laser(self, laser: Laser):
         self.lasers.append(laser)
 
-    def connect(self, serial_settings: SerialSettings):
-        self.serial_connection = utils.connect_to_serial_port(serial_settings=serial_settings)
+    def connect(self):
+        self.serial_connection = utils.connect_to_serial_port(serial_settings=self.settings.serial_settings)
 
     def disconnect(self):
         if self.serial_connection is None: return

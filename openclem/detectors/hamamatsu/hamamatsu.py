@@ -3,11 +3,12 @@ import logging
 from openclem import utils
 from openclem.detector import Detector
 from openclem.detectors.hamamatsu.dcam.dcam import *
-from openclem.structures import ImageSettings, SerialSettings
+from openclem.structures import ImageSettings, DetectorSettings
 
 
 class HamamatsuOrcaFlash4(Detector):
-    def __init__(self):
+    def __init__(self, detector_settings: DetectorSettings):
+        self.settings = detector_settings
         self.name = "Hamamatsu Detector"
         self.serial_connection = None
         self.camera = None
@@ -17,8 +18,9 @@ class HamamatsuOrcaFlash4(Detector):
     def __id__(self):
         return "hamamatsu"
 
-    def connect(self, serial_settings: SerialSettings) -> None:
+    def connect(self) -> None:
         try:
+            serial_settings = self.settings.serial_settings
             logging.info("Connecting to Hamamatsu detector on port: %s", serial_settings.port)
             self.serial_connection = utils.connect_to_serial_port(
                 serial_settings=serial_settings

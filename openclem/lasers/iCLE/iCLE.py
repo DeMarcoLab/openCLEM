@@ -38,4 +38,6 @@ class iCLE(LaserController):
         print('Disable')
 
 class iCLELaser(Laser):
-    pass
+    @classmethod
+    def __id__(self):
+        return "iCLElaser"

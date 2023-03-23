@@ -89,6 +89,7 @@ class LaserControllerSettings:
 
     name: str
     serial_settings: SerialSettings
+    laser_type: str
 
     @staticmethod
     def __from_dict__(settings: dict) -> "LaserControllerSettings":
@@ -96,6 +97,7 @@ class LaserControllerSettings:
         laser_controller_settings = LaserControllerSettings(
             name=settings["name"],
             serial_settings=SerialSettings.__from_dict__(settings["serial"]),
+            laser_type=settings["laser_type"],
         )
         return laser_controller_settings
 
@@ -104,6 +106,7 @@ class LaserControllerSettings:
         return {
             "name": self.name,
             "serial_settings": SerialSettings.__to_dict__(self.serial_settings),
+            "laser_type": self.laser_type,
         }
 
 @dataclass
@@ -111,6 +114,7 @@ class DetectorSettings:
     """Detector settings"""
 
     name: str
+    serial_settings: SerialSettings
     pixel_size: float
     resolution: list[int]
 
@@ -119,6 +123,7 @@ class DetectorSettings:
         
         detector_settings = DetectorSettings(
             name=settings["name"],
+            serial_settings=SerialSettings.__from_dict__(settings["serial"]),
             pixel_size=settings["pixel_size"],
             resolution=settings["resolution"],
         )
@@ -128,6 +133,7 @@ class DetectorSettings:
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
+            "serial_settings": SerialSettings.__to_dict__(self.serial_settings),
             "pixel_size": self.pixel_size,
             "resolution": self.resolution,
         }

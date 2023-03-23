@@ -4,6 +4,7 @@ microscope:
 
   laser_controller: 
     name: ldi
+    laser_type: ldilaser
     serial:
       serial_port: COM8
       baudrate: 9600
@@ -24,8 +25,8 @@ microscope:
         enabled: False
         colour: [0, 0, 0] 
       - name: 'laser_3'
-        serial_id: '550'
-        wavelength: 550.
+        serial_id: '555'
+        wavelength: 555.
         power: 0.
         exposure_time: 1.
         enabled: False

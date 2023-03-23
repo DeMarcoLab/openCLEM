@@ -1,9 +1,14 @@
 from abc import ABC, abstractmethod
-from openclem.structures import ImageSettings
+from openclem.structures import ImageSettings, DetectorSettings
 import numpy as np
 
 
 class Detector(ABC):
+
+    def __init__(self, detector_settings: DetectorSettings):
+        self.settings = detector_settings
+        self.camera = None
+        self.serial_connection = None
 
     @classmethod
     @abstractmethod

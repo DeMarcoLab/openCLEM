@@ -11,7 +11,7 @@ import yaml
 
 import openclem
 from openclem.detector import Detector
-from openclem.laser import LaserController
+from openclem.laser import LaserController, Laser
 from openclem.structures import SerialSettings, MicroscopeSettings
 
 IGNORED_MODULES = ["__init__", "template"]
@@ -99,21 +99,27 @@ def get_subclass(cls, path: str) -> list:
 
 
 def get_subclasses():
-    lasers = get_subclass(cls=LaserController, path="lasers")
+    laser_controllers = get_subclass(cls=LaserController, path="lasers")
+    lasers = get_subclass(cls=Laser, path="lasers")
     detectors = get_subclass(cls=Detector, path="detectors")
-    return lasers, detectors
+    return laser_controllers, detectors, lasers
 
 
-def get_hardware_from_config(microscope_settings: MicroscopeSettings):
-    available_lasers, available_detectors = get_subclasses()
+def get_hardware_from_config(microscope_settings: MicroscopeSettings) -> tuple[LaserController, Laser, Detector]:
+    available_laser_controllers, available_detectors, avialable_lasers = get_subclasses()
     laser_controller_name = microscope_settings.laser_controller.name
     detector_name = microscope_settings.detector.name
+    laser_name = microscope_settings.laser_controller.laser_type
     # these are factory methods, improve implementation
-    for subclass in available_lasers:
+    for subclass in available_laser_controllers:
         if laser_controller_name == subclass.__id__():
-            laser_controller = subclass()
+            laser_controller = subclass
     for subclass in available_detectors:
         if detector_name == subclass.__id__():
-            detector = subclass()
+            detector = subclass
+    for subclass in avialable_lasers:
+        if laser_name == subclass.__id__():
+            laser = subclass
+    
 
-    return laser_controller, detector
+    return laser_controller, laser, detector

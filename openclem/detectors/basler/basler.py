@@ -4,12 +4,13 @@ from pypylon import pylon
 
 from openclem import utils
 from openclem.detector import Detector
-from openclem.structures import ImageSettings, SerialSettings #, ExposureMode
+from openclem.structures import ImageSettings, DetectorSettings #, ExposureMode
 import numpy as np
 
 
 class BasleracA1920_155um(Detector):
-    def __init__(self):
+    def __init__(self, detector_settings: DetectorSettings):
+        self.settings = detector_settings
         self.name = "Basler Detector"
         self.serial_connection = None
         self.camera = None
@@ -19,8 +20,9 @@ class BasleracA1920_155um(Detector):
     def __id__(self):
         return "basler"
     
-    def connect(self, serial_settings: SerialSettings) -> None:
+    def connect(self) -> None:
         try:
+            serial_settings = self.settings.serial_settings
             logging.info("Connecting to Basler detector on port: %s", serial_settings.port)
             self.serial_connection = utils.connect_to_serial_port(
                 serial_settings=serial_settings

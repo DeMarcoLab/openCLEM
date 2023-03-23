@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from openclem.structures import SerialSettings
+from openclem.structures import LaserControllerSettings
                                 
 class Laser(ABC):
     
@@ -47,15 +47,31 @@ class Laser(ABC):
         
 
 class LaserController(ABC):
-    def __init__(self):
+    def __init__(self, laser_controller_settings: LaserControllerSettings):
+        self.settings = laser_controller_settings
         self.lasers = []
         self.serial_connection = None
 
+    @classmethod
     @abstractmethod
-    def connect(self, serial_settings: SerialSettings) -> None:
+    def __id__(self):
+        """the string by which you will import from config"""
+        pass
+    
+    @abstractmethod
+    def connect(self) -> None:
         pass
 
     @abstractmethod
     def disconnect(self) -> None:
+        pass
+
+    @abstractmethod
+    def add_laser(self, laser: Laser) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
         pass
 
