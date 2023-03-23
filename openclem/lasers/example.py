@@ -1,5 +1,6 @@
 from openclem.lasers.ldi import LdiLaserController
 from openclem.structures import SerialSettings
+import time
 
 serial_settings = SerialSettings(serial_port='COM8', 
                                  baudrate=9600, 

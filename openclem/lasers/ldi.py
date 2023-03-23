@@ -59,6 +59,41 @@ class LdiLaser(Laser):
     def wavelength(self, value: float):
         self._wavelength = float(value)
 
+    def emission_on(self):
+        if self.parent.serial_connection is None: return
+        self.parent.close_shutters()
+        self.enable()
+        command = (f"RUN!\r")
+        response = utils.write_serial_command(self.parent.serial_connection, command)
+        if self.check_response(response):
+            print(f"Emission on for {self.name}")
+        else:
+            raise ValueError(f"Error turning on emission for {self.name}")
+
+    def emission_off(self):
+        if self.parent.serial_connection is None: return
+        self.disable()
+
+    def enable(self):
+        if self.parent.serial_connection is None: return
+        command = (f"SHUTTER:{self.serial_id}=OPEN\r")
+        response = utils.write_serial_command(self.parent.serial_connection, command)
+        if self.check_response(response):
+            self._shutter_open = True
+            print(f"Shutter open for {self.name}")
+        else:
+            raise ValueError(f"Error opening shutter for {self.name}")
+
+    def disable(self):
+        if self.parent.serial_connection is None: return
+        command = (f"SHUTTER:{self.serial_id}=CLOSED\r")
+        response = utils.write_serial_command(self.parent.serial_connection, command)
+        if self.check_response(response):
+            self._shutter_open = False
+            print(f"Shutter closed for {self.name}")
+        else:
+            raise ValueError(f"Error opening shutter for {self.name}")
+
     def decode_power(self, response: str):
         response = response.decode('utf-8')
         start = response.find(self.serial_id) + len(self.serial_id) + 1
@@ -66,19 +101,8 @@ class LdiLaser(Laser):
         return float(response[start:end])
     
     def check_response(self, response):
-        return response == b'ok\n'
+        return response == b'ok\n' or response == b'ok\r' or response == b'ok\r\n'
 
-    def emission_on(self):
-        print('Emission on')
-
-    def emission_off(self):
-        print('Emission off')
-
-    def enable(self):
-        print('Enable')
-
-    def disable(self):
-        print('Disable')
 
 class LdiLaserController(LaserController):
     def __init__(self):
@@ -100,3 +124,12 @@ class LdiLaserController(LaserController):
         if self.serial_connection is None: return
         self.serial_connection.close()
         self.serial_connection = None
+
+    # TODO: determine whether there is a salient difference between idling/shutter closing
+    def close_emission(self):
+        for laser in self.lasers:
+            laser.emission_off()
+
+    def close_shutters(self):
+        for laser in self.lasers:
+            laser.disable()
