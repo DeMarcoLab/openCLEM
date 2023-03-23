@@ -49,7 +49,7 @@ class Laser(ABC):
 class LaserController(ABC):
     def __init__(self, laser_controller_settings: LaserControllerSettings):
         self.settings = laser_controller_settings
-        self.lasers = []
+        self.lasers = {}
         self.serial_connection = None
 
     @classmethod
@@ -75,3 +75,15 @@ class LaserController(ABC):
     def name(self) -> str:
         pass
 
+    @abstractmethod
+    def get_laser(self, name: str) -> Laser:
+        pass
+
+    @abstractmethod
+    def set_power(self, name: str, value: float) -> None:
+        pass
+
+    @abstractmethod
+    def get_power(self, name: str) -> float:
+        pass
+    

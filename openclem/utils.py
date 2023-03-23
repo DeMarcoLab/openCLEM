@@ -105,21 +105,21 @@ def get_subclasses():
     return laser_controllers, detectors, lasers
 
 
-def get_hardware_from_config(microscope_settings: MicroscopeSettings) -> tuple[LaserController, Laser, Detector]:
-    available_laser_controllers, available_detectors, avialable_lasers = get_subclasses()
+def get_hardware_from_config(microscope_settings: MicroscopeSettings) -> tuple[LaserController, Detector]:
+    available_laser_controllers, available_detectors, available_lasers = get_subclasses()
     laser_controller_name = microscope_settings.laser_controller.name
     detector_name = microscope_settings.detector.name
     laser_name = microscope_settings.laser_controller.laser_type
     # these are factory methods, improve implementation
     for subclass in available_laser_controllers:
         if laser_controller_name == subclass.__id__():
-            laser_controller = subclass
+            laser_controller = subclass(microscope_settings.laser_controller)
     for subclass in available_detectors:
         if detector_name == subclass.__id__():
-            detector = subclass
-    for subclass in avialable_lasers:
+            detector = subclass(microscope_settings.detector)
+    for subclass in available_lasers:
         if laser_name == subclass.__id__():
-            laser = subclass
-    
+            for laser in microscope_settings.lasers:
+                laser_controller.add_laser(subclass(laser_settings=laser, parent=laser_controller))
 
-    return laser_controller, laser, detector
+    return laser_controller, detector

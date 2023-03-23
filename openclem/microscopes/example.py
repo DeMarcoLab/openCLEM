@@ -8,7 +8,6 @@ from openclem.detector import Detector
 from openclem.laser import Laser, LaserController
 from openclem.lasers.ldi.ldi import LdiLaser, LdiLaserController
 from openclem.structures import LaserSettings, MicroscopeSettings, SerialSettings
-from pprint import pprint
 
 openclem_path = openclem.__path__[0]
 
@@ -24,22 +23,25 @@ if __name__ == "__main__":
     laser_controller_name = microscope_settings.laser_controller.name
     detector_name = microscope_settings.detector.name
 
-    laser_controller, laser, detector = utils.get_hardware_from_config(
+    laser_controller, detector = utils.get_hardware_from_config(
         microscope_settings=microscope_settings
     )
 
-    # initialise classes (this is to allow laser to be passed a parent)
-    laser_controller = laser_controller(microscope_settings.laser_controller)
+    print(laser_controller.lasers)
+
     laser_controller.connect()
-    detector = detector()
+    laser_controller.set_power("laser_2", 1)
+    print(laser_controller.get_power("laser_2"))
+    laser_controller.lasers["laser_2"].emission_on()
+    time.sleep(1)
+    laser_controller.lasers["laser_2"].emission_off()
 
-    for laser_ in microscope_settings.lasers:
-        laser_controller.add_laser(laser(laser_settings=laser_, parent=laser_controller))
+    laser_controller.set_power("laser_2", 5)
+    print(laser_controller.get_power("laser_2"))
+    laser_controller.lasers["laser_2"].emission_on()
+    time.sleep(1)
+    laser_controller.lasers["laser_2"].emission_off()
 
-    print(f"laser_controller: {laser_controller}")
-    print(f"laser_controller.lasers: {laser_controller.lasers}")
-    print(f"laser: {laser}")
-    print(f"detector: {detector}")
 
 
 # for laser in system_config.get("lasers"):
