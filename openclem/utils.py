@@ -2,12 +2,13 @@ import serial
 import serial.tools.list_ports
 from openclem.structures import SerialSettings
 
-def write_serial_command(serial_port, command):
+def write_serial_command(serial_port: serial.Serial, command):
     serial_port.close()
     serial_port.open()
-    bytelength = serial_port.write(bytes(command, 'utf-8'))
+    serial_port.write(bytes(command, 'utf-8'))
+    response = serial_port.read_until(expected=b'\r')
     serial_port.close()
-    return bytelength
+    return response
 
 def get_available_ports():
     ports = serial.tools.list_ports.comports()

@@ -1,9 +1,33 @@
 from abc import ABC, abstractmethod
-from openclem.structures import Laser, SerialSettings
+from openclem.structures import SerialSettings
+                                
+class Laser(ABC):
+    
+    @property
+    @abstractmethod
+    def power(self) -> float:
+        pass
+
+    @power.setter
+    @abstractmethod
+    def power(self, value: float) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def wavelength(self) -> float:
+        pass
+
+    @wavelength.setter
+    @abstractmethod
+    def wavelength(self, value: float) -> None:
+        pass
+
 
 class LaserController(ABC):
     def __init__(self):
-        self.lasers = [Laser]
+        self.lasers = []
+        self.serial_connection = None
 
     @abstractmethod
     def connect(self, serial_settings: SerialSettings) -> None:
@@ -11,16 +35,6 @@ class LaserController(ABC):
 
     @abstractmethod
     def disconnect(self) -> None:
-        pass
-
-    @property
-    @abstractmethod
-    def power(self, laser: Laser) -> float:
-        pass
-
-    @property
-    @abstractmethod
-    def wavelength(self, laser: Laser) -> float:
         pass
 
     @abstractmethod
@@ -38,4 +52,4 @@ class LaserController(ABC):
     @abstractmethod
     def disable(self, laser: Laser) -> None:
         pass
-                                        
+        

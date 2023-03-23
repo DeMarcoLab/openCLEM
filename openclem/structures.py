@@ -42,15 +42,15 @@ class SerialSettings:
         )
 
     @staticmethod
-    def __to_dict__(settings: "SerialSettings") -> dict:
+    def __to_dict__(self) -> dict:
         return {
-            "serial_port": settings.serial_port,
-            "baudrate": settings.baudrate,
-            "timeout": settings.timeout,
+            "serial_port": self.serial_port,
+            "baudrate": self.baudrate,
+            "timeout": self.timeout,
         }
 
 @dataclass
-class Laser:
+class LaserSettings:
     name: str
     serial_id: str
     wavelength: float
@@ -60,9 +60,9 @@ class Laser:
     colour: list
 
     @staticmethod
-    def __from_dict__(settings: dict) -> "Laser":
+    def __from_dict__(settings: dict) -> "LaserSettings":
 
-        laser = Laser(
+        laser_settings = LaserSettings(
             name=settings["name"],
             serial_id=settings["ID"],
             wavelength=settings["wavelength"],
@@ -76,18 +76,18 @@ class Laser:
             lineEdit=None,
             volumeCheckBox=None,
         )
-        return laser
+        return laser_settings
 
     @staticmethod
-    def __to_dict__(settings: "Laser") -> dict:
+    def __to_dict__(self) -> dict:
         return {
-            "name": settings.name,
-            "ID": settings.serial_id,
-            "wavelength": settings.wavelength,
-            "power": settings.power,
-            "exposure_time": settings.exposure_time,
-            "pin": settings.pin,
-            "volume_enabled": settings.volume_enabled,
-            "colour": settings.colour,
+            "name": self.name,
+            "ID": self.serial_id,
+            "wavelength": self.wavelength,
+            "power": self.power,
+            "exposure_time": self.exposure_time,
+            "pin": self.pin,
+            "volume_enabled": self.volume_enabled,
+            "colour": self.colour,
         }
     
