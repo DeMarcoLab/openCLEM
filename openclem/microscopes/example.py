@@ -24,29 +24,23 @@ if __name__ == "__main__":
         microscope_settings=microscope_settings
     )
 
-    # print(laser_controller.lasers)
-
     # laser_controller.connect()
-    # laser_controller.set_power("laser_2", -1)
-    # print(laser_controller.get_power("laser_2"))
+    # laser_controller.set_power("laser_2", 2)
     # laser_controller.lasers["laser_2"].emission_on()
-    # time.sleep(1)
-    # laser_controller.lasers["laser_2"].emission_off()
-
-    # laser_controller.set_power("laser_2", 3)
-    # print(laser_controller.get_power("laser_2"))
-    # laser_controller.lasers["laser_2"].emission_on()
-    # time.sleep(1)
+    # time.sleep(2)
     # laser_controller.lasers["laser_2"].emission_off()
 
     image_settings = ImageSettings(pixel_size=6.5e-6, exposure=0.1, 
-                                   image_format="tiff")
+                                   image_format="tiff", 
+                                   exposure_mode="edge",
+                                   trigger_source="external",
+                                   trigger_edge="rising", 
+                                   n_images=1,
+                                   timeout=10000)
 
-
-    detector.connect()
+    # detector.connect()
     detector.init_camera()
     detector.open_camera()
-    image = detector.grab_image(image_settings=image_settings)
+    images = detector.grab_image(image_settings=image_settings)
 
-    print(image)
-    # print(detector)
+    print(images[0])

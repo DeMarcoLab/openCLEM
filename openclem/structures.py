@@ -23,7 +23,38 @@ class ImageSettings:
     pixel_size: float = 0.0
     exposure: float = 0.0
     image_format: str = "tiff"
+    trigger_source: str = "software"
+    trigger_edge: str = "rising"
+    exposure_mode: str = "level"
+    timeout: int = 1000 # ms
+    n_images: int = 1
 
+    @staticmethod
+    def __from_dict__(settings: dict) -> "ImageSettings":
+        return ImageSettings(
+            pixel_size=settings["pixel_size"],
+            exposure=settings["exposure"],
+            image_format=settings["image_format"],
+            trigger_source=settings["trigger_source"],
+            trigger_edge=settings["trigger_edge"],
+            exposure_mode=settings["exposure_mode"],
+            timeout=settings["timeout"],
+            n_images=settings["n_images"],
+        )
+    
+    @staticmethod
+    def __to_dict__(self) -> dict:
+        return {
+            "pixel_size": self.pixel_size,
+            "exposure": self.exposure,
+            "image_format": self.image_format,
+            "trigger_source": self.trigger_source,
+            "trigger_edge": self.trigger_edge,
+            "exposure_mode": self.exposure_mode,
+            "timeout": self.timeout,
+            "n_images": self.n_images,
+        }
+    
 
 @dataclass
 class SerialSettings:

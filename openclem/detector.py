@@ -39,6 +39,19 @@ class Detector(ABC):
     @property
     @abstractmethod
     def exposure_mode(self):
+        """Trigger or level"""
+        pass
+
+    @property
+    @abstractmethod
+    def trigger_edge(self):
+        """Rising or Falling"""
+        pass
+
+    @property
+    @abstractmethod
+    def trigger_source(self):
+        """Internal, External, Software"""
         pass
 
     @property
