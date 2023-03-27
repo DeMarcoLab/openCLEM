@@ -2,18 +2,25 @@ from dataclasses import dataclass
 from enum import Enum
 
 
-# class TriggerEdge(Enum):
-#     """Trigger edge"""
+class TriggerEdge(Enum):
+    """Trigger edge"""
 
-#     RISING = 1
-#     FALLING = 2
+    RISING = 1
+    FALLING = 2
 
 
-# class ExposureMode(Enum):
-#     """Exposure mode"""
+class ExposureMode(Enum):
+    """Exposure mode"""
 
-#     TIMED = 1
-#     TRIGGER_WIDTH = 2
+    TIMED = 1
+    TRIGGER_WIDTH = 2
+
+class TriggerSource(Enum):
+    """Trigger source"""
+
+    SOFTWARE = 1
+    EXTERNAL = 2
+    INTERNAL = 3
 
 
 @dataclass
@@ -23,6 +30,7 @@ class ImageSettings:
     pixel_size: float = 0.0
     exposure: float = 0.0
     image_format: str = "tiff"
+    
     trigger_source: str = "software"
     trigger_edge: str = "rising"
     exposure_mode: str = "level"
