@@ -124,3 +124,24 @@ def get_hardware_from_config(microscope_settings: MicroscopeSettings) -> tuple[L
                 laser_controller.add_laser(subclass(laser_settings=laser, parent=laser_controller))
 
     return laser_controller, detector
+
+import sys
+
+# TODO: better logs: https://www.toptal.com/python/in-depth-python-logging
+# https://stackoverflow.com/questions/61483056/save-logging-debug-and-show-only-logging-info-python
+def configure_logging(path: Path = "", log_filename="logfile", log_level=logging.DEBUG):
+    """Log to the terminal and to file simultaneously."""
+    logfile = os.path.join(path, f"{log_filename}.log")
+
+    file_handler = logging.FileHandler(logfile)
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setLevel(logging.INFO)
+
+    logging.basicConfig(
+        format="%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s",
+        level=log_level,
+        handlers=[file_handler, stream_handler],
+        force=True,
+    )
+
+    return logfile
