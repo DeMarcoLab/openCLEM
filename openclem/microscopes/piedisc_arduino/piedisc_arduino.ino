@@ -15,21 +15,20 @@ const int LASER_561 = 17;
 const int LASER_488 = 5;
 const int LASER_405 = 12;
 
-//const int LASER_640_INTERRUPT = 18;
-//const int LASER_561_INTERRUPT = 19;
-//const int LASER_488_INTERRUPT = 20;
-//const int LASER_405_INTERRUPT = 21;
-
 int LASERS[] = {LASER_640, LASER_561, LASER_488, LASER_405};
 long int exposure_405;
 long int exposure_488;
 long int exposure_561;
 long int exposure_640;
 
+// Counts used to do volume imaging
+short int count = 0;
+short int count_ = 0;
+
 // Serial communication variables
 int N = 0;
 String input = "";
-String numbers[12];
+String numbers[16];
 String temp = "";
 
 void setup() {
@@ -75,25 +74,25 @@ void TakeImage(){
 
 // reading serial from the PC
 void loop() {
+  // Wait for Serial
   while (Serial.available()) {
     delay(2);
+    // Read Serial
     if (Serial.available() > 0) {
       char c = Serial.read();
       input += c;
     }
   }
+
+  // If we recieve a message from computer to image (Starts with E)
   if (input.length() > 0 && input[0] == 'E') {
+    // Start with first number
     N = 0;
-    // print incoming serial comm
-    // Serial.print("Received ");
-    // Serial.println(input);
 
     // go through each character
     for (int ii = 2; ii <= input.length(); ++ii) {
       // if the char is a digit, append it to an array
-      if (isdigit(input[ii]) ) {
-        temp += input[ii];
-      }
+      if (isdigit(input[ii]) ) temp += input[ii];
 
       //this 0 is not an integer, is null string
       else if (input[ii] == ' ' || input[ii] == 0) {
@@ -102,25 +101,39 @@ void loop() {
         if (input[ii] == ' ') N++;
       }
     }
-    N++;
 
+    // Read out numbers from input string
+    count = stringToInt(numbers[4]);
     exposure_405 = stringToInt(numbers[3]);
     exposure_488 = stringToInt(numbers[2]);
     exposure_561 = stringToInt(numbers[1]);
     exposure_640 = stringToInt(numbers[0]);
+
+    // Clear numbers array
     for (int jj = 0; jj < N; jj++)
       numbers[jj] = "";
 
+    // Single Image
     if (input[1] == 'S'){
-      Serial.println('s');
-      TakeImage();}
+        TakeImage();
+      }
+    // Live Image
     if (input[1] == 'L'){
       while (!Serial.available()){
         TakeImage();
-        }
       }
     }
+    //Volume Image
+    count_ = 0;
+    if (input[1] == 'V'){
+      while (count_ < count){
+        TakeImage();
+        count_++;
+      }
+    }      
+  }
 
+  // Clear input and serial
   input = "";
   Serial.flush();
 }
