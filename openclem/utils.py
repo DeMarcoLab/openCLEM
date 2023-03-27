@@ -99,6 +99,7 @@ def get_subclass(cls, path: str) -> list:
 
 
 def get_subclasses():
+    # get availablable hardware
     laser_controllers = get_subclass(cls=LaserController, path="lasers")
     lasers = get_subclass(cls=Laser, path="lasers")
     detectors = get_subclass(cls=Detector, path="detectors")

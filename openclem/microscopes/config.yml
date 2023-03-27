@@ -40,7 +40,7 @@ microscope:
         colour: [0, 0, 0]
         
   detector: 
-    name: hamamatsu
+    name: demo
     pixel_size: 6.5e-6
     resolution: [2048, 2048]
     serial: null
