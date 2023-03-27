@@ -19,12 +19,12 @@ openclem_path = openclem.__path__[0]
 BASENAME = os.path.basename(openclem_path)
 
 
-def write_serial_command(serial_port: serial.Serial, command):
-    serial_port.close()
-    serial_port.open()
-    serial_port.write(bytes(command, "utf-8"))
-    response = serial_port.read_until(expected=b"\r")
-    serial_port.close()
+def write_serial_command(port: serial.Serial, command):
+    port.close()
+    port.open()
+    port.write(bytes(command, "utf-8"))
+    response = port.read_until(expected=b"\r")
+    port.close()
     return response
 
 
@@ -39,7 +39,7 @@ def get_port_names(ports):
 
 
 def connect_to_serial_port(serial_settings: SerialSettings):
-    port_name = serial_settings.serial_port
+    port_name = serial_settings.port
     baudrate = serial_settings.baudrate
     timeout = serial_settings.timeout
 

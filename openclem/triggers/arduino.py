@@ -6,8 +6,8 @@ DEFAULT_SERIAL_PORT = 'COM7'  # default laser serial communication port
 
 class Arduino:
     """Arduino Class"""
-    def __init__(self, serial_port=DEFAULT_SERIAL_PORT):
-        self.SERIAL_PORT = serial_port
+    def __init__(self, port=DEFAULT_SERIAL_PORT):
+        self.SERIAL_PORT = port
         self.connection = connect_serial_port(self.SERIAL_PORT)
 
     def _write_serial_command(self, command):

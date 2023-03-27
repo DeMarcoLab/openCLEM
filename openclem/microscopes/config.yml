@@ -6,7 +6,7 @@ microscope:
     name: ldi
     laser_type: ldilaser
     serial:
-      serial_port: COM8
+      port: COM8
       baudrate: 9600
       timeout: 1
     lasers:

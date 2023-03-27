@@ -60,7 +60,7 @@ class ImageSettings:
 class SerialSettings:
     """Serial settings"""
 
-    serial_port: str = None
+    port: str = None
     baudrate: int = 9600
     timeout: float = 0.1
 
@@ -70,7 +70,7 @@ class SerialSettings:
         if settings is None:
             return None
         return SerialSettings(
-            serial_port=settings["serial_port"],
+            port=settings["port"],
             baudrate=settings["baudrate"],
             timeout=settings["timeout"],
         )
@@ -78,7 +78,7 @@ class SerialSettings:
     @staticmethod
     def __to_dict__(self) -> dict:
         return {
-            "serial_port": self.serial_port,
+            "port": self.port,
             "baudrate": self.baudrate,
             "timeout": self.timeout,
         }
