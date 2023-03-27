@@ -39,7 +39,7 @@ class HamamatsuOrcaFlash4(Detector):
             logging.error(e)
 
     def disconnect(self) -> None:
-        if self.serial_port is not None:
+        if self.port is not None:
             try:
                 logging.info("Disconnecting from Hamamatsu detector")
                 Dcamapi.uninit()

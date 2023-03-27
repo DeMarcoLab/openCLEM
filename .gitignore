@@ -84,3 +84,6 @@ docs/_build/
 # PyBuilder
 target/
 *.tif*
+
+# openclem
+openclem/_version.py
