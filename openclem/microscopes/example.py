@@ -7,9 +7,12 @@ from openclem import utils
 from openclem.structures import MicroscopeSettings, ImageSettings
 
 openclem_path = openclem.__path__[0]
+import logging
 
+def main():
 
-if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+    
     config_path = os.path.join(openclem_path, "microscopes/config.yml")
 
     system_config = utils.load_yaml(config_path)
@@ -24,19 +27,16 @@ if __name__ == "__main__":
         microscope_settings=microscope_settings
     )
 
-    # laser_controller.connect()
-    # laser_controller.set_power("laser_2", 2)
-    # laser_controller.lasers["laser_2"].emission_on()
-    # time.sleep(2)
-    # laser_controller.lasers["laser_2"].emission_off()
+    laser_controller.connect()
+    laser_controller.set_power("laser_2", 2)
+    laser_controller.lasers["laser_2"].emission_on()
+    time.sleep(2)
+    laser_controller.lasers["laser_2"].emission_off()
 
     image_settings = ImageSettings(pixel_size=6.5e-6, exposure=0.1, 
                                    image_format="tiff", 
-                                   exposure_mode="edge",
-                                   trigger_source="external",
-                                   trigger_edge="rising", 
                                    n_images=1,
-                                   timeout=10000)
+                                   )
 
     # detector.connect()
     detector.init_camera()
@@ -44,3 +44,7 @@ if __name__ == "__main__":
     images = detector.grab_image(image_settings=image_settings)
 
     print(images[0])
+
+
+if __name__ == "__main__":
+    main()

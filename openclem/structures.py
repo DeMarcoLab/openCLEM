@@ -22,8 +22,6 @@ class ExposureMode(Enum):
     TRIGGER_WIDTH = 2
 
 
-
-
 @dataclass
 class ImageSettings:
     """Image settings"""
@@ -160,9 +158,9 @@ class DetectorSettings:
             serial_settings=SerialSettings.__from_dict__(settings["serial"]),
             pixel_size=settings["pixel_size"],
             resolution=settings["resolution"],
-            trigger_source=TriggerSource(settings["trigger_source"]),
-            trigger_edge=TriggerEdge(settings["trigger_edge"]),
-            exposure_mode=ExposureMode(settings["exposure_mode"]),
+            trigger_source=TriggerSource[settings["trigger_source"]],
+            trigger_edge=TriggerEdge[settings["trigger_edge"]],
+            exposure_mode=ExposureMode[settings["exposure_mode"]],
             timeout=settings["timeout"],
         )
         return detector_settings

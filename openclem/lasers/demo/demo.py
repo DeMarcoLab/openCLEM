@@ -81,7 +81,7 @@ class DemoLaserController(LaserController):
 
     @classmethod
     def __id__(self):
-        return "demolasercontroller"
+        return "demo"
     
     @property
     def name(self):
