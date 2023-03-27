@@ -2,18 +2,18 @@ import os
 import time
 
 # get path of openclem
-import openclem
+
 from openclem import utils
 from openclem.structures import MicroscopeSettings, ImageSettings
+from openclem import config as cfg
 
-openclem_path = openclem.__path__[0]
 import logging
 
 def main():
 
-    logging.basicConfig(level=logging.DEBUG)
-    
-    config_path = os.path.join(openclem_path, "microscopes/config.yml")
+    utils.configure_logging(cfg.LOG_PATH)
+
+    config_path = os.path.join(cfg.BASE_PATH, "microscopes/config.yml")
 
     system_config = utils.load_yaml(config_path)
     microscope_settings = MicroscopeSettings.__from_dict__(
@@ -33,12 +33,14 @@ def main():
     time.sleep(2)
     laser_controller.lasers["laser_2"].emission_off()
 
-    image_settings = ImageSettings(pixel_size=6.5e-6, exposure=0.1, 
-                                   image_format="tiff", 
-                                   n_images=1,
-                                   )
+    image_settings = ImageSettings(
+        pixel_size=6.5e-6,
+        exposure=0.1,
+        image_format="tiff",
+        n_images=1,
+    )
 
-    # detector.connect()
+    detector.connect()
     detector.init_camera()
     detector.open_camera()
     images = detector.grab_image(image_settings=image_settings)
