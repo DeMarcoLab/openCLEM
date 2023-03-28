@@ -11,20 +11,27 @@ from openclem.detector import Detector
 from openclem.laser import LaserController, Laser
 from openclem import constants, utils
 
+from openclem.ui.CLEMDetectorWidget import CLEMDetectorWidget
+from openclem.ui.CLEMLaserWidget import CLEMLaserWidget
+
 class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
     def __init__(
         self,
         viewer: napari.Viewer = None,
+        det_widget: CLEMDetectorWidget = None,
+        laser_widget: CLEMLaserWidget = None,
         parent=None,
     ):
         super(CLEMImageWidget, self).__init__(parent=parent)
         self.setupUi(self)
 
         self.viewer = viewer
+        self.det_widget = det_widget
+        self.laser_widget = laser_widget
 
         self.setup_connections()
 
-        self.laser_controller, self.detector = utils.setup_hardware()
+        # self.laser_controller, self.detector = utils.setup_hardware()
 
     def setup_connections(self):
 
@@ -49,11 +56,19 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         image_settings = self.get_settings_from_ui()
 
-        print("acquire_image")
+        detector_settings = self.det_widget.get_detector_settings_from_ui()
+        detector = self.det_widget.detector
+
+        laser_settings = self.laser_widget.get_laser_settings_from_ui()
+        lc = self.laser_widget.lc
+
+        print(f"----------- acquire_image -----------")
+        print(f"image_settings: {image_settings}")
+        print(f"detector_settings: {detector_settings}")
+        print(f"laser_settings: {laser_settings}")
 
         # TODO: actual image acquisition
-
-        image = self.detector.grab_image(image_settings=image_settings)
+        image = detector.grab_image(image_settings=image_settings)
 
         self.update_viewer(image, "image")
 

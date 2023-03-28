@@ -67,3 +67,6 @@ class Detector(ABC):
     @abstractmethod
     def grab_image(self, image_settings: ImageSettings = None) -> np.ndarray:
         pass
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.settings})"

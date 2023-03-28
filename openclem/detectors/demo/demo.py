@@ -10,6 +10,7 @@ class DemoDetector(Detector):
         self.settings = detector_settings
         self.camera = None
         self.serial_connection = None
+        self.name = "Demo Detector"
 
         # ? why not just use the settings?
         # self.trigger_source = None

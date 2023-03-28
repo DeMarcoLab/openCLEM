@@ -148,13 +148,13 @@ def configure_logging(path: Path = "", log_filename="logfile", log_level=logging
 
 from openclem import config as cfg
 
-def setup_hardware():
+def setup_hardware(path: Path = None):
 
     configure_logging(cfg.LOG_PATH)
+    if path is None:
+        path = os.path.join(cfg.BASE_PATH, "microscopes/config.yml")
 
-    config_path = os.path.join(cfg.BASE_PATH, "microscopes/config.yml")
-
-    system_config = load_yaml(config_path)
+    system_config = load_yaml(path)
     microscope_settings = MicroscopeSettings.__from_dict__(
         system_config.get("microscope")
     )
