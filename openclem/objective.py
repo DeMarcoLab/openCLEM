@@ -1,11 +1,25 @@
 from abc import ABC, abstractmethod
 
 class Objective(ABC):
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
         self.position = 0
         self.saved_position = None
+        self.connection = None
+
+    @abstractmethod
+    def connect(self):
+        pass
     
+    @abstractmethod
+    def disconnect(self):
+        pass
+    
+
+    @abstractmethod
+    def initialise(self):
+        pass
+
     @property
     @abstractmethod
     def position(self) -> float:
