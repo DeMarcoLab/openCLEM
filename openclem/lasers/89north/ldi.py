@@ -26,11 +26,11 @@ class LdiLaser(Laser):
     @classmethod
     def __id__(self):
         return "ldilaser"
-    
+
     @property
     def name(self):
         return self._name
-    
+
     @name.setter
     def name(self, value):
         self._name = value
@@ -38,7 +38,7 @@ class LdiLaser(Laser):
     @property
     def serial_id(self):
         return self._serial_id
-    
+
     @serial_id.setter
     def serial_id(self, value):
         self._serial_id = value
@@ -50,7 +50,7 @@ class LdiLaser(Laser):
         response = utils.write_serial_command(self._parent.serial_connection, command)
         self._power = self.decode_power(response)
         return self._power
-    
+
     @power.setter
     def power(self, value):
         if self._parent.serial_connection is None: return
@@ -104,7 +104,7 @@ class LdiLaser(Laser):
         start = response.find(self.serial_id) + len(self.serial_id) + 1
         end = response.find(',', start)
         return float(response[start:end])
-    
+
     def check_response(self, response):
         return response == b'ok\n' or response == b'ok\r' or response == b'ok\r\n'
 
@@ -112,18 +112,18 @@ class LdiLaserController(LaserController):
     def __init__(self, laser_controller_settings: LaserControllerSettings):
         self.settings = laser_controller_settings
         self._name = self.settings.name
-        self._laser_type = self.settings.laser_type
+        self._laser = self.settings.laser
         self.serial_connection = None
         self.lasers = {}
 
     @classmethod
     def __id__(self):
         return "ldi"
-    
+
     @property
     def name(self):
         return self._name
-    
+
     def add_laser(self, laser: Laser):
         self.lasers[laser.name] = laser
 
@@ -143,7 +143,7 @@ class LdiLaserController(LaserController):
 
     def get_power(self, name: str) -> float:
         return self.lasers[name].power
-    
+
     # TODO: determine whether there is a salient difference between idling/shutter closing
     def close_emission(self):
         for laser in self.lasers.values():

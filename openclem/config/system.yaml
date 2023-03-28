@@ -1,0 +1,50 @@
+# TODO: move individual configs to their own folders
+name: piedisc
+
+laser_controller:
+  name: Toptica_iCLE
+  serial:
+    port: COM8
+    baudrate: 9600
+    timeout: 1
+  laser: Toptica_iCLE_Laser
+
+detector:
+  name: hamamatsuOrcaFlash4
+  pixel_size: 6.5e-6
+  resolution: [2048, 2048]
+  serial: null
+  trigger_source: SOFTWARE
+  trigger_edge: RISING
+  exposure_mode: TRIGGER_WIDTH
+  timeout: 1000 # ms
+
+lasers:
+- name: 'laser_1'
+  serial_id: '405'
+  wavelength: 405.
+  power: 0.
+  exposure_time: 1.
+  enabled: False
+  colour: [0, 0, 0]
+- name: 'laser_2'
+  serial_id: '488'
+  wavelength: 488.
+  power: 0.
+  exposure_time: 1.
+  enabled: False
+  colour: [0, 0, 0]
+- name: 'laser_3'
+  serial_id: '555'
+  wavelength: 555.
+  power: 0.
+  exposure_time: 1.
+  enabled: False
+  colour: [0, 0, 0]
+- name: 'laser_4'
+  serial_id: '640'
+  wavelength: 640.
+  power: 0.
+  exposure_time: 1.
+  enabled: False
+  colour: [0, 0, 0]

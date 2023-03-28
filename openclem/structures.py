@@ -39,7 +39,7 @@ class ImageSettings:
             image_format=settings["image_format"],
             n_images=settings["n_images"],
         )
-    
+
     @staticmethod
     def __to_dict__(self) -> dict:
         return {
@@ -48,7 +48,7 @@ class ImageSettings:
             "image_format": self.image_format,
             "n_images": self.n_images,
         }
-    
+
 
 @dataclass
 class SerialSettings:
@@ -117,7 +117,7 @@ class LaserControllerSettings:
 
     name: str
     serial_settings: SerialSettings
-    laser_type: str
+    laser: str
 
     @staticmethod
     def __from_dict__(settings: dict) -> "LaserControllerSettings":
@@ -125,7 +125,7 @@ class LaserControllerSettings:
         laser_controller_settings = LaserControllerSettings(
             name=settings["name"],
             serial_settings=SerialSettings.__from_dict__(settings["serial"]),
-            laser_type=settings["laser_type"],
+            laser=settings["laser"],
         )
         return laser_controller_settings
 
@@ -134,7 +134,7 @@ class LaserControllerSettings:
         return {
             "name": self.name,
             "serial_settings": SerialSettings.__to_dict__(self.serial_settings),
-            "laser_type": self.laser_type,
+            "laser": self.laser,
         }
 
 @dataclass
@@ -152,7 +152,7 @@ class DetectorSettings:
 
     @staticmethod
     def __from_dict__(settings: dict) -> "DetectorSettings":
-        
+
         detector_settings = DetectorSettings(
             name=settings["name"],
             serial_settings=SerialSettings.__from_dict__(settings["serial"]),
@@ -164,7 +164,7 @@ class DetectorSettings:
             timeout=settings["timeout"],
         )
         return detector_settings
-    
+
     @staticmethod
     def __to_dict__(self) -> dict:
         return {
@@ -177,16 +177,16 @@ class DetectorSettings:
             "exposure_mode": self.exposure_mode.name,
             "timeout": self.timeout,
         }
-    
+
 
 @dataclass
 class MicroscopeSettings:
     """Microscope settings"""
 
     name: str
-    detector: DetectorSettings
-    laser_controller: LaserControllerSettings
     lasers: list[LaserSettings]
+    detector: DetectorSettings = None
+    laser_controller: LaserControllerSettings = None
 
     @staticmethod
     def __from_dict__(settings: dict) -> "MicroscopeSettings":
@@ -195,7 +195,7 @@ class MicroscopeSettings:
             name=settings["name"],
             detector=DetectorSettings.__from_dict__(settings["detector"]),
             laser_controller=LaserControllerSettings.__from_dict__(settings["laser_controller"]),
-            lasers=[LaserSettings.__from_dict__(laser) for laser in settings["laser_controller"]["lasers"]],
+            lasers=[LaserSettings.__from_dict__(laser) for laser in settings["lasers"]],
         )
         return microscope_settings
 

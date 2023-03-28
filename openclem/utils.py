@@ -7,13 +7,19 @@ from pathlib import Path
 import serial
 import serial.tools.list_ports
 import yaml
+import time
+import datetime
 
 from openclem.config import (
     AVAILABLE_DETECTORS,
     AVAILABLE_LASER_CONTROLLERS,
     AVAILABLE_LASERS,
 )
+from openclem.config import CONFIG_PATH, LOG_PATH
 from openclem.structures import MicroscopeSettings, SerialSettings
+from openclem.laser import Laser, LaserController
+from openclem.detector import Detector
+from openclem.microscope import LightMicroscope
 
 
 def write_serial_command(port: serial.Serial, command):
@@ -61,12 +67,52 @@ def load_yaml(fname: Path) -> dict:
     return config
 
 
-def import_hardware_modules(microscope_settings: MicroscopeSettings) -> None:
+def current_timestamp():
+    """Returns current time in a specific string format
+
+    Returns:
+        String: Current time
+    """
+    return datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d-%I-%M-%S%p")
+
+
+def setup_session(session_path: Path = None,
+                  config_path: Path = None,
+                  setup_logging: bool = True) -> tuple[LightMicroscope, MicroscopeSettings]:
+
+    settings = load_settings_from_config(config_path=config_path)
+
+    classes = import_hardware_modules(settings)
+
+
+    print(f'Classes: {classes}')
+
+    session = f'{settings.name}_{current_timestamp()}'
+
+        # configure paths
+    if session_path is None:
+        session_path = os.path.join(LOG_PATH, session)
+    os.makedirs(session_path, exist_ok=True)
+
+    # configure logging
+    if setup_logging:
+        configure_logging(path=session_path, log_level=logging.DEBUG)
+
+def load_settings_from_config(config_path: Path = None) -> MicroscopeSettings:
+    if config_path is None:
+        config_path = CONFIG_PATH
+
+    config = load_yaml(config_path)
+    microscope_settings = MicroscopeSettings.__from_dict__(config)
+    return microscope_settings
+
+
+def import_hardware_modules(microscope_settings: MicroscopeSettings) -> tuple[Laser, LaserController, Detector]:
     # structure is {hardware_type: [hardware_folder_name, hardware_name, availability_dict]}
     hardware_dict = {
         "laser": [
             "lasers",
-            microscope_settings.laser_controller.laser_type,
+            microscope_settings.laser_controller.laser,
             AVAILABLE_LASERS,
         ],
         "laser_controller": [
@@ -80,6 +126,8 @@ def import_hardware_modules(microscope_settings: MicroscopeSettings) -> None:
             AVAILABLE_DETECTORS,
         ],
     }
+
+    classes = []
 
     for hardware_type in hardware_dict:
         hardware_type_str = hardware_dict[hardware_type][0]
@@ -95,9 +143,11 @@ def import_hardware_modules(microscope_settings: MicroscopeSettings) -> None:
 
         module = importlib.import_module(module_name)
         cls = getattr(module, availablility_dict[hardware_name][1])
+        classes.append(cls)
         logging.info(f"imported {hardware_type} {cls}")
-        print(f"imported {hardware_type} {cls}")
+        print(os.path.dirname(module.__file__))
 
+    return classes
 
 # TODO: better logs: https://www.toptal.com/python/in-depth-python-logging
 # https://stackoverflow.com/questions/61483056/save-logging-debug-and-show-only-logging-info-python
