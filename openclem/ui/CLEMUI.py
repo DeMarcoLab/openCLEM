@@ -13,7 +13,10 @@ from openclem.ui.qt import CLEMUI
 from openclem.ui.CLEMLaserWidget import CLEMLaserWidget
 from openclem.ui.CLEMDetectorWidget import CLEMDetectorWidget
 from openclem.ui.CLEMImageWidget import CLEMImageWidget
+from openclem.ui.CLEMObjectiveWidget import CLEMObjectiveWidget
 
+
+from openclem.objectives.demo.demo import DemoObjective
 
 class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
     def __init__(
@@ -25,7 +28,7 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         self.setupUi(self)
 
         self.viewer = viewer
-        self.lc, self.detector = None, None
+        self.lc, self.detector, self.obj = None, None, None
         self.image_widget, self.detector_widget, self.laser_widget = None, None, None
         self._hardware_connected = False
 
@@ -46,17 +49,18 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         if self._hardware_connected:
             self.lc.disconnect()
             self.detector.disconnect()
-            self.lc, self.detector = None, None
+            self.lc, self.detector, self.obj = None, None, None
             logging.info("Disconnected from hardware")
             napari.utils.notifications.show_info("Disconnected from hardware")
         else:
             try:
                 self.lc, self.detector = utils.setup_hardware(path=config_filename)
+                self.obj = DemoObjective("demo")
                 logging.info("Connected to hardware")
                 napari.utils.notifications.show_info("Connected to hardware")
             except Exception as e:
-                self.lc = None
-                self.detector = None
+                self.lc, self.detector, self.obj = None, None, None
+                
                 logging.error(f"Error connecting to hardware: {e}")
                 napari.utils.notifications.show_error(
                     f"Error connecting to hardware: {e}"
@@ -77,7 +81,8 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
                 det_widget=self.detector_widget,
                 laser_widget=self.laser_widget,
             )
-            self.objective_widget = QtWidgets.QWidget() #CLEMObjectiveWidget()
+            self.objective_widget = CLEMObjectiveWidget(viewer=self.viewer, 
+                                                        objective=self.obj)
 
             self.tabWidget.addTab(self.image_widget, "Imaging")
             self.tabWidget.addTab(self.detector_widget, "Detector")
@@ -88,8 +93,11 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             self.pushButton_connect_hardware.setStyleSheet("background-color: green")
 
             self.label_hardware_status.setText(
-                f"""Detector: {self.detector.name}\nLaser Controller: {self.lc.name}\nLasers: {[laser for laser in self.lc.lasers]}\nObjective: Not Implemented
-            """
+                "" + 
+                f"Detector: {self.detector.name}" + 
+                f"\nLaser Controller: {self.lc.name}"+ 
+                f"\nLasers: {[laser for laser in self.lc.lasers]}" +
+                f"\nObjective: {self.obj.name}"
             )
 
         else:
