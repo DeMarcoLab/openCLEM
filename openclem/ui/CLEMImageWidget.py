@@ -24,11 +24,9 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         self.setup_connections()
 
-        self.laser_controller, self.detector = utils.setup_hardware(self)
-
+        self.laser_controller, self.detector = utils.setup_hardware()
 
     def setup_connections(self):
-        print("setup_connections")
 
         self.pushButton_acquire_image.clicked.connect(self.acquire_image)
         self.comboBox_imaging_format.addItems(["tiff", "png", "jpg", "zarr"])
@@ -55,9 +53,6 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         # TODO: actual image acquisition
 
-        self.detector.connect()
-        self.detector.init_camera()
-        self.detector.open_camera()
         image = self.detector.grab_image(image_settings=image_settings)
 
         self.update_viewer(image, "image")

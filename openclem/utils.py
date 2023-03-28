@@ -148,7 +148,7 @@ def configure_logging(path: Path = "", log_filename="logfile", log_level=logging
 
 from openclem import config as cfg
 
-def setup_hardware(self):
+def setup_hardware():
 
     configure_logging(cfg.LOG_PATH)
 
@@ -162,5 +162,9 @@ def setup_hardware(self):
     laser_controller, detector = get_hardware_from_config(
         microscope_settings=microscope_settings
     )
+
+    detector.connect()
+    detector.init_camera()
+    laser_controller.connect()
 
     return laser_controller, detector
