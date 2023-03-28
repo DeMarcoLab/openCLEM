@@ -1,7 +1,7 @@
 import os
 
-BASE_PATH = __file__
-BASE_PATH = os.path.dirname(BASE_PATH)
+CONFIG_PATH = __file__
+BASE_PATH = os.path.dirname(CONFIG_PATH)
 LOG_PATH = os.path.join(BASE_PATH, "log")
 
 os.makedirs(LOG_PATH, exist_ok=True)
@@ -9,8 +9,8 @@ os.makedirs(LOG_PATH, exist_ok=True)
 
 # structure is: {config_name: [folder_name.file_name, class_name]}
 AVAILABLE_LASERS = {"demo": ["demo.demo", "DemoLaser"],
-                    "89North_ldi_Laser": ["ldi.ldi", "LdiLaser"],
-                    "Toptica_iCLE_Laser": ["iCLE.iCLE", "iCLELaser"]}
+                    "89North_ldi_Laser": ["89north.ldi", "LdiLaser"],
+                    "Toptica_iCLE_Laser": ["toptica.iCLE", "iCLELaser"]}
 
 AVAILABLE_DETECTORS = {
     "demo": ["demo.demo", "DemoDetector"],
@@ -20,6 +20,6 @@ AVAILABLE_DETECTORS = {
 
 AVAILABLE_LASER_CONTROLLERS = {
     "demo": ["demo.demo", "DemoLaserController"],
-    "Toptica_iCLE": ["iCLE.iCLE", "iCLELaserController"],
-    "89North_ldi": ["ldi.ldi", "LdiLaserController"],
+    "Toptica_iCLE": ["toptica.iCLE", "iCLELaserController"],
+    "89North_ldi": ["89north.ldi", "LdiLaserController"],
 }
