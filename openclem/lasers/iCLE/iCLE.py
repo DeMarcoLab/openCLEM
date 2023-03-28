@@ -2,7 +2,7 @@ from openclem.laser import LaserController, Laser
 from openclem import utils
 import numpy as np
 
-class iCLE(LaserController):
+class iCLELaserController(LaserController):
     def __init__(self, wavelength):
         self._wavelength = wavelength
         self._power = 0.0
@@ -11,11 +11,11 @@ class iCLE(LaserController):
     @classmethod
     def __id__(self):
         return "iCLE"
-    
+
     @property
     def power(self):
         return self._power
-    
+
     @power.setter
     def power(self, value):
         value = np.clip(value, 0.0, 100.0)
@@ -27,7 +27,7 @@ class iCLE(LaserController):
 
     def emission_on(self):
         print('Emission on')
-        
+
     def emission_off(self):
         print('Emission off')
 
