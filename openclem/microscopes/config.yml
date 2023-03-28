@@ -3,8 +3,8 @@ microscope:
   name: piedisc
 
   laser_controller: 
-    name: ldi
-    laser_type: ldilaser
+    name: demo
+    laser_type: demolaser
     serial:
       port: COM8
       baudrate: 9600
@@ -44,3 +44,7 @@ microscope:
     pixel_size: 6.5e-6
     resolution: [2048, 2048]
     serial: null
+    trigger_source: SOFTWARE
+    trigger_edge: RISING
+    exposure_mode: TRIGGER_WIDTH
+    timeout: 1000 # ms
