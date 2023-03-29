@@ -14,6 +14,7 @@ from openclem.ui.CLEMLaserWidget import CLEMLaserWidget
 from openclem.ui.CLEMDetectorWidget import CLEMDetectorWidget
 from openclem.ui.CLEMImageWidget import CLEMImageWidget
 from openclem.ui.CLEMObjectiveWidget import CLEMObjectiveWidget
+from openclem.ui.CLEMHardwareWidget import CLEMHardwareWidget
 from openclem import config as cfg
 import os
 
@@ -69,22 +70,36 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         self._hardware_connected = self.lc is not None and self.detector is not None
 
         if self._hardware_connected:
-            self.detector_widget = CLEMDetectorWidget(
-                detector=self.detector, viewer=self.viewer
+            
+            # from openclem.microscopes.base import BaseLightMicroscope
+            from openclem.utils import create_microscope
+            self.microscope = create_microscope("demo", 
+                                                det=self.detector, 
+                                                lc=self.lc, 
+                                                obj=self.obj)
+
+            self.hardware_widget = CLEMHardwareWidget(
+                microscope=self.microscope,
+                viewer=self.viewer,
             )
-            self.laser_widget = CLEMLaserWidget(lc=self.lc, viewer=self.viewer)
+
+            
+            # self.detector_widget = CLEMDetectorWidget(
+            #     detector=self.detector, viewer=self.viewer
+            # )
+            # self.laser_widget = CLEMLaserWidget(lc=self.lc, viewer=self.viewer)
+            # self.objective_widget = CLEMObjectiveWidget(viewer=self.viewer, 
+            #                                             objective=self.obj)
             self.image_widget = CLEMImageWidget(
                 viewer=self.viewer,
-                det_widget=self.detector_widget,
-                laser_widget=self.laser_widget,
+                hardware_widget=self.hardware_widget,
             )
-            self.objective_widget = CLEMObjectiveWidget(viewer=self.viewer, 
-                                                        objective=self.obj)
-
+            
             self.tabWidget.addTab(self.image_widget, "Imaging")
-            self.tabWidget.addTab(self.detector_widget, "Detector")
-            self.tabWidget.addTab(self.laser_widget, "Lasers")
-            self.tabWidget.addTab(self.objective_widget, "ObjectiveStage")
+            self.tabWidget.addTab(self.hardware_widget, "Hardware")
+            # self.tabWidget.addTab(self.detector_widget, "Detector")
+            # self.tabWidget.addTab(self.laser_widget, "Lasers")
+            # self.tabWidget.addTab(self.objective_widget, "ObjectiveStage")
 
             self.pushButton_connect_hardware.setText("Connected")
             self.pushButton_connect_hardware.setStyleSheet("background-color: green")
@@ -98,10 +113,10 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             )
 
         else:
-            self.tabWidget.removeTab(4)
-            self.tabWidget.removeTab(3)
-            self.tabWidget.removeTab(2)
-            self.tabWidget.removeTab(1)
+            # self.tabWidget.removeTab(4)
+            # self.tabWidget.removeTab(3)
+            # self.tabWidget.removeTab(2)
+            # self.tabWidget.removeTab(1)
 
             self.pushButton_connect_hardware.setText("Connect Hardware")
             self.pushButton_connect_hardware.setStyleSheet("background-color: gray")

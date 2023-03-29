@@ -11,23 +11,20 @@ from openclem.detector import Detector
 from openclem.laser import LaserController, Laser
 from openclem import constants, utils
 
-from openclem.ui.CLEMDetectorWidget import CLEMDetectorWidget
-from openclem.ui.CLEMLaserWidget import CLEMLaserWidget
+from openclem.ui import CLEMHardwareWidget
 
 class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
     def __init__(
         self,
-        viewer: napari.Viewer = None,
-        det_widget: CLEMDetectorWidget = None,
-        laser_widget: CLEMLaserWidget = None,
+        hardware_widget: CLEMHardwareWidget,
+        viewer: napari.Viewer,
         parent=None,
     ):
         super(CLEMImageWidget, self).__init__(parent=parent)
         self.setupUi(self)
 
         self.viewer = viewer
-        self.det_widget = det_widget
-        self.laser_widget = laser_widget
+        self.hardware_widget = hardware_widget
 
         self.setup_connections()
 
@@ -55,12 +52,10 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         image_settings = self.get_settings_from_ui()
 
-        detector_settings = self.det_widget.get_detector_settings_from_ui()
-        detector = self.det_widget.detector
-        detector.init_camera()
-
-        laser_settings = self.laser_widget.get_laser_settings_from_ui()
-        lc = self.laser_widget.lc
+        from openclem.microscope import LightMicroscope
+        microscope: LightMicroscope = self.hardware_widget.microscope
+        detector_settings = microscope._detector.settings
+        laser_settings = microscope._laser_controller.settings
 
         print(f"----------- acquire_image -----------")
         print(f"image_settings: {image_settings}")
@@ -68,7 +63,8 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         print(f"laser_settings: {laser_settings}")
 
         # TODO: actual image acquisition
-        image = detector.grab_image(image_settings=image_settings)
+        microscope._detector.init_camera()
+        image = microscope.acquire_image(image_settings)
 
         self.update_viewer(image, "image")
 
