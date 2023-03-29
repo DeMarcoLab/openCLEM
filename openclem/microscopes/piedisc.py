@@ -5,7 +5,6 @@ from openclem.laser import LaserController
 from openclem.objective import Objective
 from openclem.detector import Detector
 
-
 class PIEDISCMicroscope(LightMicroscope):
 
     def __init__(self, name: str):
@@ -15,9 +14,10 @@ class PIEDISCMicroscope(LightMicroscope):
         self._objective = None
         self._laser_controller = None
 
-
     def connect(self):
-        pass
+        self._detector.connect()
+        self._laser_controller.connect()
+        self._objective.connect()
 
     def disconnect(self):
         pass
@@ -38,7 +38,6 @@ class PIEDISCMicroscope(LightMicroscope):
         return self._objective
     
     def add_laser_controller(self, laser_controller: LaserController):
-
         self._laser_controller = laser_controller
 
     def get_laser_controller(self) -> LaserController:
@@ -49,3 +48,6 @@ class PIEDISCMicroscope(LightMicroscope):
 
     def live_image(self, image_settings:ImageSettings):
         pass
+
+# system.yaml -> LightMicroscope
+# microscope.acquire_image(microscope, image_settings)

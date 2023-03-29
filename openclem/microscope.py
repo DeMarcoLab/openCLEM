@@ -6,11 +6,6 @@ from openclem.detector import Detector
 
 class LightMicroscope(ABC):
     """Abstract class for light microscope"""
-    def __init__(self, detector: Detector, laser_controller: LaserController, laser: Laser):
-        self.detector = detector
-        self.laser_controller = laser_controller
-        self.laser = laser
-
     def __init__(self, name: str):
         self.name = name
         self._connection = None
