@@ -83,8 +83,7 @@ def setup_session(session_path: Path = None,
 
     settings = load_settings_from_config(config_path=config_path)
 
-    classes = import_hardware_modules(settings)
-    print(f'Classes: {classes}')
+    cls_laser, cls_laser_controller, cls_detector = import_hardware_modules(settings)
 
     session = f'{settings.name}_{current_timestamp()}'
 
@@ -98,10 +97,10 @@ def setup_session(session_path: Path = None,
         configure_logging(path=session_path, log_level=logging.DEBUG)
 
     # if online:
-    laser_controller = classes[1](settings.laser_controller)
-    detector = classes[2](settings.detector)
+    laser_controller = cls_laser_controller(settings.laser_controller)
+    detector = cls_detector(settings.detector)
     for laser_ in settings.lasers:
-        laser = classes[0](laser_, parent=laser_controller)
+        laser = cls_laser(laser_, parent=laser_controller)
         laser_controller.add_laser(laser)
     
     if online:
