@@ -12,6 +12,10 @@ from openclem.laser import LaserController, Laser
 from openclem import constants, utils
 
 from openclem.ui import CLEMHardwareWidget
+from napari.qt.threading import thread_worker
+from openclem.microscope import LightMicroscope
+
+
 
 class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
     def __init__(
@@ -25,13 +29,15 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         self.viewer = viewer
         self.hardware_widget = hardware_widget
+        self._ACQUIRE_IMAGES = False
+
 
         self.setup_connections()
 
 
     def setup_connections(self):
 
-        self.pushButton_acquire_image.clicked.connect(self.acquire_image)
+        self.pushButton_acquire_image.clicked.connect(self.pushButton_acquire_image_clicked)
         self.comboBox_imaging_format.addItems(["tiff", "png", "jpg", "zarr"])
         self.comboBox_imaging_mode.addItems(["Single", "Live"])
 
@@ -48,25 +54,73 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         return image_settings
 
 
-    def acquire_image(self):
+    def pushButton_acquire_image_clicked(self):
+        print("pushButton_acquire_image_clicked")
+
+        # toggle ACQUIRE_IMAGES
+        if self._ACQUIRE_IMAGES:
+            self._ACQUIRE_IMAGES = False
+            return
+        
+
 
         image_settings = self.get_settings_from_ui()
-
-        from openclem.microscope import LightMicroscope
         microscope: LightMicroscope = self.hardware_widget.microscope
+        microscope._detector.init_camera() # TODO: move to microscope
         detector_settings = microscope._detector.settings
         laser_settings = microscope._laser_controller.settings
-
+        
         print(f"----------- acquire_image -----------")
         print(f"image_settings: {image_settings}")
         print(f"detector_settings: {detector_settings}")
         print(f"laser_settings: {laser_settings}")
 
+
+        if self.comboBox_imaging_mode.currentText() == "Single":
+            self.acquire_image(microscope, image_settings)
+        elif self.comboBox_imaging_mode.currentText() == "Live":
+            self.live_image(microscope, image_settings)
+
+    def acquire_image(self, microscope: LightMicroscope, image_settings: ImageSettings):
+
         # TODO: actual image acquisition
-        microscope._detector.init_camera()
         image = microscope.acquire_image(image_settings)
 
         self.update_viewer(image, "image")
+
+    def live_image(self, microscope: LightMicroscope, image_settings: ImageSettings):
+        
+        self.pushButton_acquire_image.setText("Acquiring...")
+        self.pushButton_acquire_image.setStyleSheet("background-color: orange")
+        
+        self._ACQUIRE_IMAGES = True
+
+        # TODO: disable other microscope interactions
+        worker = self.run_live_image(microscope, image_settings)
+        worker.returned.connect(self.live_image_finished)  # type: ignore
+        worker.yielded.connect(self.update_live)  # type: ignore
+        worker.start()
+
+    @thread_worker
+    def run_live_image(self, microscope: LightMicroscope, image_settings: ImageSettings):
+
+        # TODO: update image settings while live...
+        import time
+        while self._ACQUIRE_IMAGES:
+            
+            time.sleep(0.1)
+            image = microscope.acquire_image(image_settings)
+            
+            yield (image, "image")
+
+    def update_live(self, result):
+        image, name = result
+        self.update_viewer(image, name)
+
+    def live_image_finished(self):
+        self.pushButton_acquire_image.setText("Acquire Image")
+        self.pushButton_acquire_image.setStyleSheet("background-color: green")
+
 
     def update_viewer(self, arr: np.ndarray, name: str):
 

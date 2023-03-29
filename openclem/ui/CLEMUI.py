@@ -5,15 +5,10 @@ import napari.utils.notifications
 import numpy as np
 from PyQt5 import QtWidgets
 
-from openclem import constants, utils
-from openclem.detector import Detector
-from openclem.laser import Laser, LaserController
-from openclem.structures import ImageSettings, LaserControllerSettings, LaserSettings
+from openclem import utils
 from openclem.ui.qt import CLEMUI
-from openclem.ui.CLEMLaserWidget import CLEMLaserWidget
-from openclem.ui.CLEMDetectorWidget import CLEMDetectorWidget
+
 from openclem.ui.CLEMImageWidget import CLEMImageWidget
-from openclem.ui.CLEMObjectiveWidget import CLEMObjectiveWidget
 from openclem.ui.CLEMHardwareWidget import CLEMHardwareWidget
 from openclem import config as cfg
 import os
@@ -30,7 +25,7 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
 
         self.viewer = viewer
         self.lc, self.detector, self.obj = None, None, None
-        self.image_widget, self.detector_widget, self.laser_widget = None, None, None
+        self.image_widget, self.hardware_widget = None, None
         self._hardware_connected = False
 
         self.lineEdit_config_filename.setText(os.path.join(cfg.BASE_PATH, "config", "system.yaml"))
@@ -54,6 +49,11 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         else:
             try:
                 self.lc, self.detector, self.obj = utils.setup_session(config_path=config_filename)
+                self.microscope = utils.create_microscope("demo", 
+                                                det=self.detector, 
+                                                lc=self.lc, 
+                                                obj=self.obj)
+                
                 logging.info("Connected to hardware")
                 napari.utils.notifications.show_info("Connected to hardware")
             except Exception as e:
@@ -71,25 +71,10 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
 
         if self._hardware_connected:
             
-            # from openclem.microscopes.base import BaseLightMicroscope
-            from openclem.utils import create_microscope
-            self.microscope = create_microscope("demo", 
-                                                det=self.detector, 
-                                                lc=self.lc, 
-                                                obj=self.obj)
-
             self.hardware_widget = CLEMHardwareWidget(
                 microscope=self.microscope,
                 viewer=self.viewer,
             )
-
-            
-            # self.detector_widget = CLEMDetectorWidget(
-            #     detector=self.detector, viewer=self.viewer
-            # )
-            # self.laser_widget = CLEMLaserWidget(lc=self.lc, viewer=self.viewer)
-            # self.objective_widget = CLEMObjectiveWidget(viewer=self.viewer, 
-            #                                             objective=self.obj)
             self.image_widget = CLEMImageWidget(
                 viewer=self.viewer,
                 hardware_widget=self.hardware_widget,
@@ -97,10 +82,6 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             
             self.tabWidget.addTab(self.image_widget, "Imaging")
             self.tabWidget.addTab(self.hardware_widget, "Hardware")
-            # self.tabWidget.addTab(self.detector_widget, "Detector")
-            # self.tabWidget.addTab(self.laser_widget, "Lasers")
-            # self.tabWidget.addTab(self.objective_widget, "ObjectiveStage")
-
             self.pushButton_connect_hardware.setText("Connected")
             self.pushButton_connect_hardware.setStyleSheet("background-color: green")
 
@@ -113,10 +94,9 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             )
 
         else:
-            # self.tabWidget.removeTab(4)
-            # self.tabWidget.removeTab(3)
-            # self.tabWidget.removeTab(2)
-            # self.tabWidget.removeTab(1)
+            self.tabWidget.removeTab(2)
+            self.tabWidget.removeTab(1)
+            
 
             self.pushButton_connect_hardware.setText("Connect Hardware")
             self.pushButton_connect_hardware.setStyleSheet("background-color: gray")
@@ -127,9 +107,7 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
                 return
 
             self.image_widget.deleteLater()
-            self.detector_widget.deleteLater()
-            self.laser_widget.deleteLater()
-            self.objective_widget.deleteLater()
+            self.hardware_widget.deleteLater()
 
 
 def main():
