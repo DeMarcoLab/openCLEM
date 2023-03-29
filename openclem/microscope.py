@@ -10,9 +10,9 @@ class LightMicroscope(ABC):
     def __init__(self, name: str):
         self.name = name
         self._connection = None
-        self.detector: Detector = None
-        self.objective: Objective = None
-        self.laser_controller: LaserController = None
+        self._detector: Detector = None
+        self._objective: Objective = None
+        self._laser_controller: LaserController = None
 
     @abstractmethod
     def connect(self):
