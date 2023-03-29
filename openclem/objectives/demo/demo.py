@@ -1,5 +1,7 @@
 
 from openclem.objective import Objective
+import logging
+
 
 class DemoObjective(Objective):
     def __init__(self, name:str):
@@ -7,6 +9,15 @@ class DemoObjective(Objective):
         self._position = 0.0
         self.saved_position = None
     
+    def connect(self):
+        logging.info(f"Connecting to {self.name} objective")
+    
+    def disconnect(self):
+        logging.info(f"Disconnecting from {self.name} objective")
+    
+    def initialise(self):
+        logging.info(f"Initialising {self.name} objective")
+
     @property
     def position(self):
         return self._position
