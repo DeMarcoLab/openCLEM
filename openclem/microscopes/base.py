@@ -48,7 +48,10 @@ class BaseLightMicroscope(LightMicroscope):
         return self._laser_controller
     
     def acquire_image(self, image_settings:ImageSettings):
-        pass
+        
+        image = self._detector.grab_image(image_settings)
+
+        return image
 
     def live_image(self, image_settings:ImageSettings):
         pass
