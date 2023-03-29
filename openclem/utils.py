@@ -78,13 +78,12 @@ def current_timestamp():
 
 def setup_session(session_path: Path = None,
                   config_path: Path = None,
-                  setup_logging: bool = True) -> tuple[LightMicroscope, MicroscopeSettings]:
+                  setup_logging: bool = True,
+                  online: bool = True) -> tuple[LightMicroscope, MicroscopeSettings]:
 
     settings = load_settings_from_config(config_path=config_path)
 
     classes = import_hardware_modules(settings)
-
-
     print(f'Classes: {classes}')
 
     session = f'{settings.name}_{current_timestamp()}'
@@ -97,6 +96,16 @@ def setup_session(session_path: Path = None,
     # configure logging
     if setup_logging:
         configure_logging(path=session_path, log_level=logging.DEBUG)
+
+    # if online:
+    laser_controller = classes[1](settings.laser_controller)
+    detector = classes[2](settings.detector)
+    for laser_ in settings.lasers:
+        laser = classes[0](laser_, parent=laser_controller)
+        laser_controller.add_laser(laser)
+    
+    return [laser_controller, detector]
+
 
 def load_settings_from_config(config_path: Path = None) -> MicroscopeSettings:
     if config_path is None:
