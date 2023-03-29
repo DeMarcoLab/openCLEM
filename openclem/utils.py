@@ -104,6 +104,10 @@ def setup_session(session_path: Path = None,
         laser = classes[0](laser_, parent=laser_controller)
         laser_controller.add_laser(laser)
     
+    if online:
+        laser_controller.connect()
+        detector.connect()
+    
     return [laser_controller, detector]
 
 
