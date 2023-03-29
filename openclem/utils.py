@@ -15,7 +15,7 @@ from openclem.config import (
     AVAILABLE_LASER_CONTROLLERS,
     AVAILABLE_LASERS,
 )
-from openclem.config import CONFIG_PATH, LOG_PATH
+from openclem.config import BASE_PATH, LOG_PATH
 from openclem.structures import MicroscopeSettings, SerialSettings
 from openclem.laser import Laser, LaserController
 from openclem.detector import Detector
@@ -113,7 +113,7 @@ def setup_session(session_path: Path = None,
 
 def load_settings_from_config(config_path: Path = None) -> MicroscopeSettings:
     if config_path is None:
-        config_path = CONFIG_PATH
+        config_path = os.path.join(BASE_PATH, "config", "system.yaml")
 
     config = load_yaml(config_path)
     microscope_settings = MicroscopeSettings.__from_dict__(config)
