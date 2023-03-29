@@ -1,22 +1,25 @@
-import glob
 import importlib
-import inspect
 import logging
 import os
+import sys
 from pathlib import Path
 
 import serial
 import serial.tools.list_ports
 import yaml
+import time
+import datetime
 
-import openclem
+from openclem.config import (
+    AVAILABLE_DETECTORS,
+    AVAILABLE_LASER_CONTROLLERS,
+    AVAILABLE_LASERS,
+)
+from openclem.config import BASE_PATH, LOG_PATH
+from openclem.structures import MicroscopeSettings, SerialSettings
+from openclem.laser import Laser, LaserController
 from openclem.detector import Detector
-from openclem.laser import LaserController, Laser
-from openclem.structures import SerialSettings, MicroscopeSettings
-
-IGNORED_MODULES = ["__init__", "template"]
-openclem_path = openclem.__path__[0]
-BASENAME = os.path.basename(openclem_path)
+from openclem.microscope import LightMicroscope
 
 
 def write_serial_command(port: serial.Serial, command):
@@ -64,63 +67,115 @@ def load_yaml(fname: Path) -> dict:
     return config
 
 
-def get_subclass(cls, path: str) -> list:
-    package_path = os.path.join(BASENAME, path)
-    # get all modules in package path
-    module_names = [
-        os.path.splitext(os.path.abspath(f))[0]
-        for f in glob.glob(os.path.join(package_path, "**/**.py"), recursive=False)
-    ]
+def current_timestamp():
+    """Returns current time in a specific string format
 
-    # clean up ignored modules such as __init__
-    module_names = [
-        module
-        for module in module_names
-        if not any([a in module for a in IGNORED_MODULES])
-    ]
-
-    # turn string for module path into importable module name
-    module_names = [
-        module.replace(os.path.abspath(package_path), "").replace("\\", ".")
-        for module in module_names
-    ]
-    import_base = f"{BASENAME}.{path}"
-    module_names = [f"{import_base}{module}" for module in module_names]
-
-    # import modules found
-    for module_ in module_names:
-        try:
-            importlib.import_module(module_)
-        except Exception as e:
-            logging.error(f"Error importing module {module_}: {e}")
-
-    subclasses = cls.__subclasses__()
-    return subclasses
+    Returns:
+        String: Current time
+    """
+    return datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d-%I-%M-%S%p")
 
 
-def get_subclasses():
-    # get availablable hardware
-    laser_controllers = get_subclass(cls=LaserController, path="lasers")
-    lasers = get_subclass(cls=Laser, path="lasers")
-    detectors = get_subclass(cls=Detector, path="detectors")
-    return laser_controllers, detectors, lasers
+def setup_session(session_path: Path = None,
+                  config_path: Path = None,
+                  setup_logging: bool = True,
+                  online: bool = True) -> tuple[LightMicroscope, MicroscopeSettings]:
+
+    settings = load_settings_from_config(config_path=config_path)
+
+    cls_laser, cls_laser_controller, cls_detector = import_hardware_modules(settings)
+
+    session = f'{settings.name}_{current_timestamp()}'
+
+        # configure paths
+    if session_path is None:
+        session_path = os.path.join(LOG_PATH, session)
+    os.makedirs(session_path, exist_ok=True)
+
+    # configure logging
+    if setup_logging:
+        configure_logging(path=session_path, log_level=logging.DEBUG)
+
+    # if online:
+    laser_controller = cls_laser_controller(settings.laser_controller)
+    detector = cls_detector(settings.detector)
+    for laser_ in settings.lasers:
+        laser = cls_laser(laser_, parent=laser_controller)
+        laser_controller.add_laser(laser)
+    
+    if online:
+        laser_controller.connect()
+        detector.connect()
+    
+    return [laser_controller, detector]
 
 
-def get_hardware_from_config(microscope_settings: MicroscopeSettings) -> tuple[LaserController, Detector]:
-    available_laser_controllers, available_detectors, available_lasers = get_subclasses()
-    laser_controller_name = microscope_settings.laser_controller.name
-    detector_name = microscope_settings.detector.name
-    laser_name = microscope_settings.laser_controller.laser_type
-    # these are factory methods, improve implementation
-    for subclass in available_laser_controllers:
-        if laser_controller_name == subclass.__id__():
-            laser_controller = subclass(microscope_settings.laser_controller)
-    for subclass in available_detectors:
-        if detector_name == subclass.__id__():
-            detector = subclass(microscope_settings.detector)
-    for subclass in available_lasers:
-        if laser_name == subclass.__id__():
-            for laser in microscope_settings.lasers:
-                laser_controller.add_laser(subclass(laser_settings=laser, parent=laser_controller))
+def load_settings_from_config(config_path: Path = None) -> MicroscopeSettings:
+    if config_path is None:
+        config_path = os.path.join(BASE_PATH, "config", "system.yaml")
 
-    return laser_controller, detector
+    config = load_yaml(config_path)
+    microscope_settings = MicroscopeSettings.__from_dict__(config)
+    return microscope_settings
+
+
+def import_hardware_modules(microscope_settings: MicroscopeSettings) -> tuple[Laser, LaserController, Detector]:
+    # structure is {hardware_type: [hardware_folder_name, hardware_name, availability_dict]}
+    hardware_dict = {
+        "laser": [
+            "lasers",
+            microscope_settings.laser_controller.laser,
+            AVAILABLE_LASERS,
+        ],
+        "laser_controller": [
+            "lasers",
+            microscope_settings.laser_controller.name,
+            AVAILABLE_LASER_CONTROLLERS,
+        ],
+        "detector": [
+            "detectors",
+            microscope_settings.detector.name,
+            AVAILABLE_DETECTORS,
+        ],
+    }
+
+    classes = []
+
+    for hardware_type in hardware_dict:
+        hardware_type_str = hardware_dict[hardware_type][0]
+        hardware_name = hardware_dict[hardware_type][1]
+        availablility_dict = hardware_dict[hardware_type][2]
+
+        if hardware_name not in availablility_dict:
+            raise ValueError(f"Hardware {hardware_name} not available")
+
+        module_name = (
+            f"openclem.{hardware_type_str}.{availablility_dict[hardware_name][0]}"
+        )
+
+        module = importlib.import_module(module_name)
+        cls = getattr(module, availablility_dict[hardware_name][1])
+        classes.append(cls)
+        logging.info(f"imported {hardware_type} {cls}")
+        print(os.path.dirname(module.__file__))
+
+    return classes
+
+# TODO: better logs: https://www.toptal.com/python/in-depth-python-logging
+# https://stackoverflow.com/questions/61483056/save-logging-debug-and-show-only-logging-info-python
+def configure_logging(path: Path = "", log_filename="logfile", log_level=logging.DEBUG):
+    """Log to the terminal and to file simultaneously."""
+    logfile = os.path.join(path, f"{log_filename}.log")
+
+    file_handler = logging.FileHandler(logfile)
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setLevel(logging.INFO)
+
+    logging.basicConfig(
+        format="%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s",
+        level=log_level,
+        handlers=[file_handler, stream_handler],
+        force=True,
+    )
+
+    return logfile

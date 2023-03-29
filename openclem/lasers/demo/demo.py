@@ -26,11 +26,11 @@ class DemoLaser(Laser):
     @classmethod
     def __id__(self):
         return "demolaser"
-    
+
     @property
     def name(self):
         return self._name
-    
+
     @name.setter
     def name(self, value):
         self._name = value
@@ -38,7 +38,7 @@ class DemoLaser(Laser):
     @property
     def serial_id(self):
         return self._serial_id
-    
+
     @serial_id.setter
     def serial_id(self, value):
         self._serial_id = value
@@ -46,7 +46,7 @@ class DemoLaser(Laser):
     @property
     def power(self):
         return self._power
-    
+
     @power.setter
     def power(self, value):
         self._power = value
@@ -71,40 +71,33 @@ class DemoLaser(Laser):
     def disable(self):
         logging.info(f"Disabling {self.name}")
 
-    def decode_power(self, response: str):
-        response = response.decode('utf-8')
-        start = response.find(self.serial_id) + len(self.serial_id) + 1
-        end = response.find(',', start)
-        return float(response[start:end])
-    
-    def check_response(self, response):
-        return response == b'ok\n' or response == b'ok\r' or response == b'ok\r\n'
-
 class DemoLaserController(LaserController):
     def __init__(self, laser_controller_settings: LaserControllerSettings):
         self.settings = laser_controller_settings
         self._name = self.settings.name
-        self._laser_type = self.settings.laser_type
+        self._laser = self.settings.laser
         self.serial_connection = None
         self.lasers = {}
 
     @classmethod
     def __id__(self):
-        return "ldi"
-    
+        return "demo"
+
     @property
     def name(self):
         return self._name
-    
+
     def add_laser(self, laser: Laser):
         self.lasers[laser.name] = laser
 
     def connect(self):
-        self.serial_connection = utils.connect_to_serial_port(serial_settings=self.settings.serial_settings)
+        logging.info(f"Connecting to {self.name}")
+        self.serial_connection = "SerialConnection"
+        logging.info(f"Connected to {self.name}")
 
     def disconnect(self):
         if self.serial_connection is None: return
-        self.serial_connection.close()
+        logging.info(f"Disconnecting from {self.name}")
         self.serial_connection = None
 
     def get_laser(self, name: str) -> Laser:
@@ -115,8 +108,7 @@ class DemoLaserController(LaserController):
 
     def get_power(self, name: str) -> float:
         return self.lasers[name].power
-    
-    # TODO: determine whether there is a salient difference between idling/shutter closing
+
     def close_emission(self):
         for laser in self.lasers.values():
             laser.emission_off()

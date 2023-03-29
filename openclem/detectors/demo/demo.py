@@ -10,6 +10,7 @@ class DemoDetector(Detector):
         self.settings = detector_settings
         self.camera = None
         self.serial_connection = None
+        self.name = detector_settings.name
 
         # ? why not just use the settings?
         # self.trigger_source = None
@@ -24,9 +25,9 @@ class DemoDetector(Detector):
         return "demo"
     
     def connect(self) -> None:
-        logging.info(f"Connecting to Demo Detector on port: {self.settings.serial_settings.port}")
+        logging.info(f"Connecting to Demo Detector...")
         time.sleep(1)
-        logging.info(f"Connected to Demo Detector on port: {self.settings.serial_settings.port}")
+        logging.info(f"Connected to Demo Detector.")
     
     def disconnect(self) -> None:
         logging.info("Disconnecting from Demo Detector")

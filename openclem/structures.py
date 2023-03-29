@@ -8,19 +8,18 @@ class TriggerEdge(Enum):
     RISING = 1
     FALLING = 2
 
-
-class ExposureMode(Enum):
-    """Exposure mode"""
-
-    TIMED = 1
-    TRIGGER_WIDTH = 2
-
 class TriggerSource(Enum):
     """Trigger source"""
 
     SOFTWARE = 1
     EXTERNAL = 2
     INTERNAL = 3
+
+class ExposureMode(Enum):
+    """Exposure mode"""
+
+    TIMED = 1
+    TRIGGER_WIDTH = 2
 
 
 @dataclass
@@ -30,11 +29,6 @@ class ImageSettings:
     pixel_size: float = 0.0
     exposure: float = 0.0
     image_format: str = "tiff"
-    
-    trigger_source: str = "software"
-    trigger_edge: str = "rising"
-    exposure_mode: str = "level"
-    timeout: int = 1000 # ms
     n_images: int = 1
 
     @staticmethod
@@ -43,26 +37,18 @@ class ImageSettings:
             pixel_size=settings["pixel_size"],
             exposure=settings["exposure"],
             image_format=settings["image_format"],
-            trigger_source=settings["trigger_source"],
-            trigger_edge=settings["trigger_edge"],
-            exposure_mode=settings["exposure_mode"],
-            timeout=settings["timeout"],
             n_images=settings["n_images"],
         )
-    
+
     @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "pixel_size": self.pixel_size,
             "exposure": self.exposure,
             "image_format": self.image_format,
-            "trigger_source": self.trigger_source,
-            "trigger_edge": self.trigger_edge,
-            "exposure_mode": self.exposure_mode,
-            "timeout": self.timeout,
             "n_images": self.n_images,
         }
-    
+
 
 @dataclass
 class SerialSettings:
@@ -131,7 +117,7 @@ class LaserControllerSettings:
 
     name: str
     serial_settings: SerialSettings
-    laser_type: str
+    laser: str
 
     @staticmethod
     def __from_dict__(settings: dict) -> "LaserControllerSettings":
@@ -139,7 +125,7 @@ class LaserControllerSettings:
         laser_controller_settings = LaserControllerSettings(
             name=settings["name"],
             serial_settings=SerialSettings.__from_dict__(settings["serial"]),
-            laser_type=settings["laser_type"],
+            laser=settings["laser"],
         )
         return laser_controller_settings
 
@@ -148,7 +134,7 @@ class LaserControllerSettings:
         return {
             "name": self.name,
             "serial_settings": SerialSettings.__to_dict__(self.serial_settings),
-            "laser_type": self.laser_type,
+            "laser": self.laser,
         }
 
 @dataclass
@@ -159,18 +145,26 @@ class DetectorSettings:
     serial_settings: SerialSettings
     pixel_size: float
     resolution: list[int]
+    trigger_source: TriggerSource = TriggerSource.SOFTWARE
+    trigger_edge: TriggerEdge = TriggerEdge.RISING
+    exposure_mode: ExposureMode = ExposureMode.TRIGGER_WIDTH
+    timeout: int = 1000 # ms
 
     @staticmethod
     def __from_dict__(settings: dict) -> "DetectorSettings":
-        
+
         detector_settings = DetectorSettings(
             name=settings["name"],
             serial_settings=SerialSettings.__from_dict__(settings["serial"]),
             pixel_size=settings["pixel_size"],
             resolution=settings["resolution"],
+            trigger_source=TriggerSource[settings["trigger_source"]],
+            trigger_edge=TriggerEdge[settings["trigger_edge"]],
+            exposure_mode=ExposureMode[settings["exposure_mode"]],
+            timeout=settings["timeout"],
         )
         return detector_settings
-    
+
     @staticmethod
     def __to_dict__(self) -> dict:
         return {
@@ -178,17 +172,21 @@ class DetectorSettings:
             "serial_settings": SerialSettings.__to_dict__(self.serial_settings),
             "pixel_size": self.pixel_size,
             "resolution": self.resolution,
+            "trigger_source": self.trigger_source.name,
+            "trigger_edge": self.trigger_edge.name,
+            "exposure_mode": self.exposure_mode.name,
+            "timeout": self.timeout,
         }
-    
+
 
 @dataclass
 class MicroscopeSettings:
     """Microscope settings"""
 
     name: str
-    detector: DetectorSettings
-    laser_controller: LaserControllerSettings
     lasers: list[LaserSettings]
+    detector: DetectorSettings = None
+    laser_controller: LaserControllerSettings = None
 
     @staticmethod
     def __from_dict__(settings: dict) -> "MicroscopeSettings":
@@ -197,7 +195,7 @@ class MicroscopeSettings:
             name=settings["name"],
             detector=DetectorSettings.__from_dict__(settings["detector"]),
             laser_controller=LaserControllerSettings.__from_dict__(settings["laser_controller"]),
-            lasers=[LaserSettings.__from_dict__(laser) for laser in settings["laser_controller"]["lasers"]],
+            lasers=[LaserSettings.__from_dict__(laser) for laser in settings["lasers"]],
         )
         return microscope_settings
 
