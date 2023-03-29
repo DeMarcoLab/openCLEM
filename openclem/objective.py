@@ -41,3 +41,5 @@ class ObjectiveStage(ABC):
     def absolute_move(self, position: float):
         pass
 
+    def __repr__(self) -> str:
+        return f"{self.name} - ObjectiveStage"
