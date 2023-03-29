@@ -86,7 +86,7 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             self.tabWidget.addTab(self.image_widget, "Imaging")
             self.tabWidget.addTab(self.detector_widget, "Detector")
             self.tabWidget.addTab(self.laser_widget, "Lasers")
-            self.tabWidget.addTab(self.objective_widget, "Objective")
+            self.tabWidget.addTab(self.objective_widget, "ObjectiveStage")
 
             self.pushButton_connect_hardware.setText("Connected")
             self.pushButton_connect_hardware.setStyleSheet("background-color: green")

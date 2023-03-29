@@ -2,7 +2,7 @@ from openclem.microscope import LightMicroscope
 
 from openclem.structures import ImageSettings
 from openclem.laser import LaserController
-from openclem.objective import Objective
+from openclem.objective import ObjectiveStage
 from openclem.detector import Detector
 
 class PIEDISCMicroscope(LightMicroscope):
@@ -31,10 +31,10 @@ class PIEDISCMicroscope(LightMicroscope):
     def get_detector(self) -> Detector:
         return self._detector
     
-    def add_objective(self, objective: Objective):
+    def add_objective(self, objective: ObjectiveStage):
         self._objective = objective
 
-    def get_objective(self) -> Objective:
+    def get_objective(self) -> ObjectiveStage:
         return self._objective
     
     def add_laser_controller(self, laser_controller: LaserController):

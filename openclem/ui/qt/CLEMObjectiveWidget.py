@@ -90,4 +90,4 @@ class Ui_Form(object):
         self.label_current_position.setText(_translate("Form", "Current Position (um)"))
         self.label_saved_position.setText(_translate("Form", "Saved Position (um)"))
         self.pushButton_move_absolute.setText(_translate("Form", "Move to Position"))
-        self.label_title.setText(_translate("Form", "Objective"))
+        self.label_title.setText(_translate("Form", "ObjectiveStage"))

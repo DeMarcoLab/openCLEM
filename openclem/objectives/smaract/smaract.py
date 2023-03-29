@@ -4,11 +4,11 @@ SMARACT stage hardware.
 """
 import logging
 import socket
-from openclem.objective import Objective
+from openclem.objective import ObjectiveStage
 
 # TODO: socket connection info
 
-class SMARACTObjectiveStage(Objective):
+class SMARACTObjectiveStage(ObjectiveStage):
     def __init__(self, name: str):
         self.name = name
         self.position = None

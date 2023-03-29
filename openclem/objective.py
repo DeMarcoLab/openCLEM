@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class Objective(ABC):
+class ObjectiveStage(ABC):
     def __init__(self, name: str):
         self.name = name
         self.position = 0
