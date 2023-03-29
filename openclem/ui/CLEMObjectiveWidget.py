@@ -100,7 +100,7 @@ class CLEMObjectiveWidget(CLEMObjectiveWidget.Ui_Form, QtWidgets.QWidget):
 
 
 def main():
-    from openclem.objectives.demo.demo import DemoObjective
+    from openclem.objective_stages.demo.demo import DemoObjective
     obj = DemoObjective("demo")
     viewer = napari.Viewer(ndisplay=2)
     image_settings_ui = CLEMObjectiveWidget(viewer=viewer, objective=obj)

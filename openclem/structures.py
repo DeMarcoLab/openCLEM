@@ -40,7 +40,6 @@ class ImageSettings:
             n_images=settings["n_images"],
         )
 
-    @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "pixel_size": self.pixel_size,
@@ -69,7 +68,6 @@ class SerialSettings:
             timeout=settings["timeout"],
         )
 
-    @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "port": self.port,
@@ -101,7 +99,6 @@ class LaserSettings:
         )
         return laser_settings
 
-    @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
@@ -129,7 +126,6 @@ class LaserControllerSettings:
         )
         return laser_controller_settings
 
-    @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
@@ -165,7 +161,6 @@ class DetectorSettings:
         )
         return detector_settings
 
-    @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
@@ -178,6 +173,26 @@ class DetectorSettings:
             "timeout": self.timeout,
         }
 
+@dataclass
+class ObjectiveStageSettings:
+    name: str
+    connection = None # TODO; add connection settings
+
+    @staticmethod
+    def __from_dict__(settings: dict) -> "ObjectiveStageSettings":
+            
+            objective_stage_settings = ObjectiveStageSettings(
+                name=settings["name"],
+                # connection=None,
+            )
+            return objective_stage_settings
+    
+    def __to_dict__(self) -> dict:
+        return {
+            "name": self.name,
+            "connection": None,
+        }
+
 
 @dataclass
 class MicroscopeSettings:
@@ -187,6 +202,7 @@ class MicroscopeSettings:
     lasers: list[LaserSettings]
     detector: DetectorSettings = None
     laser_controller: LaserControllerSettings = None
+    objective_stage: ObjectiveStageSettings = None
 
     @staticmethod
     def __from_dict__(settings: dict) -> "MicroscopeSettings":
@@ -196,14 +212,15 @@ class MicroscopeSettings:
             detector=DetectorSettings.__from_dict__(settings["detector"]),
             laser_controller=LaserControllerSettings.__from_dict__(settings["laser_controller"]),
             lasers=[LaserSettings.__from_dict__(laser) for laser in settings["lasers"]],
+            objective_stage=ObjectiveStageSettings.__from_dict__(settings["objective_stage"]),
         )
         return microscope_settings
 
-    @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
             "detector": DetectorSettings.__to_dict__(self.detector),
             "laser_controller": LaserControllerSettings.__to_dict__(self.laser_controller),
             "lasers": [LaserSettings.__to_dict__(laser) for laser in self.lasers],
+            "objective_stage": ObjectiveStageSettings.__to_dict__(self.objective_stage),
         }

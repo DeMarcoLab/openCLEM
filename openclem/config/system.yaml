@@ -19,6 +19,14 @@ detector:
   exposure_mode: TRIGGER_WIDTH
   timeout: 1000 # ms
 
+objective_stage:
+  name: demo
+  connection:
+    type: socket
+    host: 169.254.111.111
+    port: 139
+    timeout: 5.0
+
 lasers:
 - name: 'laser_1'
   serial_id: '405'

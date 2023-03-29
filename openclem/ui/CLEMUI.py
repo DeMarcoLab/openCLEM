@@ -17,7 +17,7 @@ from openclem.ui.CLEMObjectiveWidget import CLEMObjectiveWidget
 from openclem import config as cfg
 import os
 
-from openclem.objectives.demo.demo import DemoObjective
+from openclem.objective_stages.demo.demo import DemoObjective
 
 class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
     def __init__(
@@ -53,8 +53,7 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             napari.utils.notifications.show_info("Disconnected from hardware")
         else:
             try:
-                self.lc, self.detector = utils.setup_session(config_path=config_filename)
-                self.obj = DemoObjective("demo")
+                self.lc, self.detector, self.obj = utils.setup_session(config_path=config_filename)
                 logging.info("Connected to hardware")
                 napari.utils.notifications.show_info("Connected to hardware")
             except Exception as e:

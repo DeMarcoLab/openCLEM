@@ -23,3 +23,8 @@ AVAILABLE_LASER_CONTROLLERS = {
     "Toptica_iCLE": ["toptica.iCLE", "iCLELaserController"],
     "89North_ldi": ["89north.ldi", "LdiLaserController"],
 }
+
+AVAILABLE_OBJECTIVE_STAGES = {
+    "demo": ["demo.demo", "DemoObjectiveStage"],
+    "smaract": ["smaract.smaract", "SmaractObjectiveStage"],
+}

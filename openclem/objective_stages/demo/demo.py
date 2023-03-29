@@ -3,7 +3,7 @@ from openclem.objective import ObjectiveStage
 import logging
 
 
-class DemoObjective(ObjectiveStage):
+class DemoObjectiveStage(ObjectiveStage):
     def __init__(self, name:str):
         self.name = name
         self._position = 0.0

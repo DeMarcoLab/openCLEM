@@ -14,6 +14,7 @@ from openclem.config import (
     AVAILABLE_DETECTORS,
     AVAILABLE_LASER_CONTROLLERS,
     AVAILABLE_LASERS,
+    AVAILABLE_OBJECTIVE_STAGES,
 )
 from openclem.config import BASE_PATH, LOG_PATH
 from openclem.structures import MicroscopeSettings, SerialSettings
@@ -21,35 +22,6 @@ from openclem.laser import Laser, LaserController
 from openclem.detector import Detector
 from openclem.microscope import LightMicroscope
 
-
-def write_serial_command(port: serial.Serial, command):
-    port.close()
-    port.open()
-    port.write(bytes(command, "utf-8"))
-    response = port.read_until(expected=b"\r")
-    port.close()
-    return response
-
-
-def get_available_ports():
-    ports = serial.tools.list_ports.comports()
-    return ports
-
-
-def get_port_names(ports):
-    port_names = [port.device for port in ports]
-    return port_names
-
-
-def connect_to_serial_port(serial_settings: SerialSettings):
-    port_name = serial_settings.port
-    baudrate = serial_settings.baudrate
-    timeout = serial_settings.timeout
-
-    serial_connection = serial.Serial(
-        port=port_name, baudrate=baudrate, timeout=timeout
-    )
-    return serial_connection
 
 
 def load_yaml(fname: Path) -> dict:
@@ -83,7 +55,7 @@ def setup_session(session_path: Path = None,
 
     settings = load_settings_from_config(config_path=config_path)
 
-    cls_laser, cls_laser_controller, cls_detector = import_hardware_modules(settings)
+    cls_laser, cls_laser_controller, cls_detector, cls_objective_stage = import_hardware_modules(settings)
 
     session = f'{settings.name}_{current_timestamp()}'
 
@@ -96,18 +68,19 @@ def setup_session(session_path: Path = None,
     if setup_logging:
         configure_logging(path=session_path, log_level=logging.DEBUG)
 
-    # if online:
     laser_controller = cls_laser_controller(settings.laser_controller)
     detector = cls_detector(settings.detector)
     for laser_ in settings.lasers:
         laser = cls_laser(laser_, parent=laser_controller)
         laser_controller.add_laser(laser)
+
+    objective_stage = cls_objective_stage(settings.objective_stage.name)
     
     if online:
         laser_controller.connect()
         detector.connect()
     
-    return [laser_controller, detector]
+    return [laser_controller, detector, objective_stage]
 
 
 def load_settings_from_config(config_path: Path = None) -> MicroscopeSettings:
@@ -136,6 +109,11 @@ def import_hardware_modules(microscope_settings: MicroscopeSettings) -> tuple[La
             "detectors",
             microscope_settings.detector.name,
             AVAILABLE_DETECTORS,
+        ],
+        "objective_stage": [
+            "objective_stages",
+            microscope_settings.objective_stage.name,
+            AVAILABLE_OBJECTIVE_STAGES,
         ],
     }
 

@@ -74,7 +74,7 @@ class CLEMDetectorWidget(CLEMDetectorWidget.Ui_Form, QtWidgets.QWidget):
         )
 
 def main():
-    laser_controller, detector = utils.setup_session()
+    laser_controller, detector, obj = utils.setup_session()
 
     viewer = napari.Viewer(ndisplay=2)
     image_settings_ui = CLEMDetectorWidget(viewer=viewer, detector=detector)

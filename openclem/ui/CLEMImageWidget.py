@@ -31,7 +31,6 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         self.setup_connections()
 
-        # self.laser_controller, self.detector = utils.setup_session()
 
     def setup_connections(self):
 
