@@ -157,3 +157,15 @@ def configure_logging(path: Path = "", log_filename="logfile", log_level=logging
     )
 
     return logfile
+
+from openclem.microscopes.base import BaseLightMicroscope
+def create_microscope(name, det, lc, obj) -> BaseLightMicroscope:
+
+    lm = BaseLightMicroscope(name=name)
+    lm.add_detector(det)
+    lm.add_objective(obj)
+    lm.add_laser_controller(lc)
+
+    lm.connect()
+
+    return lm
