@@ -31,7 +31,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         self.setup_connections()
 
-        # self.laser_controller, self.detector = utils.setup_hardware()
+        # self.laser_controller, self.detector = utils.setup_session()
 
     def setup_connections(self):
 
@@ -58,6 +58,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         detector_settings = self.det_widget.get_detector_settings_from_ui()
         detector = self.det_widget.detector
+        detector.init_camera()
 
         laser_settings = self.laser_widget.get_laser_settings_from_ui()
         lc = self.laser_widget.lc

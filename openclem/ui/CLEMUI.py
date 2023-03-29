@@ -14,7 +14,8 @@ from openclem.ui.CLEMLaserWidget import CLEMLaserWidget
 from openclem.ui.CLEMDetectorWidget import CLEMDetectorWidget
 from openclem.ui.CLEMImageWidget import CLEMImageWidget
 from openclem.ui.CLEMObjectiveWidget import CLEMObjectiveWidget
-
+from openclem import config as cfg
+import os
 
 from openclem.objectives.demo.demo import DemoObjective
 
@@ -32,9 +33,7 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         self.image_widget, self.detector_widget, self.laser_widget = None, None, None
         self._hardware_connected = False
 
-        self.lineEdit_config_filename.setText(
-            "/home/patrick/github/openCLEM/openclem/microscopes/config.yml"
-        )
+        self.lineEdit_config_filename.setText(os.path.join(cfg.BASE_PATH, "config", "system.yaml"))
 
         self.setup_connections()
 
@@ -54,7 +53,7 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             napari.utils.notifications.show_info("Disconnected from hardware")
         else:
             try:
-                self.lc, self.detector = utils.setup_hardware(path=config_filename)
+                self.lc, self.detector = utils.setup_session(config_path=config_filename)
                 self.obj = DemoObjective("demo")
                 logging.info("Connected to hardware")
                 napari.utils.notifications.show_info("Connected to hardware")

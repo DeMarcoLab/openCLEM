@@ -85,7 +85,7 @@ class CLEMLaserWidget(CLEMLaserWidget.Ui_Form, QtWidgets.QWidget):
             lc_settings = LaserControllerSettings(
                 name=self.lineEdit_lc_name.text(),
                 serial_settings=None,
-                laser_type=self.lineEdit_lc_type.text(),
+                laser=self.lineEdit_lc_type.text(),
             )
     
             return lc_settings
@@ -107,10 +107,10 @@ class CLEMLaserWidget(CLEMLaserWidget.Ui_Form, QtWidgets.QWidget):
         print("set_laser_controller_settings_from_ui")
 
         self.lineEdit_lc_name.setText(lc_settings.name)
-        self.lineEdit_lc_type.setText(lc_settings.laser_type)
+        self.lineEdit_lc_type.setText(lc_settings.laser)
 
 def main():
-    lc, detector = utils.setup_hardware()
+    lc, detector = utils.setup_session()
 
     viewer = napari.Viewer(ndisplay=2)
     image_settings_ui = CLEMLaserWidget(viewer=viewer, lc=lc)

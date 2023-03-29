@@ -2,15 +2,15 @@
 name: piedisc
 
 laser_controller:
-  name: Toptica_iCLE
+  name: demo
   serial:
     port: COM8
     baudrate: 9600
     timeout: 1
-  laser: Toptica_iCLE_Laser
+  laser: demo
 
 detector:
-  name: hamamatsuOrcaFlash4
+  name: demo
   pixel_size: 6.5e-6
   resolution: [2048, 2048]
   serial: null
