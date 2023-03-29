@@ -6,7 +6,7 @@ laser_controller:
   serial:
     port: COM8
     baudrate: 9600
-    timeout: 1
+    timeout: 1000
   laser: demo
 
 detector:
@@ -48,3 +48,16 @@ lasers:
   exposure_time: 1.
   enabled: False
   colour: [0, 0, 0]
+
+synchroniser:
+  name: demo
+  serial: 
+    port: COM3
+    baudrate: 115200
+    timeout: 1000
+  pins: 
+    laser_1: 12
+    laser_2: 11
+    laser_3: 10
+    laser_4: 9
+    detector: 8 

@@ -178,6 +178,57 @@ class DetectorSettings:
             "timeout": self.timeout,
         }
 
+@dataclass
+class SynchroniserSettings:
+    name: str
+    pins: dict[str: int]
+    serial_settings: SerialSettings = None
+
+    @staticmethod
+    def __from_dict__(settings: dict) -> "SynchroniserSettings":
+            
+            trigger_settings = SynchroniserSettings(
+                name=settings["name"],
+                pins=settings["pins"],
+                serial_settings=SerialSettings.__from_dict__(settings["serial"]),
+            )
+            return trigger_settings
+    
+    @staticmethod
+    def __to_dict__(self) -> dict:
+        return {
+            "name": self.name,
+            "pins": self.pins,
+            "serial_settings": None if self.serial_settings is None else SerialSettings.__to_dict__(self.serial_settings),
+        }
+    
+@dataclass 
+class SynchroniserMessage:
+    """Synchroniser message"""
+    
+    exposures: list[float]
+    pins: dict[str: int]
+    mode: str = "single"
+    n_slices: int = 0
+
+    @staticmethod
+    def __from_dict__(settings: dict) -> "SynchroniserMessage":
+        synchroniser_message = SynchroniserMessage(
+            exposures=settings["exposures"],
+            pins=settings["pins"],
+            mode=settings["mode"],
+            n_slices=settings["n_slices"],
+        )
+        return synchroniser_message
+    
+    @staticmethod
+    def __to_dict__(self) -> dict:
+        return {
+            "exposures": self.exposures,
+            "pins": self.pins,
+            "mode": self.mode,
+            "n_slices": self.n_slices,
+        }
 
 @dataclass
 class MicroscopeSettings:
