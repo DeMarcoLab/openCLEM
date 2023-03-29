@@ -17,7 +17,6 @@ from openclem.ui.CLEMObjectiveWidget import CLEMObjectiveWidget
 from openclem import config as cfg
 import os
 
-from openclem.objective_stages.demo.demo import DemoObjective
 
 class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
     def __init__(
