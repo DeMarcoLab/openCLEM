@@ -16,6 +16,7 @@ from napari.qt.threading import thread_worker
 from openclem.microscope import LightMicroscope
 
 
+
 class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
     def __init__(
         self,
@@ -62,8 +63,8 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             return
         
 
-        image_settings = self.get_settings_from_ui()
 
+        image_settings = self.get_settings_from_ui()
         microscope: LightMicroscope = self.hardware_widget.microscope
         microscope._detector.init_camera() # TODO: move to microscope
         detector_settings = microscope._detector.settings

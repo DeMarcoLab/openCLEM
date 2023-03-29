@@ -82,7 +82,6 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             
             self.tabWidget.addTab(self.image_widget, "Imaging")
             self.tabWidget.addTab(self.hardware_widget, "Hardware")
-
             self.pushButton_connect_hardware.setText("Connected")
             self.pushButton_connect_hardware.setStyleSheet("background-color: green")
 
@@ -95,10 +94,10 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             )
 
         else:
-
             self.tabWidget.removeTab(2)
             self.tabWidget.removeTab(1)
             
+
             self.pushButton_connect_hardware.setText("Connect Hardware")
             self.pushButton_connect_hardware.setStyleSheet("background-color: gray")
 
