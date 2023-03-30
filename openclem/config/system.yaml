@@ -2,12 +2,12 @@
 name: piedisc
 
 laser_controller:
-  name: demo
+  name: 89North_ldi
   serial:
     port: COM8
     baudrate: 9600
-    timeout: 1
-  laser: demo
+    timeout: 1000
+  laser: 89North_ldi_Laser
 
 detector:
   name: demo
@@ -48,3 +48,25 @@ lasers:
   exposure_time: 1.
   enabled: False
   colour: [0, 0, 0]
+
+synchroniser:
+  name: leonardo
+  serial: 
+    port: COM7
+    baudrate: 115200
+    timeout: 1
+  pins: 
+    laser_1: 12
+    laser_2: 11
+    laser_3: 10
+    laser_4: 9
+    detector: 8 
+
+objective_stage: 
+  name: smaract
+  socket:
+    host: '169.254.111.111'
+    port: 139
+    timeout: 5.0
+# TODO: make timeouts/timings in general universal
+# TODO: make socket and serial a single comm setting?

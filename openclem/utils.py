@@ -14,6 +14,8 @@ from openclem.config import (
     AVAILABLE_DETECTORS,
     AVAILABLE_LASER_CONTROLLERS,
     AVAILABLE_LASERS,
+    AVAILABLE_OBJECTIVES,
+    AVAILABLE_SYNCHRONISERS,
 )
 from openclem.config import BASE_PATH, LOG_PATH
 from openclem.structures import MicroscopeSettings, SerialSettings
@@ -22,14 +24,26 @@ from openclem.detector import Detector
 from openclem.microscope import LightMicroscope
 
 
-def write_serial_command(port: serial.Serial, command):
-    port.close()
-    port.open()
-    port.write(bytes(command, "utf-8"))
-    response = port.read_until(expected=b"\r")
-    port.close()
-    return response
+def write_serial_command(port: serial.Serial, command, check=True):
+    """Send a command to a serial port and return the response
+       Expects a newline character at the end of the response
+       Expects the port to be opened before calling
 
+    Args:
+        port (serial.Serial): _description_
+        command (_type_): _description_
+        check (bool, optional): _description_. Defaults to True.
+
+    Returns:
+        _type_: _description_
+    """
+    if not port.is_open:
+        port.open()
+    port.write(bytes(command, "utf-8"))
+    if check: 
+        response = port.readline()
+        return response
+    return None
 
 def get_available_ports():
     ports = serial.tools.list_ports.comports()
@@ -76,18 +90,16 @@ def current_timestamp():
     return datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d-%I-%M-%S%p")
 
 
-def setup_session(session_path: Path = None,
-                  config_path: Path = None,
-                  setup_logging: bool = True,
-                  online: bool = True) -> tuple[LightMicroscope, MicroscopeSettings]:
-
+def setup_session(
+    session_path: Path = None,
+    config_path: Path = None,
+    setup_logging: bool = True,
+    online: bool = True,
+) -> tuple[LightMicroscope, MicroscopeSettings]:
     settings = load_settings_from_config(config_path=config_path)
+    session = f"{settings.name}_{current_timestamp()}"
 
-    cls_laser, cls_laser_controller, cls_detector = import_hardware_modules(settings)
-
-    session = f'{settings.name}_{current_timestamp()}'
-
-        # configure paths
+    # configure paths
     if session_path is None:
         session_path = os.path.join(LOG_PATH, session)
     os.makedirs(session_path, exist_ok=True)
@@ -96,18 +108,31 @@ def setup_session(session_path: Path = None,
     if setup_logging:
         configure_logging(path=session_path, log_level=logging.DEBUG)
 
+    (
+        cls_laser,
+        cls_laser_controller,
+        cls_detector,
+        cls_objective,
+        cls_synchroniser
+    ) = import_hardware_modules(settings)
+
     # if online:
     laser_controller = cls_laser_controller(settings.laser_controller)
     detector = cls_detector(settings.detector)
+    objective = cls_objective(settings.objective_stage)
+    synchroniser = cls_synchroniser(settings.synchroniser)
+
     for laser_ in settings.lasers:
         laser = cls_laser(laser_, parent=laser_controller)
         laser_controller.add_laser(laser)
-    
+
     if online:
         laser_controller.connect()
         detector.connect()
-    
-    return [laser_controller, detector]
+        objective.connect()
+        synchroniser.connect()
+
+    return [laser_controller, detector, objective, synchroniser]
 
 
 def load_settings_from_config(config_path: Path = None) -> MicroscopeSettings:
@@ -119,7 +144,9 @@ def load_settings_from_config(config_path: Path = None) -> MicroscopeSettings:
     return microscope_settings
 
 
-def import_hardware_modules(microscope_settings: MicroscopeSettings) -> tuple[Laser, LaserController, Detector]:
+def import_hardware_modules(
+    microscope_settings: MicroscopeSettings,
+) -> tuple[Laser, LaserController, Detector]:
     # structure is {hardware_type: [hardware_folder_name, hardware_name, availability_dict]}
     hardware_dict = {
         "laser": [
@@ -136,6 +163,16 @@ def import_hardware_modules(microscope_settings: MicroscopeSettings) -> tuple[La
             "detectors",
             microscope_settings.detector.name,
             AVAILABLE_DETECTORS,
+        ],
+        "objectives": [
+            "objectives",
+            microscope_settings.objective_stage.name,
+            AVAILABLE_OBJECTIVES,
+        ],
+        "synchronisers": [
+            "synchronisers",
+            microscope_settings.synchroniser.name,
+            AVAILABLE_SYNCHRONISERS,
         ],
     }
 
@@ -157,7 +194,6 @@ def import_hardware_modules(microscope_settings: MicroscopeSettings) -> tuple[La
         cls = getattr(module, availablility_dict[hardware_name][1])
         classes.append(cls)
         logging.info(f"imported {hardware_type} {cls}")
-        print(os.path.dirname(module.__file__))
 
     return classes
 

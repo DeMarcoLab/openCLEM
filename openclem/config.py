@@ -23,3 +23,13 @@ AVAILABLE_LASER_CONTROLLERS = {
     "Toptica_iCLE": ["toptica.iCLE", "iCLELaserController"],
     "89North_ldi": ["89north.ldi", "LdiLaserController"],
 }
+
+AVAILABLE_OBJECTIVES = {
+    "demo": ["demo.demo", "DemoObjective"],
+    "smaract": ["smaract.SMARACT", "SMARACTObjectiveStage"],
+}
+
+AVAILABLE_SYNCHRONISERS = {
+    "demo": ["demo.demo", "DemoSynchroniser"],
+    "leonardo": ["arduino.leonardo", "ArduinoLeonardo"],
+}

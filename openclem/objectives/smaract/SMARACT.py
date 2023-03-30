@@ -16,6 +16,7 @@ class SMARACTObjectiveStage(Objective):
         self.connection = None
 
     def connect(self, host="169.254.111.111", port=139, timeout=5.0):
+        logging.info("Connecting to objective stage.")
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connection.settimeout(timeout)
         self.connection.connect((host, port))
@@ -56,16 +57,11 @@ class SMARACTObjectiveStage(Objective):
             Set the value in nm that the reference mark should represent.
             Default is 0.
         """
-        try:
-            logging.debug("Initialising parameters.")
-            self.set_relative_accumulation(relative_accumulation)
-            self.find_reference_mark(reference_mark, reference_hold)
-            self.set_start_position(start_position)
-            logging.debug("Successfully initialised.")
-        except Exception as e:
-            logging.error(e)
-            logging.error("Error in initialising stage parameters")
-            raise e
+        logging.debug("Initialising parameters.")
+        self.set_relative_accumulation(relative_accumulation)
+        self.find_reference_mark(reference_mark, reference_hold)
+        self.set_start_position(start_position)
+        logging.debug("Successfully initialised.")
 
     def set_relative_accumulation(self, onoff):
         """Set the relative accumulation for the objective lens stage.
@@ -89,14 +85,9 @@ class SMARACTObjectiveStage(Objective):
                 "in piescope.lm.objective module "
                 "must be equal to either 0 or 1."
             )
-        try:
-            cmd = "SARP0," + str(onoff)
-            ans = self.send_command(cmd)
-            return ans
-        except Exception as e:
-            logging.error(e)
-            logging.error("Unable to set relative accumulation.")
-            raise e
+        cmd = "SARP0," + str(onoff)
+        ans = self.send_command(cmd)
+        return ans
 
     def find_reference_mark(self, mark, hold=1000):
         """Find reference mark position for fluorescence objective lens stage.
@@ -116,15 +107,8 @@ class SMARACTObjectiveStage(Objective):
             Return string from the stage controller.
             Gives information about whether or not call succeeded.
         """
-        try:
-            cmd = "FRM0," + str(mark) + "," + str(hold) + ",1"
-            ans = self.send_command(cmd)
-        except Exception as e:
-            logging.error(e)
-            logging.error("Unable to find reference mark.")
-            raise e
-        else:
-            return ans
+        cmd = "FRM0," + str(mark) + "," + str(hold) + ",1"
+        ans = self.send_command(cmd)
 
     def set_start_position(self, start_position):
         """Set starting position for the fluorescence objective lens stage.
@@ -140,15 +124,8 @@ class SMARACTObjectiveStage(Objective):
             Return string from the stage controller.
             Gives information about whether or not call succeeded.
         """
-        try:
-            cmd = "SP0," + str(start_position)
-            ans = self.send_command(cmd)
-        except Exception as e:
-            logging.error(e)
-            logging.error("Unable to set start position.")
-            raise e
-        else:
-            return ans
+        cmd = "SP0," + str(start_position)
+        ans = self.send_command(cmd)
 
     def send_command(self, cmd, pre_string=":", post_string="\012"):
         """Send command to the fluorescence objective lens stage.
@@ -173,14 +150,7 @@ class SMARACTObjectiveStage(Objective):
         Raises an exception if unable to send the command through the socket.
         """
         cmd = bytes(pre_string + cmd + post_string, "utf-8")
-        try:
-            self.connection.sendall(cmd)
-        except Exception as e:
-            logging.error(e)
-            logging.error("Unable to send command to controller: " "{}".format(cmd))
-            raise e
-        else:
-            return self.connection.recv(1024)
+        self.connection.sendall(cmd)
 
     @property
     def position(self) -> float:
@@ -191,16 +161,8 @@ class SMARACTObjectiveStage(Objective):
         position : string
             Current position of objective stage controller as a string.
         """
-        try:
-            cmd = "GP0"
-            ans = self.send_command(cmd)
-        except Exception as e:
-            logging.error(e)
-            logging.error("Unable to fetch objective stage position.")
-            raise e
-        else:
-            position = str(ans).rsplit(",")[-1].split("\\")[0]
-            return position
+        cmd = "GP0"
+        ans = self.send_command(cmd)
 
     @position.setter
     def position(self, value: float) -> None:
@@ -227,16 +189,9 @@ class SMARACTObjectiveStage(Objective):
             Gives information about whether or not call succeeded.
         """
         hold = 0
-        try:
-            cmd = "MPR0," + str(distance) + "," + str(hold)
-            ans = self.send_command(cmd)
-        except Exception as e:
-            logging.error(e)
-            logging.error("Unable to move the stage.")
-            raise e
-        else:
-            return ans
-    
+        cmd = "MPR0," + str(distance) + "," + str(hold)
+        ans = self.send_command(cmd)
+
     def absolute_move(self, position: float):
         """Absolute movement of the fluorescence objective lens stage.
 
@@ -257,16 +212,8 @@ class SMARACTObjectiveStage(Objective):
 
         hold = 0
         
-        try:
-            cmd = "MPA0," + str(position) + "," + str(hold)
-            ans = self.send_command(cmd)
-        except Exception as e:
-            logging.error(e)
-            logging.error("Unable to move the stage.")
-            raise e
-        else:
-            return ans
-
+        cmd = "MPA0," + str(position) + "," + str(hold)
+        ans = self.send_command(cmd)
 
 # class StageController(socket.socket):
 #     """Class for connecting to the SMARACT objective stage controller."""
