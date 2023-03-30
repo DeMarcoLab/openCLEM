@@ -232,7 +232,52 @@ class SynchroniserMessage:
             "n_slices": self.n_slices,
             "trigger_edge": self.trigger_edge.name,
         }
+    
+# TODO: merge with SerialSettings into a CommsSettings class?
+@dataclass
+class SocketSettings:
+    """Settings class for socket connections"""
+    host: str
+    port: int
+    timeout: int = 5.0 # TODO: universal timing
 
+    @staticmethod
+    def __from_dict__(settings: dict) -> "SocketSettings":
+        socket_settings = SocketSettings(
+            host=settings["host"],
+            port=settings["port"],
+            timeout=settings["timeout"],
+        )
+        return socket_settings
+    
+    @staticmethod
+    def __to_dict__(self) -> dict:
+        return {
+            "host": self.host,
+            "port": self.port,
+            "timeout": self.timeout,
+        }
+@dataclass
+class ObjectiveSettings:
+    name: str
+    socket_settings: SocketSettings
+
+    @staticmethod
+    def __from_dict__(settings: dict) -> "ObjectiveSettings":
+        objective_settings = ObjectiveSettings(
+            name=settings["name"],
+            socket_settings=SocketSettings.__from_dict__(settings["socket"]),
+        )
+        return objective_settings
+    
+    @staticmethod
+    def __to_dict__(self) -> dict:
+        return {
+            "name": self.name,
+            "socket_settings": SocketSettings.__to_dict__(self.socket_settings),
+        }
+    
+    
 @dataclass
 class MicroscopeSettings:
     """Microscope settings"""
@@ -241,6 +286,7 @@ class MicroscopeSettings:
     lasers: list[LaserSettings]
     detector: DetectorSettings = None
     laser_controller: LaserControllerSettings = None
+    objective_stage: ObjectiveSettings = None
 
     @staticmethod
     def __from_dict__(settings: dict) -> "MicroscopeSettings":
@@ -250,6 +296,7 @@ class MicroscopeSettings:
             detector=DetectorSettings.__from_dict__(settings["detector"]),
             laser_controller=LaserControllerSettings.__from_dict__(settings["laser_controller"]),
             lasers=[LaserSettings.__from_dict__(laser) for laser in settings["lasers"]],
+            objective_stage=ObjectiveSettings.__from_dict__(settings["objective_stage"]),
         )
         return microscope_settings
 
@@ -260,4 +307,5 @@ class MicroscopeSettings:
             "detector": DetectorSettings.__to_dict__(self.detector),
             "laser_controller": LaserControllerSettings.__to_dict__(self.laser_controller),
             "lasers": [LaserSettings.__to_dict__(laser) for laser in self.lasers],
+            "objective_stage": ObjectiveSettings.__to_dict__(self.objective_stage),
         }

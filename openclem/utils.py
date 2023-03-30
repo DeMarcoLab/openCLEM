@@ -14,6 +14,7 @@ from openclem.config import (
     AVAILABLE_DETECTORS,
     AVAILABLE_LASER_CONTROLLERS,
     AVAILABLE_LASERS,
+    AVAILABLE_OBJECTIVES
 )
 from openclem.config import BASE_PATH, LOG_PATH
 from openclem.structures import MicroscopeSettings, SerialSettings
@@ -94,12 +95,14 @@ def setup_session(session_path: Path = None,
         configure_logging(path=session_path, log_level=logging.DEBUG)
 
 
-    cls_laser, cls_laser_controller, cls_detector = import_hardware_modules(settings)
+    cls_laser, cls_laser_controller, cls_detector, cls_objective = import_hardware_modules(settings)
 
 
     # if online:
     laser_controller = cls_laser_controller(settings.laser_controller)
     detector = cls_detector(settings.detector)
+    objective = cls_objective(settings.objective_stage)
+    
     for laser_ in settings.lasers:
         laser = cls_laser(laser_, parent=laser_controller)
         laser_controller.add_laser(laser)
@@ -107,8 +110,9 @@ def setup_session(session_path: Path = None,
     if online:
         laser_controller.connect()
         detector.connect()
+        objective.connect()
 
-    return [laser_controller, detector]
+    return [laser_controller, detector, objective]
 
 
 def load_settings_from_config(config_path: Path = None) -> MicroscopeSettings:
@@ -138,6 +142,11 @@ def import_hardware_modules(microscope_settings: MicroscopeSettings) -> tuple[La
             microscope_settings.detector.name,
             AVAILABLE_DETECTORS,
         ],
+        "objectives": [
+            "objectives",
+            microscope_settings.objective_stage.name,
+            AVAILABLE_OBJECTIVES,
+        ],
     }
 
     classes = []
@@ -158,7 +167,6 @@ def import_hardware_modules(microscope_settings: MicroscopeSettings) -> tuple[La
         cls = getattr(module, availablility_dict[hardware_name][1])
         classes.append(cls)
         logging.info(f"imported {hardware_type} {cls}")
-        print(os.path.dirname(module.__file__))
 
     return classes
 

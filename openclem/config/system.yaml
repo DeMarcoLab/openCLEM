@@ -61,3 +61,13 @@ synchroniser:
     laser_3: 10
     laser_4: 9
     detector: 8 
+
+objective_stage: 
+  name: 'smaract'
+  socket:
+    host: '169.254.111.111'
+    port: 139
+    timeout: 5.0
+
+# TODO: make timeouts/timings in general universal
+# TODO: make socket and serial a single comm setting?
