@@ -4,11 +4,12 @@ from openclem.structures import ImageSettings
 from openclem.laser import LaserController
 from openclem.objective import ObjectiveStage
 from openclem.detector import Detector
+from openclem.synchronisation import Synchroniser
 
-class PIEDISCMicroscope(LightMicroscope):
+class BaseLightMicroscope(LightMicroscope):
 
     def __init__(self, name: str):
-        super().__init__(name)
+        self.name = name
         self._connection = None
         self._detector = None
         self._objective = None
@@ -18,12 +19,17 @@ class PIEDISCMicroscope(LightMicroscope):
         self._detector.connect()
         self._laser_controller.connect()
         self._objective.connect()
+        self._synchroniser.connect()
 
     def disconnect(self):
-        pass
-
+        self._detector.disconnect()
+        self._laser_controller.disconnect()
+        self._objective.disconnect()
+        
     def initialise(self):
-        pass
+        # self._detector.initialise() # REFACTOR
+        # self._laser_controller.initialise() # REFACTOR
+        self._objective.initialise()
 
     def add_detector(self, detector: Detector):
         self._detector = detector
@@ -43,8 +49,17 @@ class PIEDISCMicroscope(LightMicroscope):
     def get_laser_controller(self) -> LaserController:
         return self._laser_controller
     
+    def add_synchroniser(self, synchroniser) -> None:
+        self._synchroniser = synchroniser
+
+    def get_synchroniser(self) -> Synchroniser:
+        return self._synchroniser
+
     def acquire_image(self, image_settings:ImageSettings):
-        pass
+        
+        image = self._detector.grab_image(image_settings)
+
+        return image
 
     def live_image(self, image_settings:ImageSettings):
         pass

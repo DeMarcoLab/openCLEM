@@ -40,7 +40,6 @@ class ImageSettings:
             n_images=settings["n_images"],
         )
 
-    @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "pixel_size": self.pixel_size,
@@ -69,7 +68,6 @@ class SerialSettings:
             timeout=settings["timeout"],
         )
 
-    @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "port": self.port,
@@ -101,7 +99,6 @@ class LaserSettings:
         )
         return laser_settings
 
-    @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
@@ -129,7 +126,6 @@ class LaserControllerSettings:
         )
         return laser_controller_settings
 
-    @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
@@ -165,7 +161,6 @@ class DetectorSettings:
         )
         return detector_settings
 
-    @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
@@ -302,7 +297,6 @@ class MicroscopeSettings:
         )
         return microscope_settings
 
-    @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,

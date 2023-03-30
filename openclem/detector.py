@@ -7,6 +7,7 @@ class Detector(ABC):
 
     def __init__(self, detector_settings: DetectorSettings):
         self.settings = detector_settings
+        self.name = detector_settings.name
         self.camera = None
         self.serial_connection = None
 

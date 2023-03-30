@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class Objective(ABC):
+class ObjectiveStage(ABC):
     def __init__(self, name: str):
         self.name = name
         self.position = 0
@@ -41,3 +41,5 @@ class Objective(ABC):
     def absolute_move(self, position: float):
         pass
 
+    def __repr__(self) -> str:
+        return f"{self.name} - ObjectiveStage"

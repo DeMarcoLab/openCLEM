@@ -131,7 +131,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Objective</string>
+      <string>ObjectiveStage</string>
      </property>
     </widget>
    </item>

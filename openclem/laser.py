@@ -44,6 +44,9 @@ class Laser(ABC):
     @abstractmethod
     def disable(self) -> None:
         pass
+
+    def __repr__(self) -> str:
+        return f"{self.name} - Laser"
         
 
 class LaserController(ABC):
@@ -87,3 +90,5 @@ class LaserController(ABC):
     def get_power(self, name: str) -> float:
         pass
     
+    def __repr__(self) -> str:
+        return f"{self.name} - LaserController"

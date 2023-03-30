@@ -1,16 +1,19 @@
 
-from openclem.objective import Objective
+from openclem.objective import ObjectiveStage
+from openclem.structures import ObjectiveSettings
 import logging
 
 
-class DemoObjective(Objective):
-    def __init__(self, name:str):
-        self.name = name
+class DemoObjectiveStage(ObjectiveStage):
+    def __init__(self, objective_settings: ObjectiveSettings):
+        self.name = objective_settings.name
+        self.socket_settings = objective_settings.socket_settings
         self._position = 0.0
         self.saved_position = None
     
     def connect(self):
         logging.info(f"Connecting to {self.name} objective")
+        logging.info(f"Socket settings: {self.socket_settings}")
     
     def disconnect(self):
         logging.info(f"Disconnecting from {self.name} objective")

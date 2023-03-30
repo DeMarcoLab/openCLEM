@@ -2,6 +2,7 @@ from openclem import utils
 from openclem.structures import SynchroniserMessage, SynchroniserSettings
 from openclem.synchronisation import Synchroniser
 import time
+import logging
 
 MODE_CONVERSION = {
     "single": "S",
@@ -9,7 +10,7 @@ MODE_CONVERSION = {
     "volume": "V",
 }
 
-class ArduinoLeonardo(Synchroniser):
+class DemoSynchroniser(Synchroniser):
     def __init__(self, synchroniser_settings: SynchroniserSettings):
         self.settings = synchroniser_settings
         self.name = synchroniser_settings.name
@@ -17,20 +18,17 @@ class ArduinoLeonardo(Synchroniser):
         self.serial_connection = None
 
     def connect(self):
-        self.serial_connection = utils.connect_to_serial_port(self.settings.serial_settings)
+        self.serial_connection = "Serial Connection"
 
     def disconnect(self):
         if self.serial_connection is not None:
-            self.serial_connection.close()
+            logging.info(f"Closing serial connection {self.serial_connection}")
 
     def send_command(self, command):
         if self.serial_connection is None: return
 
-        if not self.serial_connection.is_open:
-            self.serial_connection.open()
-            time.sleep(1) # required for initialisation
-        response = utils.write_serial_command(self.serial_connection, command, check=True)
-        return response
+        logging.info(f"Sending command {command}")
+        return "Response"
 
     def sync_image(self, message: SynchroniserMessage):
         exposure_string = ""

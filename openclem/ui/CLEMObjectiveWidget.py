@@ -10,13 +10,13 @@ from openclem.detector import Detector
 from openclem.laser import Laser, LaserController
 from openclem.structures import ImageSettings, LaserControllerSettings, LaserSettings
 from openclem.ui.qt import CLEMObjectiveWidget
-from openclem.objective import Objective
+from openclem.objective import ObjectiveStage
 
 
 class CLEMObjectiveWidget(CLEMObjectiveWidget.Ui_Form, QtWidgets.QWidget):
     def __init__(
         self,
-        objective: Objective,
+        objective: ObjectiveStage,
         viewer: napari.Viewer = None,
         parent=None,
     ):
