@@ -23,14 +23,28 @@ from openclem.detector import Detector
 from openclem.microscope import LightMicroscope
 
 
-def write_serial_command(port: serial.Serial, command):
-    port.close()
-    port.open()
-    port.write(bytes(command, "utf-8"))
-    response = port.read_line()
-    port.close()
-    return response
+def write_serial_command(port: serial.Serial, command, check=True):
+    """Send a command to a serial port and return the response
+       Expects a newline character at the end of the response
+       Expects the port to be opened before calling
 
+    Args:
+        port (serial.Serial): _description_
+        command (_type_): _description_
+        check (bool, optional): _description_. Defaults to True.
+
+    Returns:
+        _type_: _description_
+    """
+    if not port.is_open:
+        port.open()
+    port.write(bytes(command, "utf-8"))
+    if check: 
+        response = port.readline()
+        port.close()
+        return response
+    port.close()
+    return None
 
 def get_available_ports():
     ports = serial.tools.list_ports.comports()
