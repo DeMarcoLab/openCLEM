@@ -26,7 +26,7 @@ def write_serial_command(port: serial.Serial, command):
     port.close()
     port.open()
     port.write(bytes(command, "utf-8"))
-    response = port.read_until(expected=b"\r")
+    response = port.read_line()
     port.close()
     return response
 
