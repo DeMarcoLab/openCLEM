@@ -287,6 +287,7 @@ class MicroscopeSettings:
     detector: DetectorSettings = None
     laser_controller: LaserControllerSettings = None
     objective_stage: ObjectiveSettings = None
+    synchroniser: SynchroniserSettings = None
 
     @staticmethod
     def __from_dict__(settings: dict) -> "MicroscopeSettings":
@@ -297,6 +298,7 @@ class MicroscopeSettings:
             laser_controller=LaserControllerSettings.__from_dict__(settings["laser_controller"]),
             lasers=[LaserSettings.__from_dict__(laser) for laser in settings["lasers"]],
             objective_stage=ObjectiveSettings.__from_dict__(settings["objective_stage"]),
+            synchroniser=SynchroniserSettings.__from_dict__(settings["synchroniser"]),
         )
         return microscope_settings
 
@@ -308,4 +310,5 @@ class MicroscopeSettings:
             "laser_controller": LaserControllerSettings.__to_dict__(self.laser_controller),
             "lasers": [LaserSettings.__to_dict__(laser) for laser in self.lasers],
             "objective_stage": ObjectiveSettings.__to_dict__(self.objective_stage),
+            "synchroniser": SynchroniserSettings.__to_dict__(self.synchroniser),
         }

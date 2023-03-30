@@ -14,7 +14,8 @@ from openclem.config import (
     AVAILABLE_DETECTORS,
     AVAILABLE_LASER_CONTROLLERS,
     AVAILABLE_LASERS,
-    AVAILABLE_OBJECTIVES
+    AVAILABLE_OBJECTIVES,
+    AVAILABLE_SYNCHRONISERS,
 )
 from openclem.config import BASE_PATH, LOG_PATH
 from openclem.structures import MicroscopeSettings, SerialSettings
@@ -91,15 +92,16 @@ def current_timestamp():
     return datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d-%I-%M-%S%p")
 
 
-def setup_session(session_path: Path = None,
-                  config_path: Path = None,
-                  setup_logging: bool = True,
-                  online: bool = True) -> tuple[LightMicroscope, MicroscopeSettings]:
-
+def setup_session(
+    session_path: Path = None,
+    config_path: Path = None,
+    setup_logging: bool = True,
+    online: bool = True,
+) -> tuple[LightMicroscope, MicroscopeSettings]:
     settings = load_settings_from_config(config_path=config_path)
-    session = f'{settings.name}_{current_timestamp()}'
+    session = f"{settings.name}_{current_timestamp()}"
 
-        # configure paths
+    # configure paths
     if session_path is None:
         session_path = os.path.join(LOG_PATH, session)
     os.makedirs(session_path, exist_ok=True)
@@ -108,15 +110,20 @@ def setup_session(session_path: Path = None,
     if setup_logging:
         configure_logging(path=session_path, log_level=logging.DEBUG)
 
-
-    cls_laser, cls_laser_controller, cls_detector, cls_objective = import_hardware_modules(settings)
-
+    (
+        cls_laser,
+        cls_laser_controller,
+        cls_detector,
+        cls_objective,
+        cls_synchroniser
+    ) = import_hardware_modules(settings)
 
     # if online:
     laser_controller = cls_laser_controller(settings.laser_controller)
     detector = cls_detector(settings.detector)
     objective = cls_objective(settings.objective_stage)
-    
+    synchroniser = cls_synchroniser(settings.synchroniser)
+
     for laser_ in settings.lasers:
         laser = cls_laser(laser_, parent=laser_controller)
         laser_controller.add_laser(laser)
@@ -125,8 +132,9 @@ def setup_session(session_path: Path = None,
         laser_controller.connect()
         detector.connect()
         objective.connect()
+        synchroniser.connect()
 
-    return [laser_controller, detector, objective]
+    return [laser_controller, detector, objective, synchroniser]
 
 
 def load_settings_from_config(config_path: Path = None) -> MicroscopeSettings:
@@ -138,7 +146,9 @@ def load_settings_from_config(config_path: Path = None) -> MicroscopeSettings:
     return microscope_settings
 
 
-def import_hardware_modules(microscope_settings: MicroscopeSettings) -> tuple[Laser, LaserController, Detector]:
+def import_hardware_modules(
+    microscope_settings: MicroscopeSettings,
+) -> tuple[Laser, LaserController, Detector]:
     # structure is {hardware_type: [hardware_folder_name, hardware_name, availability_dict]}
     hardware_dict = {
         "laser": [
@@ -160,6 +170,11 @@ def import_hardware_modules(microscope_settings: MicroscopeSettings) -> tuple[La
             "objectives",
             microscope_settings.objective_stage.name,
             AVAILABLE_OBJECTIVES,
+        ],
+        "synchronisers": [
+            "synchronisers",
+            microscope_settings.synchroniser.name,
+            AVAILABLE_SYNCHRONISERS,
         ],
     }
 

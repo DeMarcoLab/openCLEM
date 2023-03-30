@@ -28,3 +28,8 @@ AVAILABLE_OBJECTIVES = {
     "demo": ["demo.demo", "DemoObjective"],
     "smaract": ["smaract.SMARACT", "SMARACTObjectiveStage"],
 }
+
+AVAILABLE_SYNCHRONISERS = {
+    "demo": ["demo.demo", "DemoSynchroniser"],
+    "leonardo": ["arduino.leonardo", "ArduinoLeonardo"],
+}

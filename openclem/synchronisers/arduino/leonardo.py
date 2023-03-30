@@ -1,6 +1,7 @@
 from openclem import utils
 from openclem.structures import SynchroniserMessage, SynchroniserSettings
 from openclem.synchronisation import Synchroniser
+import time
 
 MODE_CONVERSION = {
     "single": "S",
@@ -24,11 +25,12 @@ class ArduinoLeonardo(Synchroniser):
     def send_command(self, command):
         if self.serial_connection is None: return
 
+        if not self.serial_connection.is_open:
+            self.serial_connection.open()
+        time.sleep(1) # required for some reason
+        response = utils.write_serial_command(self.serial_connection, command, check=True)
         self.serial_connection.close()
-        self.serial_connection.open()
-        # TODO: investigate whether sleep(1) is required here
-        utils.write_serial_command(self.serial_connection, command)
-        self.serial_connection.close()
+        return response
 
     def sync_image(self, message: SynchroniserMessage):
         exposure_string = ""
