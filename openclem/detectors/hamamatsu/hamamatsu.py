@@ -3,12 +3,12 @@ import logging
 from openclem import utils
 from openclem.detector import Detector
 from openclem.detectors.hamamatsu.dcam.dcam import *
-from openclem.structures import ImageSettings, DetectorSettings
+from openclem.structures import ImageSettings, DetectorSettings, TriggerSource, ExposureMode, TriggerEdge
 
 image_conversion_dict = {
-    "exposure_mode": {"edge": 1, "level": 2},
-    "trigger_source": {"internal": 1, "external": 2, "software": 3},
-    "trigger_edge": {"falling": 1, "rising": 2},
+    "exposure_mode": {ExposureMode.TIMED: 1, ExposureMode.TRIGGER_WIDTH: 2},
+    "trigger_source": {TriggerSource.INTERNAL: 1, TriggerSource.EXTERNAL: 2, TriggerSource.SOFTWARE: 3},
+    "trigger_edge": {TriggerEdge.FALLING: 1, TriggerEdge.RISING: 2},
 }
 
 
@@ -83,20 +83,23 @@ class HamamatsuOrcaFlash4(Detector):
             self.camera.dev_open()
                 
             self.exposure_time = image_settings.exposure
-            self.trigger_source = image_conversion_dict["trigger_source"][image_settings.trigger_source]
-            self.trigger_edge = image_conversion_dict["trigger_edge"][image_settings.trigger_edge]
-            self.exposure_mode = image_conversion_dict["exposure_mode"][image_settings.exposure_mode]
+            
+            self.trigger_source = image_conversion_dict["trigger_source"][self.settings.trigger_source]
+            self.trigger_edge = image_conversion_dict["trigger_edge"][self.settings.trigger_edge]
+            self.exposure_mode = image_conversion_dict["exposure_mode"][self.settings.exposure_mode]
+            
             self.camera.prop_setvalue(DCAM_IDPROP.TRIGGER_MODE, 1)
+
             count = image_settings.n_images
             count_ = 0
             images = []
             if self.camera.buf_alloc(count) is not False:
                 if self.camera.cap_start() is not False:
                     while count_ < count:
-                        if image_settings.trigger_source == "software":
+                        if self.settings.trigger_source == TriggerSource.SOFTWARE:
                             self.camera.cap_firetrigger()
-                        if self.camera.wait_capevent_frameready(timeout_millisec=image_settings.timeout) is not False:
-                            images.append(np.array(self.camera.buf_getlastframedata()).T)
+                        if self.camera.wait_capevent_frameready(timeout_millisec=self.settings.timeout) is not False:
+                            image = np.array(self.camera.buf_getlastframedata()).T
                             count_ += 1
                         else:
                             dcamerr = self.camera.lasterr()
@@ -109,7 +112,7 @@ class HamamatsuOrcaFlash4(Detector):
                     self.camera.cap_stop()
                     self.camera.buf_release()
                     self.close_camera()
-                    return images
+                    return image
                 self.camera.buf_release()
 
         except Exception as e:
