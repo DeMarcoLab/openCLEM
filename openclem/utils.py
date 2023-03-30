@@ -42,9 +42,7 @@ def write_serial_command(port: serial.Serial, command, check=True):
     port.write(bytes(command, "utf-8"))
     if check: 
         response = port.readline()
-        port.close()
         return response
-    port.close()
     return None
 
 def get_available_ports():

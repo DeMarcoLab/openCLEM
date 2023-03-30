@@ -27,9 +27,8 @@ class ArduinoLeonardo(Synchroniser):
 
         if not self.serial_connection.is_open:
             self.serial_connection.open()
-        time.sleep(1) # required for some reason
+            time.sleep(1) # required for initialisation
         response = utils.write_serial_command(self.serial_connection, command, check=True)
-        self.serial_connection.close()
         return response
 
     def sync_image(self, message: SynchroniserMessage):
