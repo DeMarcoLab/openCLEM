@@ -49,6 +49,13 @@ class LightMicroscope(ABC):
     def get_laser_controller(self) -> LaserController:
         return self.laser_controller
     
+    @abstractmethod
+    def add_synchroniser(self, synchroniser):
+        pass
+
+    @abstractmethod
+    def get_synchroniser(self):
+        pass
 
     @abstractmethod
     def acquire_image(self, image_settings:ImageSettings):

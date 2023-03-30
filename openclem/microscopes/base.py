@@ -4,6 +4,7 @@ from openclem.structures import ImageSettings
 from openclem.laser import LaserController
 from openclem.objective import ObjectiveStage
 from openclem.detector import Detector
+from openclem.synchronisation import Synchroniser
 
 class BaseLightMicroscope(LightMicroscope):
 
@@ -18,6 +19,7 @@ class BaseLightMicroscope(LightMicroscope):
         self._detector.connect()
         self._laser_controller.connect()
         self._objective.connect()
+        self._synchroniser.connect()
 
     def disconnect(self):
         self._detector.disconnect()
@@ -47,6 +49,12 @@ class BaseLightMicroscope(LightMicroscope):
     def get_laser_controller(self) -> LaserController:
         return self._laser_controller
     
+    def add_synchroniser(self, synchroniser) -> None:
+        self._synchroniser = synchroniser
+
+    def get_synchroniser(self) -> Synchroniser:
+        return self._synchroniser
+
     def acquire_image(self, image_settings:ImageSettings):
         
         image = self._detector.grab_image(image_settings)

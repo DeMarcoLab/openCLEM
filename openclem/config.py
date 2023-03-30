@@ -25,7 +25,7 @@ AVAILABLE_LASER_CONTROLLERS = {
 }
 
 AVAILABLE_OBJECTIVES = {
-    "demo": ["demo.demo", "DemoObjective"],
+    "demo": ["demo.demo", "DemoObjectiveStage"],
     "smaract": ["smaract.SMARACT", "SMARACTObjectiveStage"],
 }
 
