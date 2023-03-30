@@ -22,6 +22,9 @@ from openclem.structures import MicroscopeSettings, SerialSettings
 from openclem.laser import Laser, LaserController
 from openclem.detector import Detector
 from openclem.microscope import LightMicroscope
+from openclem.microscopes.base import BaseLightMicroscope
+from openclem.objective import ObjectiveStage
+from openclem.synchronisation import Synchroniser
 
 
 def write_serial_command(port: serial.Serial, command, check=True):
@@ -132,7 +135,14 @@ def setup_session(
         objective.connect()
         synchroniser.connect()
 
-    return [laser_controller, detector, objective, synchroniser]
+    # create microscope
+    microscope = create_microscope(name=settings.name, 
+                                    det=detector, 
+                                    lc=laser_controller, 
+                                    obj=objective,
+                                    synchroniser=synchroniser,)
+
+    return microscope, settings
 
 
 def load_settings_from_config(config_path: Path = None) -> MicroscopeSettings:
@@ -216,13 +226,13 @@ def configure_logging(path: Path = "", log_filename="logfile", log_level=logging
 
     return logfile
 
-from openclem.microscopes.base import BaseLightMicroscope
-def create_microscope(name, det, lc, obj) -> BaseLightMicroscope:
+def create_microscope(name:str, det:Detector, lc:LaserController, obj:ObjectiveStage, synchroniser: Synchroniser) -> BaseLightMicroscope:
 
     lm = BaseLightMicroscope(name=name)
     lm.add_detector(det)
     lm.add_objective(obj)
     lm.add_laser_controller(lc)
+    lm.add_synchroniser(synchroniser)
 
     lm.connect()
 

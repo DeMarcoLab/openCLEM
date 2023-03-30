@@ -2,12 +2,12 @@
 name: piedisc
 
 laser_controller:
-  name: 89North_ldi
+  name: demo
   serial:
     port: COM8
     baudrate: 9600
     timeout: 1000
-  laser: 89North_ldi_Laser
+  laser: demo
 
 detector:
   name: demo
@@ -18,14 +18,6 @@ detector:
   trigger_edge: RISING
   exposure_mode: TRIGGER_WIDTH
   timeout: 1000 # ms
-
-objective_stage:
-  name: demo
-  connection:
-    type: socket
-    host: 169.254.111.111
-    port: 139
-    timeout: 5.0
 
 lasers:
 - name: 'laser_1'
@@ -58,7 +50,7 @@ lasers:
   colour: [0, 0, 0]
 
 synchroniser:
-  name: leonardo
+  name: demo
   serial: 
     port: COM7
     baudrate: 115200
@@ -71,7 +63,7 @@ synchroniser:
     detector: 8 
 
 objective_stage: 
-  name: smaract
+  name: demo
   socket:
     host: '169.254.111.111'
     port: 139
