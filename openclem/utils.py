@@ -82,9 +82,6 @@ def setup_session(session_path: Path = None,
                   online: bool = True) -> tuple[LightMicroscope, MicroscopeSettings]:
 
     settings = load_settings_from_config(config_path=config_path)
-
-    cls_laser, cls_laser_controller, cls_detector = import_hardware_modules(settings)
-
     session = f'{settings.name}_{current_timestamp()}'
 
         # configure paths
@@ -96,17 +93,21 @@ def setup_session(session_path: Path = None,
     if setup_logging:
         configure_logging(path=session_path, log_level=logging.DEBUG)
 
+
+    cls_laser, cls_laser_controller, cls_detector = import_hardware_modules(settings)
+
+
     # if online:
     laser_controller = cls_laser_controller(settings.laser_controller)
     detector = cls_detector(settings.detector)
     for laser_ in settings.lasers:
         laser = cls_laser(laser_, parent=laser_controller)
         laser_controller.add_laser(laser)
-    
+
     if online:
         laser_controller.connect()
         detector.connect()
-    
+
     return [laser_controller, detector]
 
 
