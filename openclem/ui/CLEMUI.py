@@ -24,7 +24,7 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         self.setupUi(self)
 
         self.viewer = viewer
-        self.lc, self.detector, self.obj = None, None, None
+        self.microscope, self.settings = None, None
         self.image_widget, self.hardware_widget = None, None
         self._hardware_connected = False
 
@@ -41,23 +41,18 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         config_filename = self.lineEdit_config_filename.text()
 
         if self._hardware_connected:
-            self.lc.disconnect()
-            self.detector.disconnect()
-            self.lc, self.detector, self.obj = None, None, None
+            self.microscope.disconnect()
+            self.microscope, self.settings = None, None
             logging.info("Disconnected from hardware")
             napari.utils.notifications.show_info("Disconnected from hardware")
         else:
             try:
-                self.lc, self.detector, self.obj = utils.setup_session(config_path=config_filename)
-                self.microscope = utils.create_microscope("demo", 
-                                                det=self.detector, 
-                                                lc=self.lc, 
-                                                obj=self.obj)
+                self.microscope, self.settings = utils.setup_session(config_path=config_filename)
                 
                 logging.info("Connected to hardware")
                 napari.utils.notifications.show_info("Connected to hardware")
             except Exception as e:
-                self.lc, self.detector, self.obj = None, None, None
+                self.microscope, self.settings = None, None
                 
                 logging.error(f"Error connecting to hardware: {e}")
                 napari.utils.notifications.show_error(
@@ -67,7 +62,7 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         self.update_ui()
 
     def update_ui(self):
-        self._hardware_connected = self.lc is not None and self.detector is not None
+        self._hardware_connected = self.microscope is not None
 
         if self._hardware_connected:
             
@@ -87,10 +82,11 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
 
             self.label_hardware_status.setText(
                 "" + 
-                f"Detector: {self.detector.name}" + 
-                f"\nLaser Controller: {self.lc.name}"+ 
-                f"\nLasers: {[laser for laser in self.lc.lasers]}" +
-                f"\nObjective: {self.obj.name}"
+                f"Detector: {self.microscope._detector.name}" + 
+                f"\nLaser Controller: {self.microscope._laser_controller.name}"+ 
+                f"\nLasers: {[laser for laser in self.microscope._laser_controller.lasers]}" +
+                f"\nObjective: {self.microscope._objective.name}" +
+                f"\nSynchroniser: {self.microscope._synchroniser.name}"
             )
 
         else:

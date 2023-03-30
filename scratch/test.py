@@ -6,12 +6,12 @@ import time
 
 cfg_path = os.path.join(config.BASE_PATH, "config", "system.yaml")
 cfg = utils.load_yaml(cfg_path)
-laser_controller, detector, objective, synchroniser = utils.setup_session(config_path=cfg_path, online=True)
+microscope, settings = utils.setup_session(config_path=cfg_path, online=True)
 
-for laser in laser_controller.lasers:
-    print(laser_controller.get_power(laser))
-    laser_controller.set_power(laser, 2.0)
-    print(laser_controller.get_power(laser))
+for laser in microscope._laser_controller.lasers:
+    print(microscope._laser_controller.get_power(laser))
+    microscope._laser_controller.set_power(laser, 2.0)
+    print(microscope._laser_controller.get_power(laser))
 
 synchroniser_message = SynchroniserMessage.__from_dict__({
     "exposures": [100, 1000, 0, 0],
@@ -20,7 +20,7 @@ synchroniser_message = SynchroniserMessage.__from_dict__({
     "n_slices": 3,
     "trigger_edge": "RISING",
 })
-message = synchroniser.sync_image(synchroniser_message)
+message = microscope._synchroniser.sync_image(synchroniser_message)
 time.sleep(1)
 synchroniser_message = SynchroniserMessage.__from_dict__({
     "exposures": [100, 5000, 0, 0],
@@ -29,7 +29,7 @@ synchroniser_message = SynchroniserMessage.__from_dict__({
     "n_slices": 3,
     "trigger_edge": "RISING",
 })
-message = synchroniser.sync_image(synchroniser_message)
+message = microscope._synchroniser.sync_image(synchroniser_message)
 
 synchroniser_message = SynchroniserMessage.__from_dict__({
     "exposures": [100, 1000, 0, 0],
@@ -38,10 +38,16 @@ synchroniser_message = SynchroniserMessage.__from_dict__({
     "n_slices": 3,
     "trigger_edge": "RISING",
 })
-message = synchroniser.sync_image(synchroniser_message)
+message = microscope._synchroniser.sync_image(synchroniser_message)
 
-# print(detector)
-# print(detector.camera)
 
-# image = detector.grab_image(detector.settings)
-# # print(image)
+microscope._detector.init_camera()
+image_settings = ImageSettings(
+    pixel_size=25e-6,
+    exposure=0.1,
+)
+image = microscope._detector.grab_image(image_settings)
+
+import matplotlib.pyplot as plt
+plt.imshow(image, cmap="gray")
+plt.show()
