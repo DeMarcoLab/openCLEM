@@ -1,5 +1,6 @@
 # TODO: move individual configs to their own folders
 name: piedisc
+online: false
 
 laser_controller:
   name: demo

@@ -6,7 +6,7 @@ import time
 
 cfg_path = os.path.join(config.BASE_PATH, "config", "system.yaml")
 cfg = utils.load_yaml(cfg_path)
-microscope, settings = utils.setup_session(config_path=cfg_path, online=True)
+microscope, settings = utils.setup_session(config_path=cfg_path)
 
 for laser in microscope._laser_controller.lasers:
     print(microscope._laser_controller.get_power(laser))
