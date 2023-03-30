@@ -30,14 +30,14 @@ class ArduinoLeonardo(Synchroniser):
         utils.write_serial_command(self.serial_connection, command)
         self.serial_connection.close()
 
-    def synch_image(self, message: SynchroniserMessage):
+    def sync_image(self, message: SynchroniserMessage):
         exposure_string = ""
         exposures = message.exposures
+        edge = message.trigger_edge
         for exposure in exposures:
-            exposure_string += f"{exposure} " 
+            exposure_string += f"{exposure} "
         n_slices = message.n_slices
         mode = MODE_CONVERSION[message.mode]
-        command = f"E{mode}{exposure_string}{n_slices}"
+        command = f"E{mode}{exposure_string}{n_slices} {edge.value}"
         self.send_command(command)
         return command
-    

@@ -186,14 +186,14 @@ class SynchroniserSettings:
 
     @staticmethod
     def __from_dict__(settings: dict) -> "SynchroniserSettings":
-            
+
             trigger_settings = SynchroniserSettings(
                 name=settings["name"],
                 pins=settings["pins"],
                 serial_settings=SerialSettings.__from_dict__(settings["serial"]),
             )
             return trigger_settings
-    
+
     @staticmethod
     def __to_dict__(self) -> dict:
         return {
@@ -201,15 +201,16 @@ class SynchroniserSettings:
             "pins": self.pins,
             "serial_settings": None if self.serial_settings is None else SerialSettings.__to_dict__(self.serial_settings),
         }
-    
-@dataclass 
+
+@dataclass
 class SynchroniserMessage:
     """Synchroniser message"""
-    
+
     exposures: list[float]
     pins: dict[str: int]
     mode: str = "single"
     n_slices: int = 0
+    trigger_edge: TriggerEdge = TriggerEdge.RISING
 
     @staticmethod
     def __from_dict__(settings: dict) -> "SynchroniserMessage":
@@ -218,9 +219,10 @@ class SynchroniserMessage:
             pins=settings["pins"],
             mode=settings["mode"],
             n_slices=settings["n_slices"],
+            trigger_edge=TriggerEdge[settings["trigger_edge"]],
         )
         return synchroniser_message
-    
+
     @staticmethod
     def __to_dict__(self) -> dict:
         return {
@@ -228,6 +230,7 @@ class SynchroniserMessage:
             "pins": self.pins,
             "mode": self.mode,
             "n_slices": self.n_slices,
+            "trigger_edge": self.trigger_edge.name,
         }
 
 @dataclass

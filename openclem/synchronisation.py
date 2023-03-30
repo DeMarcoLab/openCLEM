@@ -22,5 +22,5 @@ class Synchroniser(ABC):
         pass
 
     @abstractmethod
-    def synch_image(self, message):
+    def sync_image(self, message):
         pass

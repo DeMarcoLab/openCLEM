@@ -53,12 +53,13 @@ class NI_USB(Synchroniser):
     def send_command(self, command):
         self.task.write(command, auto_start=True)
 
-    def synch_image(self, message: SynchroniserMessage):
+    def sync_image(self, message: SynchroniserMessage):
         self.lines = []
         self.delays = []
         self.pins = message.pins
         self.mode = message.mode
         self.exposures = message.exposures
+        self.edge = message.trigger_edge
         for pin in self.pins.keys():
             self.lines.append(LINES[self.pins[pin]])
 
@@ -68,7 +69,7 @@ class NI_USB(Synchroniser):
         if self.mode == 'single':
             for i in range(len(self.lines)):
                 self.single_line_pulse(self.lines[i], self.delays[i])
-            
+
     def add_line(self, line):
         self.lines.append(line)
 
