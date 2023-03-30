@@ -12,6 +12,7 @@ MODE_CONVERSION = {
 class ArduinoLeonardo(Synchroniser):
     def __init__(self, synchroniser_settings: SynchroniserSettings):
         self.settings = synchroniser_settings
+        self.name = synchroniser_settings.name
         self.pins = {}
         self.serial_connection = None
 
