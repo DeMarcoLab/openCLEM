@@ -65,13 +65,14 @@ unsigned long stringToInt(String num) {
 
 void TakeImage(){
   long int exposures[] = {exposure_640, exposure_561, exposure_488, exposure_405};
-  for (int index = 0; index <=3; index++){
+  for (int index = 0; index <4; index++){
     if (exposures[index]!= 0){
       digitalWrite(LASERS[index], HIGH);
       digitalWrite(DETECTOR, HIGH);
       delay(exposures[index]);
       digitalWrite(LASERS[index], LOW);
       digitalWrite(DETECTOR, LOW);
+      delay(1000);
     }
   }
 }
