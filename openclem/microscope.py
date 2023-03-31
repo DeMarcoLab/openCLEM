@@ -58,6 +58,10 @@ class LightMicroscope(ABC):
         pass
 
     @abstractmethod
+    def setup_acquisition(self):
+        pass
+
+    @abstractmethod
     def acquire_image(self, image_settings:ImageSettings):
         pass
 

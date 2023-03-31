@@ -4,6 +4,8 @@ from openclem.structures import ImageSettings, DetectorSettings
 import numpy as np
 import time
 
+from queue import Queue
+
 class DemoDetector(Detector):
 
     def __init__(self, detector_settings: DetectorSettings):
@@ -71,7 +73,7 @@ class DemoDetector(Detector):
     def pixel_size(self):
         pass
     
-    def grab_image(self, image_settings: ImageSettings = None) -> np.ndarray:
+    def grab_image(self, image_settings: ImageSettings, image_queue: Queue) -> np.ndarray:
         if self.camera is None or image_settings is None: return
         logging.info("Grabbing image from Demo Camera")
         image = None
@@ -80,12 +82,18 @@ class DemoDetector(Detector):
             # open camera
             self.open_camera()
 
-            # set settings
-            logging.info(f"Setting Demo Camera settings: {image_settings}")
 
-            # acquire image
-            time.sleep(image_settings.exposure)
-            image = np.random.randint(0, 255, size=self.settings.resolution, dtype=np.uint8)
+            count = image_settings.n_images
+            count_ = 0
+            while count_ < count:
+                # acquire image
+                time.sleep(image_settings.exposure)
+                image = np.random.randint(0, 255, size=self.settings.resolution, dtype=np.uint8)
+                if image_queue:
+                    image_queue.put(image)
+                    logging.info(f"Putting image {count_} in queue: {image.shape}, {np.mean(image)}")
+                count_ += 1
+            
         except Exception as e:
             logging.error(f"Could not grab image from Demo Camera: {e}")
         finally:

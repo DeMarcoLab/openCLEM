@@ -4,11 +4,10 @@ from openclem import config
 from openclem.structures import SynchroniserMessage, ImageSettings, DetectorSettings
 import time
 
-# cfg_path = os.path.join(config.BASE_PATH, "config", "system.yaml")
-cfg_path = os.path.join(config.BASE_PATH, "config", "piedisc.yaml")
+cfg_path = os.path.join(config.BASE_PATH, "config", "system.yaml")
+# cfg_path = os.path.join(config.BASE_PATH, "config", "piedisc.yaml")
 cfg = utils.load_yaml(cfg_path)
 microscope, settings = utils.setup_session(config_path=cfg_path)
-
 
 microscope.setup_acquisition()
 
@@ -23,7 +22,7 @@ synchroniser_message = SynchroniserMessage.__from_dict__({
 
 image_settings = ImageSettings(
     pixel_size=25e-6,
-    exposure=0.1,
+    exposure=1,
     n_images = 12,
 )
 
