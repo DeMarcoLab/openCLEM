@@ -62,23 +62,19 @@ class BaseLightMicroscope(LightMicroscope):
     def get_synchroniser(self) -> Synchroniser:
         return self._synchroniser
 
-    def acquire_image(self, image_settings:ImageSettings):
-        
-        
+    def setup_acquisition(self):
+        # laser settings, detector settings
+        #  
         # Set up lasers
         for laser in self._laser_controller.lasers:
             self._laser_controller.set_power(laser, 4.0)
         # TODO: add in laser_settings for hardware triggering
 
+    def acquire_image(self, image_settings:ImageSettings, sync_message: SynchroniserMessage):
+
         # Set up detector
         self._detector.init_camera()
 
-        image_settings = ImageSettings(
-            pixel_size=25e-6,
-            exposure=0.1,
-            n_images = 12,
-        )
-                        
         stop_event = threading.Event()
         image_queue = Queue()
         _thread = threading.Thread(
@@ -88,17 +84,8 @@ class BaseLightMicroscope(LightMicroscope):
         _thread.start()
         time.sleep(1) # wait for the camera to get ready
 
-        # Set up sync
-        synchroniser_message = SynchroniserMessage.__from_dict__({
-            "exposures": [1000, 1000, 1000, 1000],
-            "pins": {"laser1": 1, "laser2": 2, "laser3": 3, "laser4": 4},
-            "mode": "live",
-            "n_slices": 4,
-            "trigger_edge": "RISING",
-        })
-
         # Run sync
-        self.get_synchroniser().sync_image(synchroniser_message)
+        self.get_synchroniser().sync_image(sync_message)
 
         # poll until keyboard interrupt
         try:
@@ -119,21 +106,13 @@ class BaseLightMicroscope(LightMicroscope):
             logging.info("Thread stopped.")
 
     def live_image(self, image_settings:ImageSettings):
-        # with thread   
-        image_settings = ImageSettings(
-            pixel_size=25e-6,
-            exposure=0.1,
-        )
-        while True:
-            image = self._detector.grab_image(image_settings)
-
-            yield image
-
+        return
 
 
 def _threaded_grab_image(microscope: LightMicroscope, 
                                 image_settings:ImageSettings, image_queue: Queue, 
-                                stop_event: threading.Event):
+                                stop_event: threading.Event
+                                ):
         
         microscope._detector.grab_image(image_settings, image_queue)
 
