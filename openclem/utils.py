@@ -241,4 +241,8 @@ def create_microscope(
     if online:
         lm.connect()
 
+    for laser in lm.get_laser_controller().lasers:
+        lm.get_laser_controller().set_power(laser, 0)
+        # TODO: set laser power properly
+
     return lm
