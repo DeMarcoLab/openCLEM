@@ -89,3 +89,4 @@ target/
 openclem/_version.py
 *.npy
 *.png
+*.code-workspace
