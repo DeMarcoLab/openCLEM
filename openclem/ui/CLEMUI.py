@@ -2,7 +2,6 @@ import logging
 
 import napari
 import napari.utils.notifications
-import numpy as np
 from PyQt5 import QtWidgets
 
 from openclem import utils

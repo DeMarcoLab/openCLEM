@@ -6,7 +6,7 @@ from openclem.ui.qt import CLEMImageWidget
 
 import numpy as np
 from pathlib import Path
-from openclem.structures import ImageSettings, ImageFormat, ImageMode
+from openclem.structures import ImageSettings, ImageFormat, ImageMode, TriggerEdge
 from openclem import constants, utils
 
 
@@ -44,6 +44,21 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.comboBox_imaging_format.addItems([format.name for format in ImageFormat])
         self.comboBox_imaging_mode.addItems([mode.name for mode in ImageMode])
 
+        microscope: LightMicroscope = self.hardware_widget.microscope
+
+        self.emission_dict = {}
+        for i, laser in enumerate(microscope.get_laser_controller().lasers):
+            
+            self.emission_dict[laser] = QtWidgets.QSpinBox()
+            self.emission_dict[laser].setMinimum(0)
+            self.emission_dict[laser].setMaximum(1000000)
+
+            self.emission_dict[laser].setValue(1000)
+            # self.emission_dict[laser].setValue(microscope.get_laser_controller().get(laser))
+
+            self.gridLayout_laser_emission.addWidget(QtWidgets.QLabel(laser), i, 0)
+            self.gridLayout_laser_emission.addWidget(self.emission_dict[laser], i, 1)
+
     def get_settings_from_ui(self):
 
         image_settings = ImageSettings(
@@ -53,7 +68,15 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             mode=ImageMode[self.comboBox_imaging_mode.currentText()],
         )
 
-        return image_settings
+        sync_message = SynchroniserMessage(
+            exposures=[v.value() for v in self.emission_dict.values()],
+            pins={"laser1": 1, "laser2": 2, "laser3": 3, "laser4": 4}, # TODO actually do something
+            mode = image_settings.mode,
+            n_slices=4,
+            trigger_edge=TriggerEdge.RISING,
+        )
+        return image_settings, sync_message
+
 
     def pushButton_acquire_image_clicked(self):
 
@@ -67,7 +90,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             self.pushButton_acquire_image.setText("Acquiring...")
             self.pushButton_acquire_image.setStyleSheet("background-color: orange")
         
-        image_settings = self.get_settings_from_ui()
+        image_settings, sync_message = self.get_settings_from_ui()
         microscope: LightMicroscope = self.hardware_widget.microscope
         microscope.setup_acquisition()
         
@@ -87,6 +110,8 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             "n_slices": 4,
             "trigger_edge": "RISING",
         })
+
+        assert synchroniser_message == sync_message, "Synchroniser message does not match"
 
         self.image_queue, self.stop_event = microscope.acquire_image(
             image_settings=image_settings, 

@@ -220,7 +220,7 @@ class SynchroniserMessage:
 
     exposures: list[float]
     pins: dict[str: int]
-    mode: str = "single"
+    mode: ImageMode = ImageMode.SINGLE
     n_slices: int = 0
     trigger_edge: TriggerEdge = TriggerEdge.RISING
 
@@ -229,7 +229,7 @@ class SynchroniserMessage:
         synchroniser_message = SynchroniserMessage(
             exposures=settings["exposures"],
             pins=settings["pins"],
-            mode=settings["mode"],
+            mode=ImageMode[settings["mode"].upper()],
             n_slices=settings["n_slices"],
             trigger_edge=TriggerEdge[settings["trigger_edge"]],
         )
@@ -240,7 +240,7 @@ class SynchroniserMessage:
         return {
             "exposures": self.exposures,
             "pins": self.pins,
-            "mode": self.mode,
+            "mode": self.mode.name,
             "n_slices": self.n_slices,
             "trigger_edge": self.trigger_edge.name,
         }

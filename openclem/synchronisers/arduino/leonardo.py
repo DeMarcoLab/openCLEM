@@ -45,7 +45,7 @@ class ArduinoLeonardo(Synchroniser):
         for exposure in exposures:
             exposure_string += f"{exposure} "
         n_slices = message.n_slices
-        mode = MODE_CONVERSION[message.mode]
+        mode = MODE_CONVERSION[message.mode.value]
         command = f"E{mode}{exposure_string}{n_slices} {edge.value}"
         logging.info(f"Arduino Leonardo command: {command}.")
         self.send_command(command)
