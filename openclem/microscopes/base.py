@@ -76,7 +76,7 @@ class BaseLightMicroscope(LightMicroscope):
         image_settings = ImageSettings(
             pixel_size=25e-6,
             exposure=0.1,
-            n_images = 4,
+            n_images = 12,
         )
                         
         stop_event = threading.Event()
@@ -92,7 +92,7 @@ class BaseLightMicroscope(LightMicroscope):
         synchroniser_message = SynchroniserMessage.__from_dict__({
             "exposures": [1000, 1000, 1000, 1000],
             "pins": {"laser1": 1, "laser2": 2, "laser3": 3, "laser4": 4},
-            "mode": "single",
+            "mode": "live",
             "n_slices": 4,
             "trigger_edge": "RISING",
         })
