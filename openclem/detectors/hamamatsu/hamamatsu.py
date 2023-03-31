@@ -88,6 +88,10 @@ class HamamatsuOrcaFlash4(Detector):
             self.trigger_edge = image_conversion_dict["trigger_edge"][self.settings.trigger_edge]
             self.exposure_mode = image_conversion_dict["exposure_mode"][self.settings.exposure_mode]
             
+            print(f"Trigger Source: {self.trigger_source}")
+            print(f"Trigger Edge: {self.trigger_edge}")
+            print(f"Exposure Mode: {self.exposure_mode}")
+
             self.camera.prop_setvalue(DCAM_IDPROP.TRIGGER_MODE, 1)
 
             count = image_settings.n_images
@@ -96,6 +100,7 @@ class HamamatsuOrcaFlash4(Detector):
             if self.camera.buf_alloc(count) is not False:
                 if self.camera.cap_start() is not False:
                     while count_ < count:
+                        logging.info(f"Capturing image {count_ + 1} of {count}")
                         if self.settings.trigger_source == TriggerSource.SOFTWARE:
                             self.camera.cap_firetrigger()
                         if self.camera.wait_capevent_frameready(timeout_millisec=self.settings.timeout) is not False:

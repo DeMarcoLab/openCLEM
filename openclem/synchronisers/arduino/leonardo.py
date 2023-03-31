@@ -2,6 +2,7 @@ from openclem import utils
 from openclem.structures import SynchroniserMessage, SynchroniserSettings
 from openclem.synchronisation import Synchroniser
 import time
+import logging
 
 MODE_CONVERSION = {
     "single": "S",
@@ -17,7 +18,11 @@ class ArduinoLeonardo(Synchroniser):
         self.serial_connection = None
 
     def connect(self):
+        logging.info(f"Connecting to Arduino Leonardo synchroniser {self.name}.")
         self.serial_connection = utils.connect_to_serial_port(self.settings.serial_settings)
+        time.sleep(1) # required for initialisation
+        logging.info(f"Serial connection: {self.serial_connection}.")
+        logging.info(f"Connected to Arduino Leonardo synchroniser {self.name}.")
 
     def disconnect(self):
         if self.serial_connection is not None:
@@ -30,6 +35,7 @@ class ArduinoLeonardo(Synchroniser):
             self.serial_connection.open()
             time.sleep(1) # required for initialisation
         response = utils.write_serial_command(self.serial_connection, command, check=True)
+        logging.info(f"Arduino Leonardo response: {response}.")
         return response
 
     def sync_image(self, message: SynchroniserMessage):
@@ -41,5 +47,6 @@ class ArduinoLeonardo(Synchroniser):
         n_slices = message.n_slices
         mode = MODE_CONVERSION[message.mode]
         command = f"E{mode}{exposure_string}{n_slices} {edge.value}"
+        logging.info(f"Arduino Leonardo command: {command}.")
         self.send_command(command)
         return command

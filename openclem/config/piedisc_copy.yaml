@@ -1,0 +1,73 @@
+# TODO: move individual configs to their own folders
+name: piedisc
+online: true
+
+laser_controller:
+  name: demo
+  serial:
+    port: COM8
+    baudrate: 9600
+    timeout: 1000
+  laser: demo
+
+detector:
+  name: hamamatsuOrcaFlash4
+  pixel_size: 6.5e-6
+  resolution: [2048, 2048]
+  serial: null
+  trigger_source: EXTERNAL
+  trigger_edge: RISING
+  exposure_mode: TRIGGER_WIDTH
+  timeout: 50000 # ms
+
+lasers:
+- name: 'laser_1'
+  serial_id: '640'
+  wavelength: 640.
+  power: 0.
+  exposure_time: 1.
+  enabled: False
+  colour: [0, 0, 0]
+- name: 'laser_2'
+  serial_id: '555'
+  wavelength: 555.
+  power: 0.
+  exposure_time: 1.
+  enabled: False
+  colour: [0, 0, 0]
+- name: 'laser_3'
+  serial_id: '488'
+  wavelength: 488.
+  power: 0.
+  exposure_time: 1.
+  enabled: False
+  colour: [0, 0, 0]
+- name: 'laser_4'
+  serial_id: '405'
+  wavelength: 405.
+  power: 0.
+  exposure_time: 1.
+  enabled: False
+  colour: [0, 0, 0]
+
+synchroniser:
+  name: demo
+  serial: 
+    port: COM7
+    baudrate: 115200
+    timeout: 1
+  pins: 
+    laser_1: 12
+    laser_2: 5
+    laser_3: 17
+    laser_4: 2
+    detector: 3 
+
+objective_stage: 
+  name: demo
+  socket:
+    host: '169.254.111.111'
+    port: 139
+    timeout: 5.0
+# TODO: make timeouts/timings in general universal
+# TODO: make socket and serial a single comm setting?

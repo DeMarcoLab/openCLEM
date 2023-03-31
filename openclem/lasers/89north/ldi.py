@@ -54,6 +54,7 @@ class LdiLaserController(LaserController):
 
 class LdiLaser(Laser):
     def __init__(self, laser_settings: LaserSettings, parent: LaserController):
+        self._parent = parent
         self.settings = laser_settings
         self._name = laser_settings.name
         self._serial_id = laser_settings.serial_id
@@ -61,7 +62,6 @@ class LdiLaser(Laser):
         self._power = laser_settings.power
         self._exposure_time = laser_settings.exposure_time
         self._enabled = laser_settings.enabled
-        self._parent = parent
         if self._enabled:
             self.enable()
         else:
@@ -102,6 +102,7 @@ class LdiLaser(Laser):
         value = int(np.clip(value, 0.0, 100.0))
         command = (f"SET:{self.serial_id}={value}\r")
         response = utils.write_serial_command(self._parent.serial_connection, command)
+        logging.info(self._power)
         if not self.check_response(response):
             logging.error(f"Error setting power for {self.name}")
 

@@ -14,6 +14,7 @@ class BaseLightMicroscope(LightMicroscope):
         self._detector = None
         self._objective = None
         self._laser_controller = None
+        self._synchroniser = None
 
     def connect(self):
         self._detector.connect()
