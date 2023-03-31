@@ -20,7 +20,7 @@ for laser in microscope._laser_controller.lasers:
 
 # Set up sync
 synchroniser_message = SynchroniserMessage.__from_dict__({
-    "exposures": [0, 0, 1000, 0],
+    "exposures": [0, 0, 100, 0],
     "pins": {"laser1": 1, "laser2": 2, "laser3": 3, "laser4": 4},
     "mode": "single",
     "n_slices": 3,

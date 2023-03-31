@@ -4,6 +4,9 @@ from openclem import utils
 from openclem.detector import Detector
 from openclem.detectors.hamamatsu.dcam.dcam import *
 from openclem.structures import ImageSettings, DetectorSettings, TriggerSource, ExposureMode, TriggerEdge
+from queue import Queue
+
+import threading
 
 image_conversion_dict = {
     "exposure_mode": {ExposureMode.TIMED: 1, ExposureMode.TRIGGER_WIDTH: 2},
@@ -51,14 +54,19 @@ class HamamatsuOrcaFlash4(Detector):
             logging.info("No Hamamatsu detector to disconnect from")
 
     def init_camera(self):
-        try:
-            if not self._connected:
-                self.connect()
-            self.camera = Dcam(0)
-            logging.info("Hamamatsu camera initialized")
-        except Exception as e:
-            logging.error("Could not initialize Hamamatsu camera")
-            logging.error(e)
+
+        self.camera = Dcam(0)
+        self.open_camera()
+           
+        self.trigger_source = image_conversion_dict["trigger_source"][self.settings.trigger_source]
+        self.trigger_edge = image_conversion_dict["trigger_edge"][self.settings.trigger_edge]
+        self.exposure_mode = image_conversion_dict["exposure_mode"][self.settings.exposure_mode]
+        
+        logging.info(f"Trigger Source: {self.trigger_source}")
+        logging.info(f"Trigger Edge: {self.trigger_edge}")
+        logging.info(f"Exposure Mode: {self.exposure_mode}")
+
+        self.camera.prop_setvalue(DCAM_IDPROP.TRIGGER_MODE, 1)
 
     def open_camera(self):
         if self.camera is not None:
@@ -75,36 +83,28 @@ class HamamatsuOrcaFlash4(Detector):
             except Exception as e:
                 logging.error("Could not close Hamamatsu camera")
                 logging.error(e)
-
-    def grab_image(self, image_settings: ImageSettings = None) -> np.ndarray:
+    def grab_image(self, image_settings: ImageSettings = None, image_queue: Queue = None):
+        import time
         try:
-            self.camera.dev_close()
-            self.camera = Dcam(0)
-            self.camera.dev_open()
-                
-            self.exposure_time = image_settings.exposure
-            
-            self.trigger_source = image_conversion_dict["trigger_source"][self.settings.trigger_source]
-            self.trigger_edge = image_conversion_dict["trigger_edge"][self.settings.trigger_edge]
-            self.exposure_mode = image_conversion_dict["exposure_mode"][self.settings.exposure_mode]
-            
-            print(f"Trigger Source: {self.trigger_source}")
-            print(f"Trigger Edge: {self.trigger_edge}")
-            print(f"Exposure Mode: {self.exposure_mode}")
-
-            self.camera.prop_setvalue(DCAM_IDPROP.TRIGGER_MODE, 1)
+            if self.camera:
+                self.open_camera()
+            else:
+                logging.info("Camera not available")
+                return
 
             count = image_settings.n_images
             count_ = 0
-            images = []
-            if self.camera.buf_alloc(count) is not False:
+            if self.camera.buf_alloc(10) is not False:
                 if self.camera.cap_start() is not False:
                     while count_ < count:
-                        logging.info(f"Capturing image {count_ + 1} of {count}")
+                        logging.info(f"Capturing image {count_} of {count}")
                         if self.settings.trigger_source == TriggerSource.SOFTWARE:
                             self.camera.cap_firetrigger()
                         if self.camera.wait_capevent_frameready(timeout_millisec=self.settings.timeout) is not False:
                             image = np.array(self.camera.buf_getlastframedata()).T
+                            if image_queue:
+                                image_queue.put(image)
+                                logging.info(f"Putting image {count_} in queue: {image.shape}, {np.mean(image)}")
                             count_ += 1
                         else:
                             dcamerr = self.camera.lasterr()
@@ -117,7 +117,6 @@ class HamamatsuOrcaFlash4(Detector):
                     self.camera.cap_stop()
                     self.camera.buf_release()
                     self.close_camera()
-                    return image
                 self.camera.buf_release()
 
         except Exception as e:

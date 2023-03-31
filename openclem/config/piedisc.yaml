@@ -11,14 +11,14 @@ laser_controller:
   laser: 89North_ldi_Laser
 
 detector:
-  name: demo
+  name: hamamatsuOrcaFlash4
   pixel_size: 6.5e-6
   resolution: [2048, 2048]
   serial: null
-  trigger_source: SOFTWARE
+  trigger_source: EXTERNAL
   trigger_edge: RISING
   exposure_mode: TRIGGER_WIDTH
-  timeout: 5000 # ms
+  timeout: 10000 # ms
 
 lasers:
 - name: 'laser_1'
