@@ -1,8 +1,11 @@
 import logging
 from openclem.detector import Detector
-from openclem.structures import ImageSettings, DetectorSettings
+from openclem.structures import ImageSettings, DetectorSettings, ImageMode, ImageFormat
 import numpy as np
 import time
+
+from queue import Queue
+import threading
 
 class DemoDetector(Detector):
 
@@ -71,7 +74,7 @@ class DemoDetector(Detector):
     def pixel_size(self):
         pass
     
-    def grab_image(self, image_settings: ImageSettings = None) -> np.ndarray:
+    def grab_image(self, image_settings: ImageSettings, image_queue: Queue, stop_event: threading.Event) -> np.ndarray:
         if self.camera is None or image_settings is None: return
         logging.info("Grabbing image from Demo Camera")
         image = None
@@ -80,15 +83,30 @@ class DemoDetector(Detector):
             # open camera
             self.open_camera()
 
-            # set settings
-            logging.info(f"Setting Demo Camera settings: {image_settings}")
+            logging.info(f"Image Settings: {image_settings}")
+            count = image_settings.n_images
+            count_ = 0
+            while count_ < count and not stop_event.is_set():
+                
+                # acquire image
+                time.sleep(image_settings.exposure)
+                image = np.random.randint(0, 255, size=self.settings.resolution, dtype=np.uint8)
+                
+                if image_queue:
+                    image_queue.put(image)
+                    logging.info(f"Putting image {count_} in queue: {image.shape}, {np.mean(image):.2f}")
+                
+                if image_settings.mode == ImageMode.SINGLE:
+                    count_ += 1
 
-            # acquire image
-            time.sleep(image_settings.exposure)
-            image = np.random.randint(0, 255, size=self.settings.resolution, dtype=np.uint8)
+                logging.info(f"COUNT: {count_}, STOP_EVENT: {stop_event.is_set()}")
+            
         except Exception as e:
             logging.error(f"Could not grab image from Demo Camera: {e}")
         finally:
             self.close_camera()
-
-        return image
+            time.sleep(0.5)
+            stop_event.set()
+        
+        return
+        # return image

@@ -5,12 +5,15 @@ SMARACT stage hardware.
 import logging
 import socket
 from openclem.objective import ObjectiveStage
+from openclem import constants
+from openclem.structures import ObjectiveSettings
 
 # TODO: socket connection info
 
 class SMARACTObjectiveStage(ObjectiveStage):
-    def __init__(self, name: str):
-        self.name = name
+    def __init__(self, settings: ObjectiveSettings):
+        self.name = settings.name
+        self.settings = settings
         self.position = None
         self.saved_position = None
         self.connection = None
@@ -151,6 +154,7 @@ class SMARACTObjectiveStage(ObjectiveStage):
         """
         cmd = bytes(pre_string + cmd + post_string, "utf-8")
         self.connection.sendall(cmd)
+        return self.connection.recv(1024)
 
     @property
     def position(self) -> float:
@@ -158,26 +162,32 @@ class SMARACTObjectiveStage(ObjectiveStage):
 
         Returns
         -------
-        position : string
-            Current position of objective stage controller as a string.
+        position : float
+            Current position of objective stage controller in metres.
         """
         cmd = "GP0"
         ans = self.send_command(cmd)
+
+        # convert to m
+        position = str(ans).rsplit(",")[-1].split("\\")[0]
+        position = float(position) * constants.NANO_TO_SI
+
+        return position
 
     @position.setter
     def position(self, value: float) -> None:
         pass
     
     def save_position(self, position: float) -> None:
-        pass
+        self.saved_position = position
 
     def relative_move(self, distance: float) -> None:
         """Relative movement of the fluorescence objective lens stage.
 
         Parameters
         ----------
-        position : int
-            Position in nanometers to move to, relative to current position.
+        position : float
+            Position in metres to move to, relative to current position.
 
         hold : int
             Time in ms to keep power high after moving to relative position.
@@ -188,6 +198,10 @@ class SMARACTObjectiveStage(ObjectiveStage):
             Return string from the stage controller.
             Gives information about whether or not call succeeded.
         """
+        
+        # convert to nm
+        distance = int(distance*constants.SI_TO_NANO)
+
         hold = 0
         cmd = "MPR0," + str(distance) + "," + str(hold)
         ans = self.send_command(cmd)
@@ -198,7 +212,7 @@ class SMARACTObjectiveStage(ObjectiveStage):
         Parameters
         ----------
         position : int
-            Position in nanometers (nm) to move to relative to zero position.
+            Position in metres to move to relative to zero position.
 
         hold : int
             Time in ms to keep power high after moving to absolute position.
@@ -209,6 +223,9 @@ class SMARACTObjectiveStage(ObjectiveStage):
             Return string from the stage controller.
             Gives information about whether or not call succeeded.
         """
+
+        # convert to nm
+        position = int(position*constants.SI_TO_NANO)
 
         hold = 0
         

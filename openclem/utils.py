@@ -43,10 +43,11 @@ def write_serial_command(port: serial.Serial, command, check=True):
     if not port.is_open:
         port.open()
     port.write(bytes(command, "utf-8"))
-    if check: 
+    if check:
         response = port.readline()
         return response
     return None
+
 
 def get_available_ports():
     ports = serial.tools.list_ports.comports()
@@ -97,7 +98,6 @@ def setup_session(
     session_path: Path = None,
     config_path: Path = None,
     setup_logging: bool = True,
-    online: bool = True,
 ) -> tuple[LightMicroscope, MicroscopeSettings]:
     settings = load_settings_from_config(config_path=config_path)
     session = f"{settings.name}_{current_timestamp()}"
@@ -116,7 +116,7 @@ def setup_session(
         cls_laser_controller,
         cls_detector,
         cls_objective,
-        cls_synchroniser
+        cls_synchroniser,
     ) = import_hardware_modules(settings)
 
     # if online:
@@ -129,18 +129,15 @@ def setup_session(
         laser = cls_laser(laser_, parent=laser_controller)
         laser_controller.add_laser(laser)
 
-    if online:
-        laser_controller.connect()
-        detector.connect()
-        objective.connect()
-        synchroniser.connect()
-
     # create microscope
-    microscope = create_microscope(name=settings.name, 
-                                    det=detector, 
-                                    lc=laser_controller, 
-                                    obj=objective,
-                                    synchroniser=synchroniser,)
+    microscope = create_microscope(
+        name=settings.name,
+        det=detector,
+        lc=laser_controller,
+        obj=objective,
+        synchroniser=synchroniser,
+        online=settings.online
+    )
 
     return microscope, settings
 
@@ -207,6 +204,7 @@ def import_hardware_modules(
 
     return classes
 
+
 # TODO: better logs: https://www.toptal.com/python/in-depth-python-logging
 # https://stackoverflow.com/questions/61483056/save-logging-debug-and-show-only-logging-info-python
 def configure_logging(path: Path = "", log_filename="logfile", log_level=logging.DEBUG):
@@ -226,14 +224,26 @@ def configure_logging(path: Path = "", log_filename="logfile", log_level=logging
 
     return logfile
 
-def create_microscope(name:str, det:Detector, lc:LaserController, obj:ObjectiveStage, synchroniser: Synchroniser) -> BaseLightMicroscope:
 
+def create_microscope(
+    name: str,
+    det: Detector,
+    lc: LaserController,
+    obj: ObjectiveStage,
+    synchroniser: Synchroniser,
+    online: bool = True,
+) -> BaseLightMicroscope:
     lm = BaseLightMicroscope(name=name)
     lm.add_detector(det)
     lm.add_objective(obj)
     lm.add_laser_controller(lc)
     lm.add_synchroniser(synchroniser)
+    if online:
+        lm.connect()
+        lm.initialise()
 
-    lm.connect()
+    for laser in lm.get_laser_controller().lasers:
+        lm.get_laser_controller().set_power(laser, 0)
+        # TODO: set laser power properly
 
     return lm

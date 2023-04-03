@@ -9,19 +9,7 @@ from openclem.structures import LaserControllerSettings, LaserSettings
 
 class DemoLaser(Laser):
     def __init__(self, laser_settings: LaserSettings, parent: LaserController):
-        self.settings = laser_settings
-        self._name = laser_settings.name
-        self._serial_id = laser_settings.serial_id
-        self._wavelength = laser_settings.wavelength
-        self._power = laser_settings.power
-        self._exposure_time = laser_settings.exposure_time
-        self._enabled = laser_settings.enabled
-        self._parent = parent
-        if self._enabled:
-            self.enable()
-        else:
-            self.disable()
-        self._colour = laser_settings.colour
+        super().__init__(laser_settings, parent)
 
     @classmethod
     def __id__(self):
@@ -58,6 +46,17 @@ class DemoLaser(Laser):
     @wavelength.setter
     def wavelength(self, value: float):
         self._wavelength = float(value)
+
+    @property
+    def exposure_time(self) -> float:
+        return self._exposure_time
+
+    @exposure_time.setter
+    def exposure_time(self, value: float) -> None:
+        self._exposure_time = value
+
+    def enabled(self) -> bool:
+        return self._enabled
 
     def emission_on(self):
         logging.info(f"Emission on for {self.name}")

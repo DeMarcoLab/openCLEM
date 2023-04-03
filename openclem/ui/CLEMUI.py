@@ -2,7 +2,6 @@ import logging
 
 import napari
 import napari.utils.notifications
-import numpy as np
 from PyQt5 import QtWidgets
 
 from openclem import utils
@@ -28,7 +27,7 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         self.image_widget, self.hardware_widget = None, None
         self._hardware_connected = False
 
-        self.lineEdit_config_filename.setText(os.path.join(cfg.BASE_PATH, "config", "system.yaml"))
+        self.lineEdit_config_filename.setText(os.path.join(cfg.BASE_PATH, "config", "piedisc.yaml"))
 
         self.setup_connections()
 
@@ -92,18 +91,25 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         else:
             self.tabWidget.removeTab(2)
             self.tabWidget.removeTab(1)
-            
-
-            self.pushButton_connect_hardware.setText("Connect Hardware")
-            self.pushButton_connect_hardware.setStyleSheet("background-color: gray")
-
-            self.label_hardware_status.setText("No Hardware Connected")
 
             if self.image_widget is None:
                 return
 
             self.image_widget.deleteLater()
             self.hardware_widget.deleteLater()
+
+            self.pushButton_connect_hardware.setText("Connect Hardware")
+            self.pushButton_connect_hardware.setStyleSheet("background-color: gray")
+            self.label_hardware_status.setText("No Hardware Connected")
+
+    # on close
+    def closeEvent(self, event):
+        if self._hardware_connected:
+            self.microscope.get_synchroniser().stop_sync()
+            logging.info("Disconnected from hardware")
+            napari.utils.notifications.show_info("Disconnected from hardware")
+
+        event.accept()
 
 
 def main():

@@ -3,12 +3,16 @@ import logging
 from openclem import utils
 from openclem.detector import Detector
 from openclem.detectors.hamamatsu.dcam.dcam import *
-from openclem.structures import ImageSettings, DetectorSettings
+from openclem.structures import ImageSettings, DetectorSettings, TriggerSource, ExposureMode, TriggerEdge, ImageMode
+from queue import Queue
+
+
+import threading
 
 image_conversion_dict = {
-    "exposure_mode": {"edge": 1, "level": 2},
-    "trigger_source": {"internal": 1, "external": 2, "software": 3},
-    "trigger_edge": {"falling": 1, "rising": 2},
+    "exposure_mode": {ExposureMode.TIMED: 1, ExposureMode.TRIGGER_WIDTH: 2},
+    "trigger_source": {TriggerSource.INTERNAL: 1, TriggerSource.EXTERNAL: 2, TriggerSource.SOFTWARE: 3},
+    "trigger_edge": {TriggerEdge.FALLING: 1, TriggerEdge.RISING: 2},
 }
 
 
@@ -17,6 +21,7 @@ class HamamatsuOrcaFlash4(Detector):
         self.settings = detector_settings
         self.name = "Hamamatsu Detector"
         self.serial_connection = None
+        self.port = None
         self.camera = None
         self._pixel_size = 6.5e-6
         self._connected = False
@@ -51,14 +56,22 @@ class HamamatsuOrcaFlash4(Detector):
             logging.info("No Hamamatsu detector to disconnect from")
 
     def init_camera(self):
-        try:
-            if not self._connected:
-                self.connect()
+
+        if self.camera is None:
             self.camera = Dcam(0)
-            logging.info("Hamamatsu camera initialized")
-        except Exception as e:
-            logging.error("Could not initialize Hamamatsu camera")
-            logging.error(e)
+        
+        self.open_camera()
+           
+        self.trigger_source = image_conversion_dict["trigger_source"][self.settings.trigger_source]
+        self.trigger_edge = image_conversion_dict["trigger_edge"][self.settings.trigger_edge]
+        self.exposure_mode = image_conversion_dict["exposure_mode"][self.settings.exposure_mode]
+        
+        # logging.info(f"Trigger Source: {self.trigger_source}")
+        # logging.info(f"Trigger Edge: {self.trigger_edge}")
+        # logging.info(f"Exposure Mode: {self.exposure_mode}")
+
+        dcamerr = self.camera.lasterr()
+        logging.info(f"DCAM error: {dcamerr}") 
 
     def open_camera(self):
         if self.camera is not None:
@@ -76,45 +89,63 @@ class HamamatsuOrcaFlash4(Detector):
                 logging.error("Could not close Hamamatsu camera")
                 logging.error(e)
 
-    def grab_image(self, image_settings: ImageSettings = None) -> np.ndarray:
-        try:
-            self.camera.dev_close()
-            self.camera = Dcam(0)
-            self.camera.dev_open()
-                
-            self.exposure_time = image_settings.exposure
-            self.trigger_source = image_conversion_dict["trigger_source"][image_settings.trigger_source]
-            self.trigger_edge = image_conversion_dict["trigger_edge"][image_settings.trigger_edge]
-            self.exposure_mode = image_conversion_dict["exposure_mode"][image_settings.exposure_mode]
-            self.camera.prop_setvalue(DCAM_IDPROP.TRIGGER_MODE, 1)
-            count = image_settings.n_images
-            count_ = 0
-            images = []
-            if self.camera.buf_alloc(count) is not False:
-                if self.camera.cap_start() is not False:
-                    while count_ < count:
-                        if image_settings.trigger_source == "software":
-                            self.camera.cap_firetrigger()
-                        if self.camera.wait_capevent_frameready(timeout_millisec=image_settings.timeout) is not False:
-                            images.append(np.array(self.camera.buf_getlastframedata()).T)
-                            count_ += 1
-                        else:
-                            dcamerr = self.camera.lasterr()
-                            if dcamerr.is_timeout():
-                                logging.error("Timeout error")
-                                break
-                            else:
-                                logging.error("Error: %s", dcamerr)
+    def grab_image(self, image_settings: ImageSettings, image_queue: Queue, stop_event: threading.Event):
+        import time
+        
+        if self.camera:
+            if not self.camera.is_opened():
+                self.open_camera()
+        else:
+            logging.info("Camera not available")
+            return
 
-                    self.camera.cap_stop()
-                    self.camera.buf_release()
-                    self.close_camera()
-                    return images
-                self.camera.buf_release()
+        count = image_settings.n_images
+        count_ = 1
+            
+        self.camera.buf_alloc(count)
+        self.camera.cap_start()
+
+        try:    
+            while count_ <= count and not stop_event.is_set():
+                # logging.info(f"Capturing image {count_} of {count}")
+                
+                if self.settings.trigger_source == TriggerSource.SOFTWARE:
+                    self.camera.cap_firetrigger()
+                
+                
+                if self.camera.wait_capevent_frameready(timeout_millisec=self.settings.timeout) is not False:
+                    image = np.array(self.camera.buf_getlastframedata()).T
+                    
+                    if image_queue:
+                        image_queue.put(image)
+                        # logging.info(f"Putting image {count_} in queue: {image.shape}, {np.mean(image)}")
+                    
+                    if image_settings.mode is ImageMode.SINGLE:
+                        count_ += 1
+                else:
+                    dcamerr = self.camera.lasterr()
+                    if dcamerr.is_timeout():
+                        logging.error("Timeout error")
+                        break
+                    else:
+                        logging.error("Error: %s", dcamerr)
+
+                # logging.info(f"Captured image {count_} of {count}")
+                # logging.info(f"Stop event is set: {stop_event.is_set()}")
 
         except Exception as e:
             logging.error("Could not grab image")
             logging.error(e)
+        finally:
+            logging.info("Stopping camera capture")
+            logging.info(f"Dcamapi error: {self.camera.lasterr()}") # map it to actuall error message
+            self.camera.cap_stop()
+            logging.info("Releasing camera buffer")
+            self.camera.buf_release()
+            logging.info("Closing camera")
+            self.close_camera()
+            stop_event.set()
+
 
     @property
     def exposure_time(self):

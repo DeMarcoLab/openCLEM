@@ -1,8 +1,26 @@
 from abc import ABC, abstractmethod
-from openclem.structures import LaserControllerSettings
+from openclem.structures import LaserControllerSettings, LaserSettings
                                 
 class Laser(ABC):
+
+    def __init__(self, laser_settings: LaserSettings, parent: 'LaserController'):
+
+        self.settings = laser_settings
+        self._parent = parent
+        self.set(laser_settings)
     
+    def set(self, settings: LaserSettings) -> None:
+        self.power = settings.power
+        self.wavelength = settings.wavelength
+        self.exposure_time = settings.exposure_time
+        self._name = settings.name
+        self._serial_id = settings.serial_id
+        self.colour = settings.colour
+        if settings.enabled:
+            self.enable()
+        else:
+            self.disable()
+
     @classmethod
     @abstractmethod
     def __id__(self):
@@ -29,6 +47,21 @@ class Laser(ABC):
     def wavelength(self, value: float) -> None:
         pass
 
+    @property
+    @abstractmethod
+    def exposure_time(self) -> float:
+        return self._exposure_time
+
+    @exposure_time.setter
+    @abstractmethod
+    def exposure_time(self, value: float) -> None:
+        self._exposure_time = value
+
+    @property
+    @abstractmethod
+    def enabled(self) -> bool:
+        self._enabled
+    
     @abstractmethod
     def emission_on(self) -> None:
         pass
@@ -92,3 +125,19 @@ class LaserController(ABC):
     
     def __repr__(self) -> str:
         return f"{self.name} - LaserController"
+
+    def get_powers(self) -> dict:
+        return {laser.name: laser.power for laser in self.lasers.values()}
+    
+    def get_wavelengths(self) -> dict:
+        return {laser.name: laser.wavelength for laser in self.lasers.values()}
+    
+    def get_enabled(self) -> dict:
+        return {laser.name: laser.enabled for laser in self.lasers.values()}
+    
+    def get_exposure_times(self) -> dict:
+        return {laser.name: laser.exposure_time for laser in self.lasers.values()}
+    
+    @abstractmethod
+    def initialise(self):
+        pass

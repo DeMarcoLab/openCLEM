@@ -3,6 +3,7 @@ from openclem.structures import ImageSettings
 from openclem.laser import LaserController, Laser
 from openclem.objective import ObjectiveStage
 from openclem.detector import Detector
+from openclem.synchronisation import Synchroniser
 
 class LightMicroscope(ABC):
     """Abstract class for light microscope"""
@@ -50,11 +51,15 @@ class LightMicroscope(ABC):
         return self.laser_controller
     
     @abstractmethod
-    def add_synchroniser(self, synchroniser):
+    def add_synchroniser(self, synchroniser: Synchroniser):
         pass
 
     @abstractmethod
-    def get_synchroniser(self):
+    def get_synchroniser(self) -> Synchroniser:
+        pass
+
+    @abstractmethod
+    def setup_acquisition(self):
         pass
 
     @abstractmethod
