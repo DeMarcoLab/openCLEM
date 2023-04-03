@@ -102,6 +102,15 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             self.pushButton_connect_hardware.setStyleSheet("background-color: gray")
             self.label_hardware_status.setText("No Hardware Connected")
 
+    # on close
+    def closeEvent(self, event):
+        if self._hardware_connected:
+            self.microscope.get_synchroniser().stop_sync()
+            logging.info("Disconnected from hardware")
+            napari.utils.notifications.show_info("Disconnected from hardware")
+
+        event.accept()
+
 
 def main():
     viewer = napari.Viewer(ndisplay=2)

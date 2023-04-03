@@ -6,12 +6,14 @@ import logging
 import socket
 from openclem.objective import ObjectiveStage
 from openclem import constants
+from openclem.structures import ObjectiveSettings
 
 # TODO: socket connection info
 
 class SMARACTObjectiveStage(ObjectiveStage):
-    def __init__(self, name: str):
-        self.name = name
+    def __init__(self, settings: ObjectiveSettings):
+        self.name = settings.name
+        self.settings = settings
         self.position = None
         self.saved_position = None
         self.connection = None

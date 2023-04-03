@@ -94,6 +94,13 @@ void loop() {
     // Serial.print("Received ");
     // Serial.println(input);
 
+    // init low
+    digitalWrite(LASER_640, LOW);
+    digitalWrite(LASER_561, LOW);
+    digitalWrite(LASER_488, LOW);
+    digitalWrite(LASER_405, LOW);
+    digitalWrite(DETECTOR, LOW);
+
     // go through each character
     for (int ii = 2; ii <= input.length(); ++ii) {
       // if the char is a digit, append it to an array

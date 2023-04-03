@@ -25,28 +25,28 @@ lasers:
   serial_id: '640'
   wavelength: 640.
   power: 1.
-  exposure_time: 1.
+  exposure_time: 0.05
   enabled: False
   colour: [0, 0, 0]
 - name: 'laser_2'
   serial_id: '555'
   wavelength: 555.
   power: 1.
-  exposure_time: 1.
+  exposure_time: 0.05
   enabled: False
   colour: [0, 0, 0]
 - name: 'laser_3'
   serial_id: '488'
   wavelength: 488.
   power: 1.
-  exposure_time: 1.
+  exposure_time: 0.05
   enabled: False
   colour: [0, 0, 0]
 - name: 'laser_4'
   serial_id: '405'
   wavelength: 405.
   power: 1.
-  exposure_time: 1.
+  exposure_time: 0.05
   enabled: False
   colour: [0, 0, 0]
 

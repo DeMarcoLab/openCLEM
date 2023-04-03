@@ -5,6 +5,7 @@ from openclem.detector import Detector
 from openclem.detectors.hamamatsu.dcam.dcam import *
 from openclem.structures import ImageSettings, DetectorSettings, TriggerSource, ExposureMode, TriggerEdge, ImageMode
 from queue import Queue
+# from openclem.detectors.hamamatsu.dcam.dcam import DCAMERR
 
 
 import threading
@@ -21,6 +22,7 @@ class HamamatsuOrcaFlash4(Detector):
         self.settings = detector_settings
         self.name = "Hamamatsu Detector"
         self.serial_connection = None
+        self.port = None
         self.camera = None
         self._pixel_size = 6.5e-6
         self._connected = False
@@ -69,13 +71,8 @@ class HamamatsuOrcaFlash4(Detector):
         # logging.info(f"Trigger Edge: {self.trigger_edge}")
         # logging.info(f"Exposure Mode: {self.exposure_mode}")
 
-        # # self.camera.prop_setvalue(DCAM_IDPROP.TRIGGER_MODE, 1)
-
-        # # self.close_camera()
-
         dcamerr = self.camera.lasterr()
-        logging.info(f"DCAM error: {dcamerr}") 
-        # a=2
+        logging.info(f"DCAM error: {DCAMERR[dcamerr]}") 
 
     def open_camera(self):
         if self.camera is not None:
@@ -132,7 +129,7 @@ class HamamatsuOrcaFlash4(Detector):
                         logging.error("Timeout error")
                         break
                     else:
-                        logging.error("Error: %s", dcamerr)
+                        logging.error("Error: %s", DCAMERR[dcamerr])
 
                 logging.info(f"Captured image {count_} of {count}")
                 logging.info(f"Stop event is set: {stop_event.is_set()}")
@@ -142,7 +139,7 @@ class HamamatsuOrcaFlash4(Detector):
             logging.error(e)
         finally:
             logging.info("Stopping camera capture")
-            logging.info(f"Dcamapi error: {self.camera.lasterr()}") # map it to actuall error message
+            logging.info(f"Dcamapi error: {DCAMERR[self.camera.lasterr()]}") # map it to actuall error message
             self.camera.cap_stop()
             logging.info("Releasing camera buffer")
             self.camera.buf_release()

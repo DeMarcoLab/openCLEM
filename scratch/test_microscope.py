@@ -15,8 +15,12 @@ microscope, settings = utils.setup_session(config_path=cfg_path)
 # microscope._objective.relative_move(1e-3)
 # print(microscope._objective.position)
 
+microscope._laser_controller.initialise() # TODO: move to init @DavidDierickx
+
+# time.sleep(3)
+# microscope.get_synchroniser().stop_sync()
 microscope.setup_acquisition()
-mode = ImageMode.SINGLE
+mode = ImageMode.LIVE
 
 # Set up sync
 synchroniser_message = SynchroniserMessage.__from_dict__({
@@ -58,7 +62,9 @@ try:
 
 except KeyboardInterrupt:
     stop_event.set()
+    # microscope.get_synchroniser().stop_sync()
     logging.info("Keyboard interrupt")
 finally:
+    microscope.get_synchroniser().stop_sync()
     logging.info("Thread stopped.")
 

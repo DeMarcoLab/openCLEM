@@ -32,11 +32,13 @@ class BaseLightMicroscope(LightMicroscope):
         self._detector.disconnect()
         self._laser_controller.disconnect()
         self._objective.disconnect()
+        self._synchroniser.disconnect()
 
     def initialise(self):
         # self._detector.initialise() # REFACTOR
         # self._laser_controller.initialise() # REFACTOR
         self._objective.initialise()
+        self._laser_controller.initialise() # mvoe to INIT
 
     def add_detector(self, detector: Detector):
         self._detector = detector
@@ -69,6 +71,9 @@ class BaseLightMicroscope(LightMicroscope):
         for laser in self._laser_controller.lasers:
             self._laser_controller.set_power(laser, 4.0)
         # TODO: add in laser_settings for hardware triggering
+
+        for laser in self._laser_controller.lasers:
+            logging.info(f"Laser: {laser}: {self._laser_controller.get_power(laser)}")
 
     def acquire_image(
         self, image_settings: ImageSettings, sync_message: SynchroniserMessage, stop_event: threading.Event= threading.Event()

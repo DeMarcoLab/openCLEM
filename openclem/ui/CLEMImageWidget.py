@@ -116,13 +116,17 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             #     logging.info(f"Waiting for acquisition to start...")
             #     time.sleep(0.1)
 
+            counter = 0
             while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
+                
                 image = self.image_queue.get()
                 logging.info(
-                    f"Getting image from queue: {image.shape}, {np.mean(image)}"
+                    f"Getting image from queue: {image.shape}, {np.mean(image):.2f}"
                 )
 
-                yield (image, "image")
+                # TODO: construct actual image with metadata
+                yield (image, f"Channel {counter % 4:02d}")
+                counter +=1
 
         except Exception as e:
             logging.error(e)
@@ -140,7 +144,18 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         if name in self.viewer.layers:
             self.viewer.layers[name].data = arr
         else:
-            self.viewer.add_image(arr, name=name)
+
+            # TODO: missing red
+            if name == "Channel 00":
+                color = "red"
+            if name == "Channel 01":
+                color = "green"
+            if name == "Channel 02":
+                color = "cyan"
+            if name == "Channel 03":
+                color = "magenta"
+
+            self.viewer.add_image(arr, name=name, opacity=0.3, blending="translucent", colormap=color)
 
     def closeEvent(self, event):
         self.viewer.layers.clear()

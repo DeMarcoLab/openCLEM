@@ -51,6 +51,10 @@ class LdiLaserController(LaserController):
         for laser in self.lasers.values():
             laser.disable()
 
+    def initialise(self):
+        command = (f"RUN!\r")
+        response = utils.write_serial_command(self.serial_connection, command)
+        logging.info(f"LDI response: {response}")
 
 class LdiLaser(Laser):
     def __init__(self, laser_settings: LaserSettings, parent: LaserController):
@@ -152,7 +156,7 @@ class LdiLaser(Laser):
         if self.check_response(response):
             self._shutter_open = True
         else:
-            logging.error(f"Error opening shutter for {self.name}")
+            logging.error(f"Error opening shutter for {self.name}: {response}")
 
     def disable(self):
         if self._parent.serial_connection is None: return
@@ -161,7 +165,7 @@ class LdiLaser(Laser):
         if self.check_response(response):
             self._shutter_open = False
         else:
-            logging.error(f"Error closing shutter for {self.name}")
+            logging.error(f"Error closing shutter for {self.name}: {response}")
 
     def decode_power(self, response: str):
         response = response.decode('utf-8')

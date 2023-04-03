@@ -26,6 +26,7 @@ class ArduinoLeonardo(Synchroniser):
 
     def disconnect(self):
         if self.serial_connection is not None:
+            self.stop_sync()
             self.serial_connection.close()
 
     def send_command(self, command):
