@@ -59,7 +59,6 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         exposure_times = microscope.get_laser_controller().get_exposure_times().values()
         exposures = [int(v *constants.SI_TO_MILLI) for v in exposure_times]
 
-
         sync_message = SynchroniserMessage(
             exposures=exposures,
             pins={
@@ -79,6 +78,8 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         # check if acquisition is already running
         if not self.stop_event.is_set():
             self.stop_event.set()
+            microscope: LightMicroscope = self.hardware_widget.microscope
+            microscope.get_synchroniser().stop_sync()
             logging.info("Stopping Image Acquistion")
             return
         else:
@@ -92,7 +93,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         # TODO: disable other microscope interactions
         worker = self.update_live_image()
-        worker.finished.connect(self.update_live_finished)  # type: ignore
+        worker.returned.connect(self.update_live_finished)  # type: ignore
         worker.yielded.connect(self.update_live)  # type: ignore
         worker.start()
 

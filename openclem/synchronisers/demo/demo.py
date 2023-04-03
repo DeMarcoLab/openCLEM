@@ -41,3 +41,9 @@ class DemoSynchroniser(Synchroniser):
         command = f"E{mode}{exposure_string}{n_slices} {edge.value}"
         self.send_command(command)
         return command
+
+    def stop_sync(self):
+        command = "E_STOP"
+        logging.info(f"Sending command {command}")
+        self.send_command(command)
+        return command

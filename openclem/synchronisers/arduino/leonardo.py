@@ -50,3 +50,8 @@ class ArduinoLeonardo(Synchroniser):
         logging.info(f"Arduino Leonardo command: {command}.")
         self.send_command(command)
         return command
+
+    def stop_sync(self):
+        command = "E_STOP"
+        self.send_command(command)
+        return command
