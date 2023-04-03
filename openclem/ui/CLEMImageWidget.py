@@ -98,7 +98,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         worker.start()
 
         # acquire image
-        self.image_queue, self.stop_event = microscope.acquire_image(
+        self.image_queue, self.stop_event = microscope.acquire_image( # TODO: move imgage queue and stop_event to microscope
             image_settings=image_settings,
             sync_message=sync_message,
             stop_event=self.stop_event,
