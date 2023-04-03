@@ -152,6 +152,7 @@ class SMARACTObjectiveStage(ObjectiveStage):
         """
         cmd = bytes(pre_string + cmd + post_string, "utf-8")
         self.connection.sendall(cmd)
+        return self.connection.recv(1024)
 
     @property
     def position(self) -> float:
@@ -166,7 +167,8 @@ class SMARACTObjectiveStage(ObjectiveStage):
         ans = self.send_command(cmd)
 
         # convert to m
-        position = float(ans) * constants.NANO_TO_SI
+        position = str(ans).rsplit(",")[-1].split("\\")[0]
+        position = float(position) * constants.NANO_TO_SI
 
         return position
 
