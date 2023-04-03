@@ -21,6 +21,7 @@ from openclem.structures import (
 from openclem.ui import CLEMHardwareWidget
 from openclem.ui.qt import CLEMImageWidget
 
+from copy import deepcopy
 
 class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
     def __init__(
@@ -59,6 +60,9 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         exposure_times = microscope.get_laser_controller().get_exposure_times().values()
         exposures = [int(v *constants.SI_TO_MILLI) for v in exposure_times]
 
+        # number of non zero exposures
+        image_settings.n_images = len([v for v in exposures if v > 0])
+
         sync_message = SynchroniserMessage(
             exposures=exposures,
             pins={
@@ -68,7 +72,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
                 "laser4": 4,
             },  # TODO actually do something
             mode=image_settings.mode,
-            n_slices=4,# TODO: get from UI
+            n_slices=image_settings.n_images,# TODO: get from UI
             trigger_edge=TriggerEdge.RISING, # TODO: get from UI
         )
         return image_settings, sync_message

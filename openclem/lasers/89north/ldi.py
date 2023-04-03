@@ -67,6 +67,8 @@ class LdiLaser(Laser):
         else:
             self.disable()
         self._colour = laser_settings.colour
+        # super().__init__(laser_settings, parent) # TODO: fix this
+
 
     @classmethod
     def __id__(self):

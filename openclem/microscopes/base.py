@@ -73,7 +73,7 @@ class BaseLightMicroscope(LightMicroscope):
     def acquire_image(
         self, image_settings: ImageSettings, sync_message: SynchroniserMessage, stop_event: threading.Event= threading.Event()
     ):
-        # Set up detector
+        # Set up detector # TODO: move this into initialise
         self._detector.init_camera()
 
         # start thread
