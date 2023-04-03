@@ -23,6 +23,8 @@ from openclem.ui.qt import CLEMImageWidget
 
 from copy import deepcopy
 
+
+
 class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
     def __init__(
         self,
@@ -35,13 +37,20 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         self.viewer = viewer
         # grid mode on
-        self.viewer.grid.enabled = True
+        # self.viewer.grid.enabled = True
 
         self.hardware_widget = hardware_widget
         self.stop_event = threading.Event()
         self.stop_event.set()
 
         self.setup_connections()
+
+        FIBSEM = True
+
+        if FIBSEM:
+            from fibsem import utils
+            self.microscope, self.settings = utils.setup_session()
+
 
     def setup_connections(self):
         self.pushButton_acquire_image.clicked.connect(
@@ -130,7 +139,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
     @thread_worker
     def update_live_image(self):
         try:
-            
+
             counter = 0
             while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
                 
@@ -171,7 +180,93 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             if name == "Channel 03":
                 color = "magenta"
 
-            self.viewer.add_image(arr, name=name, opacity=1.0, blending="translucent", colormap=color)
+            layer = self.viewer.add_image(arr, name=name, opacity=0.3, blending="translucent", colormap=color)
+            
+            # register mouse callbacks
+            layer.mouse_double_click_callbacks.append(self._double_click)
+            self.image = arr
+
+            # add crosshair at the image centre coordiantes
+            if "crosshair" not in self.viewer.layers:
+                self.viewer.add_points(
+                    np.array([[arr.shape[1] / 2, arr.shape[0] / 2]]),
+                    symbol="cross",
+                    size=10,
+                    edge_color="white",
+                    face_color="white",
+                    name="crosshair",
+                )
+
+
+    def _double_click(self, layer, event):
+        
+        # get coords
+        coords = layer.world_to_data(event.position)
+
+        # TODO: dimensions are mixed which makes this confusing to interpret... resolve
+        coords, beam_type, image = self.get_data_from_coord(coords)
+
+        if beam_type is None:
+            napari.utils.notifications.show_info(
+                f"Clicked outside image dimensions. Please click inside the image to move."
+            )
+            return
+
+        from fibsem import conversions, constants
+        from fibsem.structures import Point, BeamType
+
+        # image = self.image
+        pixelsize = 6.5e-6 / 20 / 2.94 # PATENTED_TECHNOLOGY
+
+        point = conversions.image_to_microscope_image_coordinates(
+            Point(x=coords[1], y=coords[0]), image, pixelsize,
+        )
+        logging.info(f"IMAGE: {image.shape}, PIXELSIZE: {pixelsize:.2e}")
+
+        logging.info(
+            f"Movement: STABLE | COORD {coords} | SHIFT {point.x:.2e}, {point.y:.2e} | {beam_type}"
+        )
+
+        logging.info(f"Microscope Stage Position: {self.microscope.get_stage_position()}")
+        # TODO: we need a fibsem microscope
+        self.microscope.stable_move(
+                settings=self.settings,
+                dx=-point.x,
+                dy=-point.y,
+                beam_type=BeamType.ION,
+            )
+        logging.info(f"Microscope Stage Position: {self.microscope.get_stage_position()}")
+
+
+
+    def get_data_from_coord(self, coords: tuple) -> tuple:
+        # check inside image dimensions, (y, x)
+        # eb_shape = self.eb_image.data.shape[0], self.eb_image.data.shape[1]
+        # ib_shape = self.ib_image.data.shape[0], self.ib_image.data.shape[1] + self.eb_image.data.shape[1]
+
+        if (coords[0] > 0 and coords[0] < self.image.shape[0]) and (
+            coords[1] > 0 and coords[1] < self.image.shape[1]
+        ):
+            beam_type = "LIGHT"
+            image = self.image
+
+        # elif (coords[0] > 0 and coords[0] < ib_shape[0]) and (
+        #     coords[1] > eb_shape[0] and coords[1] < ib_shape[1]
+        # ):
+        #     image = self.ib_image
+        #     coords = (coords[0], coords[1] - ib_shape[1] // 2)
+        else:
+            beam_type, image = None, None
+
+        return coords, beam_type, image
+
+        # all the images are the same size, based on detector...
+        # always light
+        # turn grid off to make this eaiser?
+
+    # TODO: ui upgrades
+    # toggle grid / opacity to show all channels
+
 
     def closeEvent(self, event):
         self.viewer.layers.clear()
