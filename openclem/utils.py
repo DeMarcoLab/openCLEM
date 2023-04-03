@@ -240,6 +240,7 @@ def create_microscope(
     lm.add_synchroniser(synchroniser)
     if online:
         lm.connect()
+        lm.initialise()
 
     for laser in lm.get_laser_controller().lasers:
         lm.get_laser_controller().set_power(laser, 0)

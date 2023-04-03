@@ -5,7 +5,6 @@ from openclem.detector import Detector
 from openclem.detectors.hamamatsu.dcam.dcam import *
 from openclem.structures import ImageSettings, DetectorSettings, TriggerSource, ExposureMode, TriggerEdge, ImageMode
 from queue import Queue
-# from openclem.detectors.hamamatsu.dcam.dcam import DCAMERR
 
 
 import threading
@@ -72,7 +71,7 @@ class HamamatsuOrcaFlash4(Detector):
         # logging.info(f"Exposure Mode: {self.exposure_mode}")
 
         dcamerr = self.camera.lasterr()
-        logging.info(f"DCAM error: {DCAMERR[dcamerr]}") 
+        logging.info(f"DCAM error: {dcamerr}") 
 
     def open_camera(self):
         if self.camera is not None:
@@ -108,7 +107,7 @@ class HamamatsuOrcaFlash4(Detector):
 
         try:    
             while count_ <= count and not stop_event.is_set():
-                logging.info(f"Capturing image {count_} of {count}")
+                # logging.info(f"Capturing image {count_} of {count}")
                 
                 if self.settings.trigger_source == TriggerSource.SOFTWARE:
                     self.camera.cap_firetrigger()
@@ -119,7 +118,7 @@ class HamamatsuOrcaFlash4(Detector):
                     
                     if image_queue:
                         image_queue.put(image)
-                        logging.info(f"Putting image {count_} in queue: {image.shape}, {np.mean(image)}")
+                        # logging.info(f"Putting image {count_} in queue: {image.shape}, {np.mean(image)}")
                     
                     if image_settings.mode is ImageMode.SINGLE:
                         count_ += 1
@@ -129,17 +128,17 @@ class HamamatsuOrcaFlash4(Detector):
                         logging.error("Timeout error")
                         break
                     else:
-                        logging.error("Error: %s", DCAMERR[dcamerr])
+                        logging.error("Error: %s", dcamerr)
 
-                logging.info(f"Captured image {count_} of {count}")
-                logging.info(f"Stop event is set: {stop_event.is_set()}")
+                # logging.info(f"Captured image {count_} of {count}")
+                # logging.info(f"Stop event is set: {stop_event.is_set()}")
 
         except Exception as e:
             logging.error("Could not grab image")
             logging.error(e)
         finally:
             logging.info("Stopping camera capture")
-            logging.info(f"Dcamapi error: {DCAMERR[self.camera.lasterr()]}") # map it to actuall error message
+            logging.info(f"Dcamapi error: {self.camera.lasterr()}") # map it to actuall error message
             self.camera.cap_stop()
             logging.info("Releasing camera buffer")
             self.camera.buf_release()

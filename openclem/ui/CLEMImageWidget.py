@@ -34,6 +34,9 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.setupUi(self)
 
         self.viewer = viewer
+        # grid mode on
+        self.viewer.grid.enabled = True
+
         self.hardware_widget = hardware_widget
         self.stop_event = threading.Event()
         self.stop_event.set()
@@ -44,6 +47,11 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.pushButton_acquire_image.clicked.connect(
             self.pushButton_acquire_image_clicked
         )
+
+        self.pushButton_update_settings.clicked.connect(
+            self.update_imaging_settings
+        )
+        self.pushButton_update_settings.setVisible(False)
         self.comboBox_imaging_format.addItems([format.name for format in ImageFormat])
         self.comboBox_imaging_mode.addItems([mode.name for mode in ImageMode])
 
@@ -77,6 +85,15 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         )
         return image_settings, sync_message
 
+    def update_imaging_settings(self):
+        print("UPDATE SETTINGS")
+        
+        image_settings, sync_message = self.get_settings_from_ui()
+        microscope: LightMicroscope = self.hardware_widget.microscope
+        
+        microscope.get_synchroniser().stop_sync()
+        microscope.get_synchroniser().sync_image(sync_message)
+
     def pushButton_acquire_image_clicked(self):
 
         # check if acquisition is already running
@@ -85,9 +102,11 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             microscope: LightMicroscope = self.hardware_widget.microscope
             microscope.get_synchroniser().stop_sync()
             logging.info("Stopping Image Acquistion")
+            # self.pushButton_update_settings.setVisible(False)
             return
         else:
             self.stop_event.clear()
+            # self.pushButton_update_settings.setVisible(True)
             self.pushButton_acquire_image.setText("Acquiring...")
             self.pushButton_acquire_image.setStyleSheet("background-color: orange")
 
@@ -111,18 +130,14 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
     @thread_worker
     def update_live_image(self):
         try:
-            # wait for the first image to be acquired
-            # while self.stop_event is None:
-            #     logging.info(f"Waiting for acquisition to start...")
-            #     time.sleep(0.1)
-
+            
             counter = 0
             while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
                 
                 image = self.image_queue.get()
-                logging.info(
-                    f"Getting image from queue: {image.shape}, {np.mean(image):.2f}"
-                )
+                # logging.info(
+                #     f"Getting image from queue: {image.shape}, {np.mean(image):.2f}"
+                # )
 
                 # TODO: construct actual image with metadata
                 yield (image, f"Channel {counter % 4:02d}")
@@ -137,6 +152,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.update_viewer(image, name)
 
     def update_live_finished(self):
+        # self.pushButton_update_settings.setVisible(False)
         self.pushButton_acquire_image.setText("Acquire Image")
         self.pushButton_acquire_image.setStyleSheet("background-color: green")
 
@@ -155,7 +171,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             if name == "Channel 03":
                 color = "magenta"
 
-            self.viewer.add_image(arr, name=name, opacity=0.3, blending="translucent", colormap=color)
+            self.viewer.add_image(arr, name=name, opacity=1.0, blending="translucent", colormap=color)
 
     def closeEvent(self, event):
         self.viewer.layers.clear()

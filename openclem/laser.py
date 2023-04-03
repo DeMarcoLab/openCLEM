@@ -137,3 +137,7 @@ class LaserController(ABC):
     
     def get_exposure_times(self) -> dict:
         return {laser.name: laser.exposure_time for laser in self.lasers.values()}
+    
+    @abstractmethod
+    def initialise(self):
+        pass

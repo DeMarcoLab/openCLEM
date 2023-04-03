@@ -5,6 +5,9 @@
 - setup acquistion
 - initialise cmaera
 - set lc / laser settings
+- resend sync command
+- 
+
 
 BUG:
 - check close / open state for laser

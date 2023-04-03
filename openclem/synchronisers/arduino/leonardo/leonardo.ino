@@ -72,7 +72,7 @@ void TakeImage(){
       delay(exposures[index]);
       digitalWrite(LASERS[index], LOW);
       digitalWrite(DETECTOR, LOW);
-      delay(1000);
+      delay(30);
     }
   }
 }
