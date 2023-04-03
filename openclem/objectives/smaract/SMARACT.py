@@ -175,7 +175,7 @@ class SMARACTObjectiveStage(ObjectiveStage):
         pass
     
     def save_position(self, position: float) -> None:
-        pass
+        self.saved_position = position
 
     def relative_move(self, distance: float) -> None:
         """Relative movement of the fluorescence objective lens stage.
