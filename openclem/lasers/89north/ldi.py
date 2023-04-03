@@ -81,6 +81,22 @@ class LdiLaser(Laser):
         self._name = value
 
     @property
+    def enabled(self):
+        return self._enabled
+    
+    @enabled.setter
+    def enabled(self, value):
+        self._enabled = value
+
+    @property
+    def exposure_time(self):
+        return self._exposure_time
+    
+    @exposure_time.setter
+    def exposure_time(self, value):
+        self._exposure_time = value
+
+    @property
     def serial_id(self):
         return self._serial_id
 
