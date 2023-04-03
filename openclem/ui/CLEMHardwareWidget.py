@@ -73,6 +73,7 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         self.set_ui_from_laser_settings(self.microscope._laser_controller.lasers[current_laser].settings)
 
 
+
     ### Detector
     def set_ui_from_detector_settings(self, det_settings: DetectorSettings):
 
@@ -208,6 +209,8 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         self.update_ui()
 
     def set_ui_from_objective(self, objective: ObjectiveStage):
+        import time
+        time.sleep(0.2)
         self.doubleSpinBox_current_position.setValue(
             objective.position * constants.SI_TO_MICRO
         )
