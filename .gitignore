@@ -87,3 +87,4 @@ target/
 
 # openclem
 openclem/_version.py
+*.npy
