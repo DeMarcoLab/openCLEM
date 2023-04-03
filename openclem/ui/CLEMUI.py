@@ -2,7 +2,6 @@ import logging
 
 import napari
 import napari.utils.notifications
-import numpy as np
 from PyQt5 import QtWidgets
 
 from openclem import utils
@@ -92,18 +91,16 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         else:
             self.tabWidget.removeTab(2)
             self.tabWidget.removeTab(1)
-            
-
-            self.pushButton_connect_hardware.setText("Connect Hardware")
-            self.pushButton_connect_hardware.setStyleSheet("background-color: gray")
-
-            self.label_hardware_status.setText("No Hardware Connected")
 
             if self.image_widget is None:
                 return
 
             self.image_widget.deleteLater()
             self.hardware_widget.deleteLater()
+
+            self.pushButton_connect_hardware.setText("Connect Hardware")
+            self.pushButton_connect_hardware.setStyleSheet("background-color: gray")
+            self.label_hardware_status.setText("No Hardware Connected")
 
 
 def main():

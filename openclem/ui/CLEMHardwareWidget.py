@@ -68,9 +68,9 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         self.set_ui_from_detector_settings(self.microscope._detector.settings)
         self.set_ui_from_objective(self.microscope._objective)
 
-        self.set_laser_controller_settings_from_ui(self.microscope._laser_controller.settings)
+        self.set_ui_from_laser_controller_settings(self.microscope._laser_controller.settings)
         current_laser = self.comboBox_selected_laser.currentText()
-        self.set_laser_settings_from_ui(self.microscope._laser_controller.lasers[current_laser].settings)
+        self.set_ui_from_laser_settings(self.microscope._laser_controller.lasers[current_laser].settings)
 
 
     ### Detector
@@ -149,7 +149,7 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         return lc_settings
         
     
-    def set_laser_settings_from_ui(self, laser_settings: LaserSettings):
+    def set_ui_from_laser_settings(self, laser_settings: LaserSettings):
 
         self.lineEdit_laser_name.setText(laser_settings.name)
         self.lineEdit_laser_id.setText(laser_settings.serial_id)
@@ -160,7 +160,7 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         self.checkBox_laser_enabled.setChecked(laser_settings.enabled)
         self.label_laser_color.setText(str(laser_settings.colour))
 
-    def set_laser_controller_settings_from_ui(self, lc_settings: LaserControllerSettings):
+    def set_ui_from_laser_controller_settings(self, lc_settings: LaserControllerSettings):
         self.lineEdit_lc_name.setText(lc_settings.name)
         self.lineEdit_lc_type.setText(lc_settings.laser)
 

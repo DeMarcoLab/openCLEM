@@ -22,6 +22,20 @@ class ExposureMode(Enum):
     TRIGGER_WIDTH = 2
 
 
+class ImageFormat(Enum):
+    """Image format"""
+
+    TIFF = 1
+    PNG = 2
+    JPG = 3
+
+class ImageMode(Enum):
+    """Image mode"""
+
+    SINGLE = "single"
+    LIVE = "live"
+
+
 @dataclass
 class ImageSettings:
     """Image settings"""
@@ -30,6 +44,7 @@ class ImageSettings:
     exposure: float = 0.0
     image_format: str = "tiff"
     n_images: int = 1
+    mode: ImageMode = ImageMode.SINGLE
 
     @staticmethod
     def __from_dict__(settings: dict) -> "ImageSettings":
@@ -38,6 +53,7 @@ class ImageSettings:
             exposure=settings["exposure"],
             image_format=settings["image_format"],
             n_images=settings["n_images"],
+            mode=ImageMode[settings.get("mode", "SINGLE")],
         )
 
     def __to_dict__(self) -> dict:
@@ -46,6 +62,7 @@ class ImageSettings:
             "exposure": self.exposure,
             "image_format": self.image_format,
             "n_images": self.n_images,
+            "mode": self.mode.name,
         }
 
 
@@ -203,7 +220,7 @@ class SynchroniserMessage:
 
     exposures: list[float]
     pins: dict[str: int]
-    mode: str = "single"
+    mode: ImageMode = ImageMode.SINGLE
     n_slices: int = 0
     trigger_edge: TriggerEdge = TriggerEdge.RISING
 
@@ -212,7 +229,7 @@ class SynchroniserMessage:
         synchroniser_message = SynchroniserMessage(
             exposures=settings["exposures"],
             pins=settings["pins"],
-            mode=settings["mode"],
+            mode=ImageMode[settings["mode"].upper()],
             n_slices=settings["n_slices"],
             trigger_edge=TriggerEdge[settings["trigger_edge"]],
         )
@@ -223,7 +240,7 @@ class SynchroniserMessage:
         return {
             "exposures": self.exposures,
             "pins": self.pins,
-            "mode": self.mode,
+            "mode": self.mode.name,
             "n_slices": self.n_slices,
             "trigger_edge": self.trigger_edge.name,
         }

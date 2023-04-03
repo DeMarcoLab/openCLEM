@@ -26,5 +26,9 @@ class Synchroniser(ABC):
     def sync_image(self, message):
         pass
 
+    @abstractmethod
+    def stop_sync(self):
+        pass
+
     def __repr__(self) -> str:
         return f"Synchroniser {self.name}"
