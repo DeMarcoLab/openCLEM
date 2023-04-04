@@ -33,13 +33,41 @@ synchroniser_message = SynchroniserMessage.__from_dict__({
 
 image_settings = ImageSettings(
     pixel_size=25e-6,
-    exposure=100.e-3,
+    exposure=500.e-3,
     n_images = 4,
     mode=mode,
 )
 
-microscope.acquire_image(
+image_queue, stop_event = microscope.acquire_image(
     image_settings=image_settings, 
     sync_message=synchroniser_message)
 
+time.sleep(1) # wait for camera to start?
+
+try:
+    counter = 0
+    while image_queue.qsize() > 0 or not stop_event.is_set():
+        image = image_queue.get()
+        
+        logging.info(f"Getting img {counter%4} in queue: {image.shape}, {np.mean(image)}"
+        )
+
+        # if False:
+            # yield (image, f"Channel {counter % 4:02d}")
+        counter += 1
+
+except KeyboardInterrupt:
+    stop_event.set()
+    logging.info("Keyboard interrupt")
+except Exception as e:
+    stop_event.set()
+    logging.error(e)
+finally:
+    microscope.get_synchroniser().stop_sync()
+    logging.info("Thread stopped.")
+
+# print("HELLO WORLD")
+# logging.info("Consuming image")
 microscope.consume_image()
+
+# print("HELLO WORLD")
