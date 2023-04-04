@@ -97,6 +97,8 @@ class BaseLightMicroscope(LightMicroscope):
 
         self.image_queue = image_queue
         self.stop_event = stop_event
+        self.sync_message = sync_message
+        self.image_settings = image_settings
         return self.image_queue, self.stop_event
 
     def live_image(self, image_settings: ImageSettings):

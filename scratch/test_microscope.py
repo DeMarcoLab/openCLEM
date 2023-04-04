@@ -170,8 +170,8 @@ def get_lasers(microscope) -> list[LaserSettings]:
     lasers = microscope.get_laser_controller().lasers
     return [microscope.get_laser_controller().get_laser(laser) for laser in lasers]
 
-
-def consume_image_queue(image_queue:Queue, stop_event: threading.Event, sync_message: SynchroniserMessage, viz=False):
+from openclem.microscope import LightMicroscope
+def consume_image_queue(microscope:LightMicroscope, image_queue:Queue, stop_event: threading.Event,  viz=False):
 
     # get index of non-zero exposures
     exposure_indices = [i for i, v in enumerate(sync_message.exposures) if v > 0]
@@ -187,18 +187,15 @@ def consume_image_queue(image_queue:Queue, stop_event: threading.Event, sync_mes
         time=utils.current_timestamp(),
         detector=microscope.get_detector().settings,
         objective=microscope.get_objective().position,
-        image= image_settings,
-        sync=sync_message,
+        image= microscope.image_settings,
+        sync=microscope.sync_message,
     )
 
     try:
         counter = 0
         while image_queue.qsize() > 0 or not stop_event.is_set():
             
-            # stack the image channels into a single image
-            # arr = np.stack([image_queue.get().data for _ in range(n_exposures)], axis=-1)
-
-            channel = counter % n_exposures
+            channel = counter % n_exposures # TODO: probably should pass this info out of the queue? but how
 
             image = image_queue.get()
             if channel == 0:
@@ -232,5 +229,9 @@ def consume_image_queue(image_queue:Queue, stop_event: threading.Event, sync_mes
         microscope.get_synchroniser().stop_sync()
         logging.info("Thread stopped.")
 
-consume_image_queue(image_queue, stop_event, sync_message, viz=False)
+
+consume_image_queue(microscope=microscope, 
+                    image_queue=image_queue, 
+                    stop_event=stop_event, 
+                    viz=False)
 
