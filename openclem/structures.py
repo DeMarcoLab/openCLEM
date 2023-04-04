@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-
+import numpy as np
 
 class TriggerEdge(Enum):
     """Trigger edge"""
@@ -326,3 +326,75 @@ class MicroscopeSettings:
             "synchroniser": SynchroniserSettings.__to_dict__(self.synchroniser),
             "online": self.online,
         }
+    
+
+
+
+
+
+
+@dataclass
+class LightImageMetadata:
+    n_channels: int                 # number of channels
+    channels: list[int]             # channel indices
+    time: float                     # time of acquisition
+    lasers: list[LaserSettings]     # laser settings
+    detector: DetectorSettings      # detector settings
+    objective: ObjectiveSettings    # objective settings
+    image: ImageSettings            # image settings
+    sync: SynchroniserMessage       # sync settings
+
+    def __to_dict__(self) -> dict:
+        return dict(
+            n_channels=self.n_channels,
+            channels=self.channels,
+            time=self.time,
+            lasers=[l.__to_dict__() for l in self.lasers],
+            detector=self.detector.__to_dict__(),
+            objective=self.objective.__to_dict__(),
+            image=self.image.__to_dict__(),
+            sync=self.sync.__to_dict__(),
+        )
+    
+    
+    @classmethod
+    def __from_dict__(cls, data: dict) -> "LightImageMetadata":
+        return cls(
+            n_channels=data["n_channels"],
+            channels=data["channels"],
+            time=data["time"],
+            lasers=[LaserSettings.__from_dict__(l) for l in data["lasers"]],
+            detector=DetectorSettings.__from_dict__(data["detector"]),
+            objective=ObjectiveSettings.__from_dict__(data["objective"]),
+            image=ImageSettings.__from_dict__(data["image"]),
+            sync=SynchroniserMessage.__from_dict__(data["sync"]),
+        )
+    
+    def __repr__(self) -> str:
+        return f"LightImageMetadata(n_channels={self.n_channels}, channels={self.channels}, time={self.time}, lasers={self.lasers}, detector={self.detector}, objective={self.objective}, image={self.image}, sync={self.sync})"
+
+@dataclass
+class LightImage:
+    data: np.ndarray
+    metadata: LightImageMetadata
+
+    def __to_dict__(self) -> dict:
+        return dict(
+            data=self.data,
+            metadata=self.metadata.__to_dict__(),
+        )
+    
+    @classmethod
+    def __from_dict__(cls, data: dict) -> "LightImage":
+        return cls(
+            data=data["data"],
+            metadata=LightImageMetadata.__from_dict__(data["metadata"]),
+        )
+
+    def __repr__(self) -> str:
+        
+        return "\n".join([
+            f"image: {self.data.shape}"
+            f"metadata: {self.metadata}"])
+
+# TODO: save and load image

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from openclem.structures import ImageSettings
+from openclem.structures import ImageSettings, LaserSettings
 from openclem.laser import LaserController, Laser
 from openclem.objective import ObjectiveStage
 from openclem.detector import Detector
@@ -73,3 +73,7 @@ class LightMicroscope(ABC):
     @abstractmethod
     def consume_image(self, image_queue, stop_event):
         pass
+
+    def get_lasers(microscope) -> list[LaserSettings]:
+        lasers = microscope.get_laser_controller().lasers
+        return [microscope.get_laser_controller().get_laser(laser) for laser in lasers]

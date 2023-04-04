@@ -139,14 +139,68 @@ class BaseLightMicroscope(LightMicroscope):
             self.get_synchroniser().stop_sync()
             logging.info("Thread stopped.")
 
-def _threaded_grab_image(
-    microscope: LightMicroscope,
-    image_settings: ImageSettings,
-    image_queue: Queue,
-    stop_event: threading.Event,
-):
-    microscope._detector.grab_image(image_settings, image_queue, stop_event)
 
+from queue import Queue
+import threading
+from openclem.microscope import LightMicroscope
 
-# system.yaml -> LightMicroscope
-# microscope.acquire_image(microscope, image_settings)
+from openclem import utils
+from openclem.structures import LightImage, LightImageMetadata
+
+def consume_image_queue(microscope:LightMicroscope, image_queue:Queue, stop_event: threading.Event,  viz=False):
+
+    # get index of non-zero exposures
+    exposure_indices = [i for i, v in enumerate(microscope.sync_message.exposures) if v > 0]
+    n_exposures = len(exposure_indices)
+
+    logging.info(f"Exposure indices: {exposure_indices}")
+    logging.info(f"Number of exposures: {n_exposures}")
+
+    metadata = LightImageMetadata(
+        n_channels=n_exposures,
+        channels=exposure_indices,
+        lasers=microscope.get_lasers(),
+        time=utils.current_timestamp(),
+        detector=microscope.get_detector().settings,
+        objective=microscope.get_objective().position,
+        image= microscope.image_settings,
+        sync=microscope.sync_message,
+    )
+
+    try:
+        counter = 0
+        while image_queue.qsize() > 0 or not stop_event.is_set():
+            
+            channel = counter % n_exposures # TODO: probably should pass this info out of the queue? but how
+
+            image = image_queue.get()
+            if channel == 0:
+                arr = image
+                # expand dims to add channel axis
+                arr = np.expand_dims(arr, axis=-1)
+            else:
+                arr = np.dstack((arr, image))
+
+            if channel == n_exposures - 1:
+                image = LightImage(
+                    data=arr,
+                    metadata=metadata,
+                )
+                image.metadata.time = utils.current_timestamp()
+            
+                logging.info(f"Image: {image.data.shape} {image.metadata.time}")
+                logging.info(f"-"*50)
+
+            if viz:
+                print(image, f"Channel {channel:02d}")
+            counter += 1
+
+    except KeyboardInterrupt:
+        stop_event.set()
+        logging.info("Keyboard interrupt")
+    except Exception as e:
+        stop_event.set()
+        logging.error(e)
+    finally:
+        microscope.get_synchroniser().stop_sync()
+        logging.info("Thread stopped.")
