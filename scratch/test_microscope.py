@@ -7,8 +7,8 @@ import logging
 import numpy as np
 from PIL import Image
 
-# cfg_path = os.path.join(config.BASE_PATH, "config", "system.yaml")
-cfg_path = os.path.join(config.BASE_PATH, "config", "piedisc.yaml")
+cfg_path = os.path.join(config.BASE_PATH, "config", "system.yaml")
+# cfg_path = os.path.join(config.BASE_PATH, "config", "piedisc.yaml")
 cfg = utils.load_yaml(cfg_path)
 microscope, settings = utils.setup_session(config_path=cfg_path)
 
@@ -38,33 +38,8 @@ image_settings = ImageSettings(
     mode=mode,
 )
 
-image_queue, stop_event= microscope.acquire_image(image_settings=image_settings, 
-                         sync_message=synchroniser_message)
+microscope.acquire_image(
+    image_settings=image_settings, 
+    sync_message=synchroniser_message)
 
-# poll until keyboard interrupt
-try:
-    i = 0
-    while True:
-        image = image_queue.get()
-        
-        logging.info(
-            f"Getting image {i} in queue: {image.shape}, {np.mean(image)}"
-        )
-
-        # save image with PIL
-        print(type(image))
-        image = Image.fromarray(image)
-        print(image)
-        # image.save(f"image_{i:03d}.png") 
-
-        # time.sleep(0.1)
-        i += 1
-
-except KeyboardInterrupt:
-    stop_event.set()
-    # microscope.get_synchroniser().stop_sync()
-    logging.info("Keyboard interrupt")
-finally:
-    microscope.get_synchroniser().stop_sync()
-    logging.info("Thread stopped.")
-
+microscope.consume_image()

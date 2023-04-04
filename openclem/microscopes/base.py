@@ -95,11 +95,47 @@ class BaseLightMicroscope(LightMicroscope):
         # Run sync
         self.get_synchroniser().sync_image(sync_message)
 
-        return image_queue, stop_event
+        self.image_queue = image_queue
+        self.stop_event = stop_event
+        return self.image_queue, self.stop_event
 
     def live_image(self, image_settings: ImageSettings):
         return
 
+    def consume_image(self, viz: bool = False):
+                
+        if self.image_queue is None:
+            raise ValueError("No image queue found. Run acquire_image first.")
+
+        if self.stop_event is None:
+            raise ValueError("No stop event found. Run acquire_image first.")
+
+        # poll until keyboard interrupt
+        try:
+            counter = 0
+            while self.image_queue.qsize() > 0 and not self.stop_event.is_set():
+                image = self.image_queue.get()
+                
+                logging.info(f"Getting img {counter%4} in queue: {image.shape}, {np.mean(image)}"
+                )
+
+                # save image with PIL
+                # print(type(image))
+                # image = Image.fromarray(image)
+                # print(image)
+                # image.save(f"image_{i:03d}.png") 
+                # time.sleep(0.1)
+
+                if viz:
+                    yield (image, f"Channel {counter % 4:02d}")
+                counter += 1
+
+        except KeyboardInterrupt:
+            self.stop_event.set()
+            logging.info("Keyboard interrupt")
+        finally:
+            self.get_synchroniser().stop_sync()
+            logging.info("Thread stopped.")
 
 def _threaded_grab_image(
     microscope: LightMicroscope,

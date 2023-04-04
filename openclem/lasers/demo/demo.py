@@ -1,8 +1,5 @@
 import logging
 
-import numpy as np
-
-from openclem import utils
 from openclem.laser import Laser, LaserController
 from openclem.structures import LaserControllerSettings, LaserSettings
 
@@ -115,4 +112,7 @@ class DemoLaserController(LaserController):
     def close_shutters(self):
         for laser in self.lasers.values():
             laser.disable()
+
+    def initialise(self):
+        logging.info(f"Initialising {self.name}")
 

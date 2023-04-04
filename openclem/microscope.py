@@ -69,3 +69,7 @@ class LightMicroscope(ABC):
     @abstractmethod
     def live_image(self, image_settings:ImageSettings):
         pass
+    
+    @abstractmethod
+    def consume_image(self, image_queue, stop_event):
+        pass
