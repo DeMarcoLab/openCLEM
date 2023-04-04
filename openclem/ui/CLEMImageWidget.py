@@ -23,6 +23,11 @@ from openclem.ui.qt import CLEMImageWidget
 
 from copy import deepcopy
 
+FIBSEM = False
+
+if FIBSEM:
+    from fibsem import conversions, constants, utils
+    from fibsem.structures import Point, BeamType
 
 
 class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
@@ -45,10 +50,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         self.setup_connections()
 
-        FIBSEM = True
-
-        if FIBSEM:
-            from fibsem import utils
+        if FIBSEM: # for stage movement only
             self.microscope, self.settings = utils.setup_session()
 
 
@@ -95,7 +97,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         return image_settings, sync_message
 
     def update_imaging_settings(self):
-        print("UPDATE SETTINGS")
+        logging.info("UPDATE SETTINGS") # TODO: implement this function correctly
         
         image_settings, sync_message = self.get_settings_from_ui()
         microscope: LightMicroscope = self.hardware_widget.microscope
@@ -191,7 +193,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
                 self.viewer.add_points(
                     np.array([[arr.shape[1] / 2, arr.shape[0] / 2]]),
                     symbol="cross",
-                    size=10,
+                    size=50,
                     edge_color="white",
                     face_color="white",
                     name="crosshair",
@@ -212,8 +214,11 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             )
             return
 
-        from fibsem import conversions, constants
-        from fibsem.structures import Point, BeamType
+        if FIBSEM is False:
+            napari.utils.notifications.show_info(f"OpenFIBSEM is not enabled. Please activate to move.")
+            return 
+
+
 
         # image = self.image
         pixelsize = 6.5e-6 / 20 / 2.94 # PATENTED_TECHNOLOGY
@@ -228,7 +233,6 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         )
 
         logging.info(f"Microscope Stage Position: {self.microscope.get_stage_position()}")
-        # TODO: we need a fibsem microscope
         self.microscope.stable_move(
                 settings=self.settings,
                 dx=-point.x,

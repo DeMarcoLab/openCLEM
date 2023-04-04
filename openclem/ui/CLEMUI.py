@@ -27,7 +27,7 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         self.image_widget, self.hardware_widget = None, None
         self._hardware_connected = False
 
-        self.lineEdit_config_filename.setText(os.path.join(cfg.BASE_PATH, "config", "piedisc.yaml"))
+        self.lineEdit_config_filename.setText(os.path.join(cfg.BASE_PATH, "config", "system.yaml"))
 
         self.setup_connections()
 
@@ -106,6 +106,7 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
     def closeEvent(self, event):
         if self._hardware_connected:
             self.microscope.get_synchroniser().stop_sync()
+            self.microscope.disconnect()
             logging.info("Disconnected from hardware")
             napari.utils.notifications.show_info("Disconnected from hardware")
 
