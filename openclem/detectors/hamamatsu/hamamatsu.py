@@ -146,7 +146,7 @@ class HamamatsuOrcaFlash4(Detector):
             self.close_camera()
             stop_event.set()
 
-
+    # TODO: fix the bug in these properites, crashes after getting, but only in ui
     @property
     def exposure_time(self):
         try:

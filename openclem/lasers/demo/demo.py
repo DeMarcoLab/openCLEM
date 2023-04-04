@@ -97,7 +97,7 @@ class DemoLaserController(LaserController):
         self.serial_connection = None
 
     def get_laser(self, name: str) -> Laser:
-        return self.lasers[name]
+        return self.lasers[name].get()
 
     def set_power(self, name: str, value: float) -> None:
         self.lasers[name].power = value

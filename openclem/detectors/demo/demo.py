@@ -1,6 +1,6 @@
 import logging
 from openclem.detector import Detector
-from openclem.structures import ImageSettings, DetectorSettings, ImageMode, ImageFormat
+from openclem.structures import ImageSettings, DetectorSettings, ExposureMode, ImageMode, TriggerEdge, TriggerSource
 import numpy as np
 import time
 
@@ -16,11 +16,11 @@ class DemoDetector(Detector):
         self.name = detector_settings.name
 
         # ? why not just use the settings?
-        # self.trigger_source = None
-        # self.trigger_edge = None
-        # self.exposure_mode = None
-        # self.exposure_time = None
-        # self.pixel_size = None
+        self._trigger_source = None
+        self._trigger_edge = None
+        self._exposure_mode = None
+        self._exposure_time = None
+        self._pixel_size = None
 
 
     @classmethod
@@ -54,25 +54,45 @@ class DemoDetector(Detector):
     @property
     def exposure_mode(self):
         """Trigger or level"""
-        pass
+        return self._exposure_mode
+    
+    @exposure_mode.setter
+    def exposure_mode(self, value: ExposureMode):
+        self._exposure_mode = value
 
     @property
     def trigger_edge(self):
         """Rising or Falling"""
-        pass
+        return self._trigger_edge
+    
+    @trigger_edge.setter
+    def trigger_edge(self, value: TriggerEdge):
+        self._trigger_edge = value
 
     @property
     def trigger_source(self):
         """Internal, External, Software"""
-        pass
+        return self._trigger_source
+    
+    @trigger_source.setter
+    def trigger_source(self, value: TriggerSource):
+        self._trigger_source = value
 
     @property
     def exposure_time(self):
-        pass
+        return self._exposure_time
+    
+    @exposure_time.setter
+    def exposure_time(self, value: float):
+        self._exposure_time = value
 
     @property
     def pixel_size(self):
-        pass
+        return self._pixel_size
+    
+    @pixel_size.setter
+    def pixel_size(self, value: float):
+        self._pixel_size = value
     
     def grab_image(self, image_settings: ImageSettings, image_queue: Queue, stop_event: threading.Event) -> np.ndarray:
         if self.camera is None or image_settings is None: return
@@ -94,12 +114,12 @@ class DemoDetector(Detector):
                 
                 if image_queue:
                     image_queue.put(image)
-                    logging.info(f"Putting image {count_} in queue: {image.shape}, {np.mean(image):.2f}")
+                    # logging.info(f"Putting image {count_} in queue: {image.shape}, {np.mean(image):.2f}")
                 
                 if image_settings.mode == ImageMode.SINGLE:
                     count_ += 1
 
-                logging.info(f"COUNT: {count_}, STOP_EVENT: {stop_event.is_set()}")
+                # logging.info(f"COUNT: {count_}, STOP_EVENT: {stop_event.is_set()}")
             
         except Exception as e:
             logging.error(f"Could not grab image from Demo Camera: {e}")

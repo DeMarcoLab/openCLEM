@@ -21,6 +21,18 @@ class Laser(ABC):
         else:
             self.disable()
 
+    def get(self):
+        return LaserSettings(
+            name=self._name,
+            serial_id=self._serial_id,
+            power=self.power,
+            wavelength=self.wavelength,
+            exposure_time=self.exposure_time,
+            enabled=self.enabled,
+            colour=self.colour
+        )
+
+
     @classmethod
     @abstractmethod
     def __id__(self):
@@ -79,7 +91,7 @@ class Laser(ABC):
         pass
 
     def __repr__(self) -> str:
-        return f"{self.name} - Laser"
+        return f"{self.name} - {self.power} - {self.wavelength} - {self.exposure_time}"
         
 
 class LaserController(ABC):
