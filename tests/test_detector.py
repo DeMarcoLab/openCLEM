@@ -5,27 +5,27 @@ from openclem.structures import DetectorSettings, ConnectionSettings, Connection
 from openclem.detectors.demo.demo import DemoDetector
 
 
+# import fixtures from test_structures.py
+from test_structures import detector_settings, connection_settings_software
+
+
 @pytest.fixture
-def det_settings():
-    return DetectorSettings(
-        name="demo",
-        connection=ConnectionSettings(
-            type=ConnectionType.SOFTWARE,
-            settings=None,
-        ),
-        pixel_size=1e-6,
-        resolution=[2048, 2048],
-    )
+def detector(detector_settings: DetectorSettings) -> DemoDetector:
+    return DemoDetector(detector_settings)
 
+def test_demo_detector(detector: DemoDetector,  detector_settings: DetectorSettings):
 
-def test_demo_detector(det_settings: DetectorSettings):
-    det = DemoDetector(det_settings)
+    det = detector
 
-    assert det.name == det_settings.name
-    assert det.connection.type == ConnectionType.SOFTWARE
-    assert det.pixel_size == det_settings.pixel_size
-    assert det.resolution == det_settings.resolution
-    assert det.exposure_mode == det_settings.exposure_mode
-    assert det.trigger_edge == det_settings.trigger_edge
-    assert det.trigger_source == det_settings.trigger_source
+    assert det.name == detector_settings.name
+    assert det.connection.type == detector_settings.connection.type
+    assert det.connection.settings == detector_settings.connection.settings
+    assert det.pixel_size == detector_settings.pixel_size
+    assert det.resolution == detector_settings.resolution
+    assert det.exposure_mode == detector_settings.exposure_mode
+    assert det.trigger_edge == detector_settings.trigger_edge
+    assert det.trigger_source == detector_settings.trigger_source
     assert det.camera == None
+
+    det.init_camera()
+    assert det.camera == "DemoCamera"
