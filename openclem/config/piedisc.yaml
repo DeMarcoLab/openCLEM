@@ -58,7 +58,7 @@ synchroniser:
   name: leonardo
   connection:
     type: serial
-    settnings:         
+    settings:         
       port: COM7
       baudrate: 115200
       timeout: 1
