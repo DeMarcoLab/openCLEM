@@ -5,6 +5,10 @@ from openclem.objective import ObjectiveStage
 from openclem.detector import Detector
 from openclem.synchronisation import Synchroniser
 
+import logging
+import threading
+from queue import Queue
+
 class LightMicroscope(ABC):
     """Abstract class for light microscope"""
     def __init__(self, name: str):
@@ -63,7 +67,7 @@ class LightMicroscope(ABC):
         pass
 
     @abstractmethod
-    def acquire_image(self, image_settings:ImageSettings):
+    def acquire_image(self, image_settings:ImageSettings) -> tuple[Queue, threading.Event]:
         pass
 
     @abstractmethod
@@ -71,7 +75,7 @@ class LightMicroscope(ABC):
         pass
     
     @abstractmethod
-    def consume_image(self, image_queue, stop_event):
+    def consume_image(self, image_queue:Queue, stop_event: threading.Event):
         pass
 
     def get_lasers(microscope) -> list[LaserSettings]:

@@ -2,6 +2,11 @@ from dataclasses import dataclass
 from enum import Enum
 import numpy as np
 from typing import Union
+import tifffile as tff
+import json
+import os
+from pathlib import Path
+import traceback
 
 class TriggerEdge(Enum):
     """Trigger edge"""
@@ -144,8 +149,8 @@ class ImageSettings:
 
     pixel_size: float = 0.0
     exposure: float = 0.0
-    image_format: str = "tiff"
     n_images: int = 1
+    image_format: ImageFormat = ImageFormat.TIFF
     mode: ImageMode = ImageMode.SINGLE
 
     @staticmethod
@@ -153,8 +158,8 @@ class ImageSettings:
         return ImageSettings(
             pixel_size=settings["pixel_size"],
             exposure=settings["exposure"],
-            image_format=settings["image_format"],
             n_images=settings["n_images"],
+            image_format=ImageFormat[settings.get("image_format", "TIFF")],
             mode=ImageMode[settings.get("mode", "SINGLE")],
         )
 
@@ -162,7 +167,7 @@ class ImageSettings:
         return {
             "pixel_size": self.pixel_size,
             "exposure": self.exposure,
-            "image_format": self.image_format,
+            "image_format": self.image_format.name,
             "n_images": self.n_images,
             "mode": self.mode.name,
         }
@@ -427,11 +432,7 @@ class LightImageMetadata:
     def __repr__(self) -> str:
         return f"LightImageMetadata(n_channels={self.n_channels}, channels={self.channels}, time={self.time}, lasers={self.lasers}, detector={self.detector}, objective={self.objective}, image={self.image}, sync={self.sync})"
 
-import tifffile as tff
-import json
-import os
-from pathlib import Path
-import traceback
+
 
 @dataclass
 class LightImage:
@@ -457,10 +458,13 @@ class LightImage:
             f"image: {self.data.shape}"
             f"metadata: {self.metadata}"])
 
-    def save(self, path: str) -> None:
+    def save(self, path: Path) -> None:
         """Save image as tiff with metadata in tiff description"""
 
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        # create  directory if it does not exist
+        dir = os.path.dirname(path)
+        if dir != "":
+            os.makedirs(dir, exist_ok=True)
         path = Path(path).with_suffix(".tif")
 
         if self.metadata is not None:
@@ -475,7 +479,7 @@ class LightImage:
 
 
     @classmethod
-    def load(cls, path: str) -> "LightImage":
+    def load(cls, path: Path) -> "LightImage":
 
         with tff.TiffFile(path) as tiff_image:
             data = tiff_image.asarray()

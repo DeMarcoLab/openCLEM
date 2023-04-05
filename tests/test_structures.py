@@ -6,7 +6,7 @@ from openclem.structures import (ConnectionSettings, ConnectionType,
                                  MicroscopeSettings, ObjectiveSettings,
                                  SerialSettings, SocketSettings,
                                  SynchroniserMessage, SynchroniserSettings,
-                                 TriggerEdge, TriggerSource, ImageMode)
+                                 TriggerEdge, TriggerSource, ImageMode, ImageFormat)
 
 ######### ConnectionSettings #########
 
@@ -147,7 +147,7 @@ def laser_settings(connection_settings_serial: ConnectionSettings) -> LaserSetti
         power=0.5,
         exposure_time=0.1,
         enabled=True,
-        colour=(255, 0, 0),
+        colour=[255, 0, 0],
     )
 
 
@@ -374,9 +374,6 @@ def test_synchroniser_message(synchroniser_message: SynchroniserMessage):
 
 @pytest.fixture
 def microscope_settings(
-    connection_settings_serial: ConnectionSettings,
-    connection_settings_software: ConnectionSettings,
-    connection_settings_socket: ConnectionSettings,
     laser_settings: LaserSettings,
     laser_controller_settings: LaserControllerSettings,
     detector_settings: DetectorSettings,
@@ -407,4 +404,94 @@ def test_microscope_settings(microscope_settings: MicroscopeSettings):
     # __from_dict__
     assert microscope_settings.__from_dict__(microscope_settings.__to_dict__()) == microscope_settings
 
+######## ImageSettings #########
+
+@pytest.fixture
+def image_settings() -> ImageSettings:
+    return ImageSettings(
+        pixel_size=0.1e-6,
+        image_format=ImageFormat.TIFF,
+        mode=ImageMode.LIVE,
+        exposure=1000,
+        n_images=1,
+        )
+
+def test_image_settings(image_settings: ImageSettings):
+    
+        assert image_settings.pixel_size == 0.1e-6
+        assert image_settings.image_format == ImageFormat.TIFF
+        assert image_settings.mode == ImageMode.LIVE
+        assert image_settings.exposure == 1000
+        assert image_settings.n_images == 1
+    
+        # __to_dict__
+        assert image_settings.__to_dict__() == {
+            "pixel_size": 0.1e-6,
+            "image_format": "TIFF",
+            "mode": "LIVE",
+            "exposure": 1000,
+            "n_images": 1,
+        }
+    
+        # __from_dict__
+        assert image_settings.__from_dict__(image_settings.__to_dict__()) == image_settings
+
+
 ######### LightImage #########
+
+from openclem.structures import LightImage, LightImageMetadata
+import numpy as np
+
+@pytest.fixture
+def light_image_metadata(laser_settings: LaserSettings, laser_controller_settings: LaserControllerSettings, detector_settings: DetectorSettings, objective_settings: ObjectiveSettings, synchroniser_message: SynchroniserMessage, image_settings: ImageSettings) -> LightImageMetadata:
+
+    return LightImageMetadata(
+        n_channels=1,
+        channels = [1],
+        lasers=[laser_settings],
+        detector=detector_settings,
+        objective=1000, # TODO: only position atm, update
+        sync=synchroniser_message,
+        image=image_settings,
+        time=0
+    )
+
+@pytest.fixture
+def light_image(light_image_metadata: LightImageMetadata) -> LightImage:
+    
+        return LightImage(
+            data=np.zeros((2048, 2048, 1)),
+            metadata=light_image_metadata,
+        )
+
+def test_light_image(light_image: LightImage):
+
+    assert light_image.data.shape == (2048, 2048, 1)
+    assert light_image.metadata.n_channels == 1
+    assert light_image.metadata.channels == [1]
+    assert light_image.metadata.lasers[0].name == "demo"
+    assert light_image.metadata.detector.name == "demo"
+    assert light_image.metadata.objective == 1000
+    assert light_image.metadata.sync.exposures == [1000, 1000, 1000, 1000]
+    assert light_image.metadata.image.pixel_size == 0.1e-6
+
+    # __to_dict__
+    assert light_image.__to_dict__() == {
+        "data": light_image.data,
+        "metadata": light_image.metadata.__to_dict__(),
+    }
+
+    # __from_dict__
+    assert light_image.__from_dict__(light_image.__to_dict__()) == light_image
+
+    # save
+    import os
+    light_image.save("test")
+
+    # load
+    load_image = LightImage.load("test.tif")
+    assert np.array_equal(load_image.data, light_image.data)
+    assert load_image.metadata == light_image.metadata
+
+    # delete
+    os.remove("test.tif")
