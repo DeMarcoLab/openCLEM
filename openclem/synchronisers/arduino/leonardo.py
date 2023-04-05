@@ -19,7 +19,7 @@ class ArduinoLeonardo(Synchroniser):
 
     def connect(self):
         logging.info(f"Connecting to Arduino Leonardo synchroniser {self.name}.")
-        self.serial_connection = utils.connect_to_serial_port(self.settings.serial_settings)
+        self.serial_connection = utils.connect_to_serial_port(self.settings.connection.settings)
         time.sleep(1) # required for initialisation
         logging.info(f"Serial connection: {self.serial_connection}.")
         logging.info(f"Connected to Arduino Leonardo synchroniser {self.name}.")

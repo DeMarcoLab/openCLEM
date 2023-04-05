@@ -4,17 +4,21 @@ online: true
 
 laser_controller:
   name: 89North_ldi
-  serial:
-    port: COM8
-    baudrate: 9600
-    timeout: 10000
+  conection:
+    type: serial
+    settings:
+      port: COM8
+      baudrate: 9600
+      timeout: 10000
   laser: 89North_ldi_Laser
 
 detector:
   name: hamamatsuOrcaFlash4
   pixel_size: 6.5e-6
   resolution: [2048, 2048]
-  serial: null
+  connection: 
+    type: software
+    settings: null
   trigger_source: EXTERNAL
   trigger_edge: RISING
   exposure_mode: TRIGGER_WIDTH
@@ -52,10 +56,12 @@ lasers:
 
 synchroniser:
   name: leonardo
-  serial: 
-    port: COM7
-    baudrate: 115200
-    timeout: 1
+  connection:
+    type: serial
+    settnings:         
+      port: COM7
+      baudrate: 115200
+      timeout: 1
   pins: 
     laser_1: 12
     laser_2: 5
@@ -65,9 +71,12 @@ synchroniser:
 
 objective_stage: 
   name: smaract
-  socket:
-    host: '169.254.111.111'
-    port: 139
-    timeout: 5.0
+  connection:
+    type: socket
+    settings:
+      host: '169.254.111.111'
+      port: 139
+      timeout: 5.0
+
 # TODO: make timeouts/timings in general universal
 # TODO: make socket and serial a single comm setting?

@@ -21,7 +21,7 @@ class BasleracA1920_155um(Detector):
         return "basler"
     
     def connect(self) -> None:
-        serial_settings = self.settings.serial_settings
+        serial_settings = self.settings.connection.settings
         logging.info("Connecting to Basler detector on port: %s", serial_settings.port)
         self.serial_connection = utils.connect_to_serial_port(
             serial_settings=serial_settings

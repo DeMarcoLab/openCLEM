@@ -26,7 +26,7 @@ class LdiLaserController(LaserController):
         self.lasers[laser.name] = laser
 
     def connect(self):
-        self.serial_connection = utils.connect_to_serial_port(serial_settings=self.settings.serial_settings)
+        self.serial_connection = utils.connect_to_serial_port(serial_settings=self.settings.connection.settings)
 
     def disconnect(self):
         if self.serial_connection is None: return
