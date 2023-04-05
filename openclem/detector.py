@@ -11,18 +11,30 @@ class Detector(ABC):
     def __init__(self, detector_settings: DetectorSettings):
         self.camera = None
         self.connection = None
-        self.set(detector_settings)
+        self.settings = detector_settings
 
-    def set(self, detector_settings: DetectorSettings):
+    @property
+    def settings(self) -> DetectorSettings:
+        return DetectorSettings(
+            name=self.name,
+            connection=self.connection,
+            pixel_size=self.pixel_size,
+            resolution=self.resolution,
+            exposure_mode=self.exposure_mode,
+            trigger_edge=self.trigger_edge,
+            trigger_source=self.trigger_source)
 
-        # TODO: _START_HERE - add code to update the detector settings
-        self.name = detector_settings.name
-        self.connection = detector_settings.connection
-        self.pixel_size = detector_settings.pixel_size
-        self.resolution = detector_settings.resolution
-        self.exposure_mode = detector_settings.exposure_mode
-        self.trigger_edge = detector_settings.trigger_edge
-        self.trigger_source = detector_settings.trigger_source
+
+    @settings.setter
+    def settings(self, value: DetectorSettings):
+
+        self.name = value.name
+        self.connection = value.connection
+        self.pixel_size = value.pixel_size
+        self.resolution = value.resolution
+        self.exposure_mode = value.exposure_mode
+        self.trigger_edge = value.trigger_edge
+        self.trigger_source = value.trigger_source
 
     @classmethod
     @abstractmethod

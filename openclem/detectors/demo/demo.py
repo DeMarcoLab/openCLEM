@@ -107,7 +107,7 @@ class DemoDetector(Detector):
                 
                 # acquire image
                 time.sleep(image_settings.exposure)
-                image = np.random.randint(0, 255, size=self.settings.resolution, dtype=np.uint8)
+                image = np.random.randint(0, 255, size=self.resolution, dtype=np.uint8)
                 
                 if image_queue:
                     image_queue.put(image)
