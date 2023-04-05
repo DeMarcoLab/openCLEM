@@ -153,7 +153,7 @@ def laser_settings(connection_settings_serial: ConnectionSettings) -> LaserSetti
 
 def test_laser_settings(laser_settings: LaserSettings):
 
-    assert laser_settings.name == "laser"
+    assert laser_settings.name == "demo"
     assert laser_settings.serial_id == 1
     assert laser_settings.wavelength == 408
     assert laser_settings.power == 0.5
@@ -163,7 +163,7 @@ def test_laser_settings(laser_settings: LaserSettings):
 
     # __to_dict__
     assert laser_settings.__to_dict__() == {
-        "name": "laser",
+        "name": "demo",
         "serial_id": 1,
         "wavelength": 408,
         "power": 0.5,
@@ -188,8 +188,8 @@ def laser_controller_settings(connection_settings_serial: ConnectionSettings) ->
 
 
 def test_laser_controller_settings(laser_controller_settings: LaserControllerSettings):
-    
-    assert laser_controller_settings.name == "laser_controller"
+
+    assert laser_controller_settings.name == "demo"
     assert laser_controller_settings.laser == "laser"
     assert laser_controller_settings.connection.type == ConnectionType.SERIAL
     assert laser_controller_settings.connection.settings.port == "COM1"
@@ -198,8 +198,8 @@ def test_laser_controller_settings(laser_controller_settings: LaserControllerSet
 
     # __to_dict__
     assert laser_controller_settings.__to_dict__() == {
-        "name": "laser_controller",
-        "laser": "demo",
+        "name": "demo",
+        "laser": "laser",
         "connection": {
             "type": "SERIAL",
             "settings": {
@@ -212,8 +212,6 @@ def test_laser_controller_settings(laser_controller_settings: LaserControllerSet
 
     # __from_dict__
     assert laser_controller_settings.__from_dict__(laser_controller_settings.__to_dict__()) == laser_controller_settings
-
-
 
 ######### DetectorSettings #########
 
@@ -408,7 +406,5 @@ def test_microscope_settings(microscope_settings: MicroscopeSettings):
 
     # __from_dict__
     assert microscope_settings.__from_dict__(microscope_settings.__to_dict__()) == microscope_settings
-
-
 
 ######### LightImage #########
