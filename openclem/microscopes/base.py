@@ -105,41 +105,9 @@ class BaseLightMicroscope(LightMicroscope):
         return
 
     def consume_image(self, viz: bool = False):
-                
-        if self.image_queue is None:
-            raise ValueError("No image queue found. Run acquire_image first.")
+        return
 
-        if self.stop_event is None:
-            raise ValueError("No stop event found. Run acquire_image first.")
-
-        # poll until keyboard interrupt
-        try:
-            counter = 0
-            while self.image_queue.qsize() > 0 and not self.stop_event.is_set():
-                image = self.image_queue.get()
-                
-                logging.info(f"Getting img {counter%4} in queue: {image.shape}, {np.mean(image)}"
-                )
-
-                # save image with PIL
-                # print(type(image))
-                # image = Image.fromarray(image)
-                # print(image)
-                # image.save(f"image_{i:03d}.png") 
-                # time.sleep(0.1)
-
-                if viz:
-                    yield (image, f"Channel {counter % 4:02d}")
-                counter += 1
-
-        except KeyboardInterrupt:
-            self.stop_event.set()
-            logging.info("Keyboard interrupt")
-        finally:
-            self.get_synchroniser().stop_sync()
-            logging.info("Thread stopped.")
-
-
+import traceback
 from queue import Queue
 import threading
 from openclem.microscope import LightMicroscope
@@ -187,7 +155,10 @@ def consume_image_queue(microscope:LightMicroscope, image_queue:Queue, stop_even
                     metadata=metadata,
                 )
                 image.metadata.time = utils.current_timestamp()
-            
+                
+                import os
+                fname = os.path.join(os.getcwd(), str(image.metadata.time))
+                image.save(fname)
                 logging.info(f"Image: {image.data.shape} {image.metadata.time}")
                 logging.info(f"-"*50)
 
@@ -200,7 +171,7 @@ def consume_image_queue(microscope:LightMicroscope, image_queue:Queue, stop_even
         logging.info("Keyboard interrupt")
     except Exception as e:
         stop_event.set()
-        logging.error(e)
+        logging.error(traceback.format_exc())
     finally:
         microscope.get_synchroniser().stop_sync()
         logging.info("Thread stopped.")

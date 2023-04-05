@@ -28,15 +28,6 @@ microscope._laser_controller.initialise() # TODO: move to init @DavidDierickx
 microscope.setup_acquisition()
 mode = ImageMode.LIVE
 
-# Set up sync
-# sync_message = SynchroniserMessage.__from_dict__({
-#     "exposures": [1000, 0, 1000, 1000],
-#     "pins": {"laser1": 1, "laser2": 2, "laser3": 3, "laser4": 4},
-#     "mode": mode.value,
-#     "n_slices": 4,
-#     "trigger_edge": "RISING",
-# })
-
 sync_message = SynchroniserMessage(
     exposures= [1000, 0, 1000, 1000],
     pins=  {"laser1": 1, "laser2": 2, "laser3": 3, "laser4": 4},

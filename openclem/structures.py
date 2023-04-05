@@ -86,6 +86,10 @@ class SerialSettings:
         )
 
     def __to_dict__(self) -> dict:
+        
+        if self is None:
+            return None
+
         return {
             "port": self.port,
             "baudrate": self.baudrate,
@@ -107,7 +111,7 @@ class LaserSettings:
 
         laser_settings = LaserSettings(
             name=settings["name"],
-            serial_id=settings["serial_id"],
+            serial_id=settings.get("serial_id", None),
             wavelength=settings["wavelength"],
             power=settings["power"],
             exposure_time=settings["exposure_time"],
@@ -138,7 +142,7 @@ class LaserControllerSettings:
 
         laser_controller_settings = LaserControllerSettings(
             name=settings["name"],
-            serial_settings=SerialSettings.__from_dict__(settings["serial"]),
+            serial_settings=SerialSettings.__from_dict__(settings.get("serial", None)),
             laser=settings["laser"],
         )
         return laser_controller_settings
@@ -168,7 +172,7 @@ class DetectorSettings:
 
         detector_settings = DetectorSettings(
             name=settings["name"],
-            serial_settings=SerialSettings.__from_dict__(settings["serial"]),
+            serial_settings=SerialSettings.__from_dict__(settings.get("serial", None)),
             pixel_size=settings["pixel_size"],
             resolution=settings["resolution"],
             trigger_source=TriggerSource[settings["trigger_source"]],
@@ -202,7 +206,7 @@ class SynchroniserSettings:
             trigger_settings = SynchroniserSettings(
                 name=settings["name"],
                 pins=settings["pins"],
-                serial_settings=SerialSettings.__from_dict__(settings["serial"]),
+                serial_settings=SerialSettings.__from_dict__(settings.get("serial", None)),
             )
             return trigger_settings
 
@@ -224,6 +228,15 @@ class SynchroniserMessage:
     n_slices: int = 0
     trigger_edge: TriggerEdge = TriggerEdge.RISING
 
+    def __to_dict__(self) -> dict:
+        return {
+            "exposures": self.exposures,
+            "pins": self.pins,
+            "mode": self.mode.name,
+            "n_slices": self.n_slices,
+            "trigger_edge": self.trigger_edge.name,
+        }
+
     @staticmethod
     def __from_dict__(settings: dict) -> "SynchroniserMessage":
         synchroniser_message = SynchroniserMessage(
@@ -235,15 +248,7 @@ class SynchroniserMessage:
         )
         return synchroniser_message
 
-    @staticmethod
-    def __to_dict__(self) -> dict:
-        return {
-            "exposures": self.exposures,
-            "pins": self.pins,
-            "mode": self.mode.name,
-            "n_slices": self.n_slices,
-            "trigger_edge": self.trigger_edge.name,
-        }
+
     
 # TODO: merge with SerialSettings into a CommsSettings class?
 @dataclass
@@ -255,6 +260,9 @@ class SocketSettings:
 
     @staticmethod
     def __from_dict__(settings: dict) -> "SocketSettings":
+        if settings is None:
+            return None
+
         socket_settings = SocketSettings(
             host=settings["host"],
             port=settings["port"],
@@ -351,7 +359,7 @@ class LightImageMetadata:
             time=self.time,
             lasers=[l.__to_dict__() for l in self.lasers],
             detector=self.detector.__to_dict__(),
-            objective=self.objective.__to_dict__(),
+            objective=self.objective, # TODO: this is only the position currently
             image=self.image.__to_dict__(),
             sync=self.sync.__to_dict__(),
         )
@@ -365,13 +373,19 @@ class LightImageMetadata:
             time=data["time"],
             lasers=[LaserSettings.__from_dict__(l) for l in data["lasers"]],
             detector=DetectorSettings.__from_dict__(data["detector"]),
-            objective=ObjectiveSettings.__from_dict__(data["objective"]),
+            objective=data["objective"], # TODO: this is only the position currently
             image=ImageSettings.__from_dict__(data["image"]),
             sync=SynchroniserMessage.__from_dict__(data["sync"]),
         )
     
     def __repr__(self) -> str:
         return f"LightImageMetadata(n_channels={self.n_channels}, channels={self.channels}, time={self.time}, lasers={self.lasers}, detector={self.detector}, objective={self.objective}, image={self.image}, sync={self.sync})"
+
+import tifffile as tff
+import json
+import os
+from pathlib import Path
+import traceback
 
 @dataclass
 class LightImage:
@@ -397,4 +411,34 @@ class LightImage:
             f"image: {self.data.shape}"
             f"metadata: {self.metadata}"])
 
-# TODO: save and load image
+    def save(self, path: str) -> None:
+        """Save image as tiff with metadata in tiff description"""
+
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        path = Path(path).with_suffix(".tif")
+
+        if self.metadata is not None:
+            metadata_dict = self.metadata.__to_dict__()
+        else:
+            metadata_dict = None
+        tff.imwrite(
+            path,
+            self.data,
+            metadata=metadata_dict,
+        )
+
+
+    @classmethod
+    def load(cls, path: str) -> "LightImage":
+
+        with tff.TiffFile(path) as tiff_image:
+            data = tiff_image.asarray()
+            try:
+                metadata = json.loads(
+                    tiff_image.pages[0].tags["ImageDescription"].value
+                )
+                metadata = LightImageMetadata.__from_dict__(metadata)
+            except Exception as e:
+                metadata = None
+                print(traceback.format_exc())
+        return cls(data=data, metadata=metadata)
