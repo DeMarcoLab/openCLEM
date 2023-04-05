@@ -71,6 +71,7 @@ synchroniser:
 
 objective_stage: 
   name: smaract
+  magnification: 20.0
   connection:
     type: socket
     settings:

@@ -408,3 +408,7 @@ def test_microscope_settings(microscope_settings: MicroscopeSettings):
 
     # __from_dict__
     assert microscope_settings.__from_dict__(microscope_settings.__to_dict__()) == microscope_settings
+
+
+
+######### LightImage #########
