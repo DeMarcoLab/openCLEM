@@ -11,24 +11,17 @@ from PyQt5 import QtWidgets
 
 from openclem import constants
 from openclem.microscope import LightMicroscope
-from openclem.structures import (
-    ImageFormat,
-    ImageMode,
-    ImageSettings,
-    SynchroniserMessage,
-    TriggerEdge,
-)
+from openclem.structures import (ImageFormat, ImageMode, ImageSettings,
+                                 SynchroniserMessage, TriggerEdge)
 from openclem.ui import CLEMHardwareWidget
 from openclem.ui.qt import CLEMImageWidget
 
-from copy import deepcopy
-
-FIBSEM = False
-
-if FIBSEM:
-    from fibsem import conversions, constants, utils
-    from fibsem.structures import Point, BeamType
-
+try:
+    from fibsem import constants, conversions, utils
+    from fibsem.structures import BeamType, Point
+    FIBSEM = True
+except:
+    FIBSEM = False
 
 class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
     def __init__(
@@ -132,34 +125,14 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         worker.start()
 
         # acquire image
-        self.image_queue, self.stop_event = self.lm.acquire_image( # TODO: move imgage queue and stop_event to microscope
+        self.image_queue, self.stop_event = self.lm.acquire_image( 
             image_settings=image_settings,
             sync_message=sync_message,
             stop_event=self.stop_event,
         )
 
-    # @thread_worker
-    # def update_live_image(self):
-    #     try:
-
-    #         counter = 0
-    #         while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
-                
-    #             image = self.image_queue.get()
-    #             # logging.info(
-    #             #     f"Getting image from queue: {image.shape}, {np.mean(image):.2f}"
-    #             # )
-
-    #             # TODO: construct actual image with metadata
-    #             yield (image, f"Channel {counter % 4:02d}")
-    #             counter +=1
-
-    #     except Exception as e:
-    #         logging.error(e)
-    #     return
-
     def update_live(self, result):
-        image, name = result
+        image = result
 
         colors = {
             0: "red",
@@ -170,7 +143,8 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         for i, channel in enumerate(image.metadata.channels):
             self.update_viewer(image.data[:, :, i], 
-                               name=f"Channel {channel:02d}", color=colors[channel])
+                               name=f"Channel {channel:02d}", 
+                               color=colors[channel])
 
     def update_live_finished(self):
         # self.pushButton_update_settings.setVisible(False)
@@ -182,7 +156,11 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             self.viewer.layers[name].data = arr
         else:
 
-            layer = self.viewer.add_image(arr, name=name, opacity=0.3, blending="translucent", colormap=color)
+            layer = self.viewer.add_image(arr, 
+                                          name=name, 
+                                          opacity=0.3, 
+                                          blending="translucent", 
+                                          colormap=color)
             
             # register mouse callbacks
             layer.mouse_double_click_callbacks.append(self._double_click)

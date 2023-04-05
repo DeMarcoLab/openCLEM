@@ -211,7 +211,7 @@ class BaseLightMicroscope(LightMicroscope):
                     logging.info(f"Image: {image.data.shape} {image.metadata.time}")
                     logging.info(f"-"*50)
 
-                    yield (image, f"Channel {channel:02d}")
+                    yield image
                 counter += 1
 
         except Exception as e:
@@ -220,4 +220,5 @@ class BaseLightMicroscope(LightMicroscope):
         finally:
             self.get_synchroniser().stop_sync()
             logging.info("Thread stopped.")
-            return
+        
+        return
