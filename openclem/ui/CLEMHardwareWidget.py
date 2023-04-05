@@ -73,7 +73,6 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         self.set_ui_from_laser_settings(self.microscope._laser_controller.lasers[current_laser].get())
 
 
-
     ### Detector
     def set_ui_from_detector_settings(self, det_settings: DetectorSettings):
 
@@ -126,11 +125,11 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         # update settings
         laser_controller.lasers[current_laser].set(laser_settings)
 
-        # self.microscope._laser_controller.lasers[current_laser].power = laser_settings.power
-        # self.microscope._laser_controller.lasers[current_laser].exposure_time = laser_settings.exposure_time
-
-        napari.utils.notifications.show_info(
-            f"Settings applied to {laser_controller.settings.name}: {current_laser}"
+        if laser_settings.power > 5.0:
+            napari.utils.notifications.show_warning(f"Laser power is set to {laser_settings.power}%. Please check the laser settings.")
+        else:
+            napari.utils.notifications.show_info(
+                f"Settings applied to Laser: {current_laser}"
             )
 
     def get_laser_settings_from_ui(self):
@@ -168,6 +167,7 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
 
         self.checkBox_laser_enabled.setChecked(laser_settings.enabled)
         self.label_laser_color.setText(str(laser_settings.colour))
+
 
     def set_ui_from_laser_controller_settings(self, lc_settings: LaserControllerSettings):
         self.lineEdit_lc_name.setText(lc_settings.name)
