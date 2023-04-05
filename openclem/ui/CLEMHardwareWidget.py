@@ -56,6 +56,7 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         # objective
         self.pushButton_get_position.clicked.connect(self.get_position)
         self.pushButton_save_position.clicked.connect(self.save_position)
+        self.pushButton_go_to_saved_position.clicked.connect(self.go_to_saved_position)
         self.pushButton_move_absolute.clicked.connect(self.move_absolute)
         self.pushButton_move_relative_down.clicked.connect(self.move_relative)
         self.pushButton_move_relative_up.clicked.connect(self.move_relative)
@@ -186,6 +187,12 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
        
         self.microscope._objective.save_position(self.microscope._objective.position)
         logging.info(f"Saved position: {self.microscope._objective.saved_position:.2e}")
+        self.update_ui()
+
+    def go_to_saved_position(self):
+            
+        logging.info(f"Go To Saved position: {self.microscope._objective.saved_position:.2e}")
+        self.microscope.get_objective().absolute_move(self.microscope._objective.saved_position)
         self.update_ui()
 
     def move_absolute(self):
