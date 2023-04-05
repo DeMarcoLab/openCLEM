@@ -50,10 +50,5 @@ image_queue, stop_event = microscope.acquire_image(
 
 time.sleep(1) # wait for camera to start?
 
-from openclem.microscopes.base import consume_image_queue
-
-consume_image_queue(microscope=microscope, 
-                    image_queue=image_queue, 
-                    stop_event=stop_event, 
-                    viz=False)
+microscope.consume_image_queue()
 

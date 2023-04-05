@@ -13,7 +13,7 @@ from openclem.objective import ObjectiveStage
 from openclem.structures import (DetectorSettings, ExposureMode, ImageSettings,
                                  LaserControllerSettings, LaserSettings,
                                  TriggerEdge, TriggerSource, ConnectionSettings, ConnectionType, SerialSettings, SocketSettings)
-from openclem.ui.qt import CLEMHardwareWidget, CLEMObjectiveWidget
+from openclem.ui.qt import CLEMHardwareWidget
 
 
 class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):

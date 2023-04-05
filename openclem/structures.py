@@ -326,11 +326,6 @@ class SynchroniserMessage:
         )
         return synchroniser_message
 
-
-    
-
-
-
 @dataclass
 class ObjectiveSettings:  
     name: str

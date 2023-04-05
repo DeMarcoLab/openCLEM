@@ -1,16 +1,19 @@
-from openclem.microscope import LightMicroscope
-
-from openclem.structures import ImageSettings, SynchroniserMessage
-from openclem.laser import LaserController
-from openclem.objective import ObjectiveStage
-from openclem.detector import Detector
-from openclem.synchronisation import Synchroniser
-
 import logging
-import time
 import threading
+import time
+import traceback
 from queue import Queue
+
 import numpy as np
+
+from openclem import utils
+from openclem.detector import Detector
+from openclem.laser import LaserController
+from openclem.microscope import LightMicroscope
+from openclem.objective import ObjectiveStage
+from openclem.structures import (ImageSettings, LightImage, LightImageMetadata,
+                                 SynchroniserMessage)
+from openclem.synchronisation import Synchroniser
 
 
 class BaseLightMicroscope(LightMicroscope):
@@ -104,74 +107,117 @@ class BaseLightMicroscope(LightMicroscope):
     def live_image(self, image_settings: ImageSettings):
         return
 
-    def consume_image(self, viz: bool = False):
-        return
+    def _update_image_metadata(self) -> LightImageMetadata:
+        # update image metadata
 
-import traceback
-from queue import Queue
-import threading
-from openclem.microscope import LightMicroscope
+        # get index of non-zero exposures
+        exposure_indices = [i for i, v in enumerate(self.sync_message.exposures) if v > 0]
+        n_channels = len(exposure_indices)
 
-from openclem import utils
-from openclem.structures import LightImage, LightImageMetadata
+        logging.info(f"Exposure indices: {exposure_indices}")
+        logging.info(f"Number of exposures: {n_channels}")
 
-def consume_image_queue(microscope:LightMicroscope, image_queue:Queue, stop_event: threading.Event,  viz=False):
+        metadata = LightImageMetadata(
+            n_channels=n_channels,
+            channels=exposure_indices,
+            lasers=self.get_lasers(),
+            time=utils.current_timestamp(),
+            detector=self.get_detector().settings,
+            objective=self.get_objective().position,
+            image= self.image_settings,
+            sync=self.sync_message,
+        )
+        return metadata
+    
+    # TODO: consolidate these two functions when you are smarter
 
-    # get index of non-zero exposures
-    exposure_indices = [i for i, v in enumerate(microscope.sync_message.exposures) if v > 0]
-    n_exposures = len(exposure_indices)
+    def consume_image_queue(self):
 
-    logging.info(f"Exposure indices: {exposure_indices}")
-    logging.info(f"Number of exposures: {n_exposures}")
+        # update metadata
+        metadata = self._update_image_metadata()
 
-    metadata = LightImageMetadata(
-        n_channels=n_exposures,
-        channels=exposure_indices,
-        lasers=microscope.get_lasers(),
-        time=utils.current_timestamp(),
-        detector=microscope.get_detector().settings,
-        objective=microscope.get_objective().position,
-        image= microscope.image_settings,
-        sync=microscope.sync_message,
-    )
-
-    try:
-        counter = 0
-        while image_queue.qsize() > 0 or not stop_event.is_set():
-            
-            channel = counter % n_exposures # TODO: probably should pass this info out of the queue? but how
-
-            image = image_queue.get()
-            if channel == 0:
-                arr = image
-                # expand dims to add channel axis
-                arr = np.expand_dims(arr, axis=-1)
-            else:
-                arr = np.dstack((arr, image))
-
-            if channel == n_exposures - 1:
-                image = LightImage(
-                    data=arr,
-                    metadata=metadata,
-                )
-                image.metadata.time = utils.current_timestamp()
+        # consume queue
+        try:
+            counter = 0
+            while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
                 
-                import os
-                fname = os.path.join(os.getcwd(), str(image.metadata.time))
-                image.save(fname)
-                logging.info(f"Image: {image.data.shape} {image.metadata.time}")
-                logging.info(f"-"*50)
+                # get image
+                image = self.image_queue.get()
+                
+                channel = counter % metadata.n_channels 
+                if channel == 0:
+                    # expand dims to add channel axis
+                    arr = np.expand_dims(image, axis=-1)
+                else:
+                    arr = np.dstack((arr, image))
 
-            if viz:
-                print(image, f"Channel {channel:02d}")
-            counter += 1
+                if channel == metadata.n_channels - 1:
+                    image = LightImage(
+                        data=arr,
+                        metadata=metadata,
+                    )
+                    image.metadata.time = utils.current_timestamp()
+                    
+                    import os
+                    fname = os.path.join(os.getcwd(), str(image.metadata.time))
+                    image.save(fname)
+                    logging.info(f"Image: {image.data.shape} {image.metadata.time}")
+                    logging.info(f"-"*50)
 
-    except KeyboardInterrupt:
-        stop_event.set()
-        logging.info("Keyboard interrupt")
-    except Exception as e:
-        stop_event.set()
-        logging.error(traceback.format_exc())
-    finally:
-        microscope.get_synchroniser().stop_sync()
-        logging.info("Thread stopped.")
+                counter += 1
+
+        except KeyboardInterrupt:
+            self.stop_event.set()
+            logging.info("Keyboard interrupt")
+        except Exception as e:
+            self.stop_event.set()
+            logging.error(traceback.format_exc())
+        finally:
+            self.get_synchroniser().stop_sync()
+            logging.info("Thread stopped.")
+    
+    from napari.qt.threading import thread_worker
+    @thread_worker
+    def consume_image_queue_ui(self):
+
+        # update metadata
+        metadata = self._update_image_metadata()
+
+        # consume queue
+        try:
+            counter = 0
+            while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
+                
+                # get image
+                image = self.image_queue.get()
+
+                channel = counter % metadata.n_channels 
+                if channel == 0:
+                    # expand dims to add channel axis
+                    arr = np.expand_dims(image, axis=-1)
+                else:
+                    arr = np.dstack((arr, image))
+
+                if channel == metadata.n_channels - 1:
+                    image = LightImage(
+                        data=arr,
+                        metadata=metadata,
+                    )
+                    image.metadata.time = utils.current_timestamp()
+                    
+                    import os
+                    fname = os.path.join(os.getcwd(), str(image.metadata.time))
+                    image.save(fname)
+                    logging.info(f"Image: {image.data.shape} {image.metadata.time}")
+                    logging.info(f"-"*50)
+
+                    yield (image, f"Channel {channel:02d}")
+                counter += 1
+
+        except Exception as e:
+            self.stop_event.set()
+            logging.error(traceback.format_exc())
+        finally:
+            self.get_synchroniser().stop_sync()
+            logging.info("Thread stopped.")
+            return

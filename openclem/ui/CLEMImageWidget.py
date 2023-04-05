@@ -44,7 +44,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         # grid mode on
         # self.viewer.grid.enabled = True
 
-        self.hardware_widget = hardware_widget
+        self.hardware_widget: CLEMHardwareWidget = hardware_widget
         self.stop_event = threading.Event()
         self.stop_event.set()
 
@@ -110,8 +110,8 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         # check if acquisition is already running
         if not self.stop_event.is_set():
             self.stop_event.set()
-            microscope: LightMicroscope = self.hardware_widget.microscope
-            microscope.get_synchroniser().stop_sync()
+            # microscope: LightMicroscope = self.hardware_widget.microscope
+            self.lm.get_synchroniser().stop_sync()
             logging.info("Stopping Image Acquistion")
             # self.pushButton_update_settings.setVisible(False)
             return
@@ -122,65 +122,65 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             self.pushButton_acquire_image.setStyleSheet("background-color: orange")
 
         image_settings, sync_message = self.get_settings_from_ui()
-        microscope: LightMicroscope = self.hardware_widget.microscope
-        microscope.setup_acquisition()
+        self.lm: LightMicroscope = self.hardware_widget.microscope
+        self.lm.setup_acquisition()
 
         # TODO: disable other microscope interactions
-        worker = self.update_live_image()
+        worker = self.lm.consume_image_queue_ui()
         worker.returned.connect(self.update_live_finished)  # type: ignore
         worker.yielded.connect(self.update_live)  # type: ignore
         worker.start()
 
         # acquire image
-        self.image_queue, self.stop_event = microscope.acquire_image( # TODO: move imgage queue and stop_event to microscope
+        self.image_queue, self.stop_event = self.lm.acquire_image( # TODO: move imgage queue and stop_event to microscope
             image_settings=image_settings,
             sync_message=sync_message,
             stop_event=self.stop_event,
         )
 
-    @thread_worker
-    def update_live_image(self):
-        try:
+    # @thread_worker
+    # def update_live_image(self):
+    #     try:
 
-            counter = 0
-            while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
+    #         counter = 0
+    #         while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
                 
-                image = self.image_queue.get()
-                # logging.info(
-                #     f"Getting image from queue: {image.shape}, {np.mean(image):.2f}"
-                # )
+    #             image = self.image_queue.get()
+    #             # logging.info(
+    #             #     f"Getting image from queue: {image.shape}, {np.mean(image):.2f}"
+    #             # )
 
-                # TODO: construct actual image with metadata
-                yield (image, f"Channel {counter % 4:02d}")
-                counter +=1
+    #             # TODO: construct actual image with metadata
+    #             yield (image, f"Channel {counter % 4:02d}")
+    #             counter +=1
 
-        except Exception as e:
-            logging.error(e)
-        return
+    #     except Exception as e:
+    #         logging.error(e)
+    #     return
 
     def update_live(self, result):
         image, name = result
-        self.update_viewer(image, name)
+
+        colors = {
+            0: "red",
+            1: "green",
+            2: "cyan",
+            3: "magenta",
+        }
+
+        for i, channel in enumerate(image.metadata.channels):
+            self.update_viewer(image.data[:, :, i], 
+                               name=f"Channel {channel:02d}", color=colors[channel])
 
     def update_live_finished(self):
         # self.pushButton_update_settings.setVisible(False)
         self.pushButton_acquire_image.setText("Acquire Image")
         self.pushButton_acquire_image.setStyleSheet("background-color: green")
 
-    def update_viewer(self, arr: np.ndarray, name: str):
+    def update_viewer(self, arr: np.ndarray, name: str, color: str):
         if name in self.viewer.layers:
             self.viewer.layers[name].data = arr
         else:
-
-            # TODO: missing red
-            if name == "Channel 00":
-                color = "red"
-            if name == "Channel 01":
-                color = "green"
-            if name == "Channel 02":
-                color = "cyan"
-            if name == "Channel 03":
-                color = "magenta"
 
             layer = self.viewer.add_image(arr, name=name, opacity=0.3, blending="translucent", colormap=color)
             
