@@ -7,6 +7,7 @@ class Laser(ABC):
 
         self.settings = laser_settings
         self._parent = parent
+        self._enabled = False
         self.set(laser_settings)
     
     def set(self, settings: LaserSettings) -> None:

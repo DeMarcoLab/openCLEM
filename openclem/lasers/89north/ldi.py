@@ -130,7 +130,7 @@ class LdiLaser(Laser):
 
     @property
     def wavelength(self):
-        return f'{self._wavelength}nm'
+        return self._wavelength
 
     @wavelength.setter
     def wavelength(self, value: float):

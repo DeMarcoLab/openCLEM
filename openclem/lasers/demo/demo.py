@@ -38,7 +38,7 @@ class DemoLaser(Laser):
 
     @property
     def wavelength(self):
-        return f'{self._wavelength}nm'
+        return self._wavelength
 
     @wavelength.setter
     def wavelength(self, value: float):
@@ -52,6 +52,7 @@ class DemoLaser(Laser):
     def exposure_time(self, value: float) -> None:
         self._exposure_time = value
 
+    @property
     def enabled(self) -> bool:
         return self._enabled
 

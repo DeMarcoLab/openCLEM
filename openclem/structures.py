@@ -81,7 +81,6 @@ class SerialSettings:
 
     @staticmethod
     def __from_dict__(settings: dict) -> "SerialSettings":
-        # TODO: check if this is ok
         if settings is None:
             return None
         return SerialSettings(
@@ -208,8 +207,8 @@ class LaserControllerSettings:
     """Laser controller settings"""
 
     name: str
-    connection: ConnectionSettings
     laser: str
+    connection: ConnectionSettings
 
     @staticmethod
     def __from_dict__(settings: dict) -> "LaserControllerSettings":

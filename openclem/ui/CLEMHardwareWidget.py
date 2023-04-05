@@ -12,7 +12,7 @@ from openclem.microscope import LightMicroscope
 from openclem.objective import ObjectiveStage
 from openclem.structures import (DetectorSettings, ExposureMode, ImageSettings,
                                  LaserControllerSettings, LaserSettings,
-                                 TriggerEdge, TriggerSource)
+                                 TriggerEdge, TriggerSource, ConnectionSettings, ConnectionType, SerialSettings, SocketSettings)
 from openclem.ui.qt import CLEMHardwareWidget, CLEMObjectiveWidget
 
 
@@ -70,7 +70,7 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
 
         self.set_ui_from_laser_controller_settings(self.microscope._laser_controller.settings)
         current_laser = self.comboBox_selected_laser.currentText()
-        self.set_ui_from_laser_settings(self.microscope._laser_controller.lasers[current_laser].settings)
+        self.set_ui_from_laser_settings(self.microscope._laser_controller.lasers[current_laser].get())
 
 
 
@@ -89,7 +89,7 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
 
         detector_settings = DetectorSettings(
             name = self.lineEdit_detector_name.text(),
-            connection=None,
+            connection=self.microscope.get_detector().settings.connection,
             pixel_size= self.doubleSpinBox_pixelsize.value() * constants.MICRO_TO_SI,
             resolution=[int(self.spinBox_resolution_y.value()), int(self.spinBox_resolution_x.value())],
             exposure_mode=ExposureMode[self.comboBox_exposure_mode.currentText()],
@@ -113,7 +113,6 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
     ### Laser Controller
     def apply_laser_settings(self):
 
-        # TODO: actually set these settings        
         laser_settings = self.get_laser_settings_from_ui()
         logging.info(f"Laser: {laser_settings}")
 
@@ -122,11 +121,16 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         
         # get current laser
         current_laser = self.comboBox_selected_laser.currentText()
-        self.microscope._laser_controller.lasers[current_laser].power = laser_settings.power
-        self.microscope._laser_controller.lasers[current_laser].exposure_time = laser_settings.exposure_time
+        laser_controller = self.microscope.get_laser_controller()
+
+        # update settings
+        laser_controller.lasers[current_laser].set(laser_settings)
+
+        # self.microscope._laser_controller.lasers[current_laser].power = laser_settings.power
+        # self.microscope._laser_controller.lasers[current_laser].exposure_time = laser_settings.exposure_time
 
         napari.utils.notifications.show_info(
-            f"Settings applied to {self.microscope._laser_controller.settings.name}"
+            f"Settings applied to {laser_controller.settings.name}: {current_laser}"
             )
 
     def get_laser_settings_from_ui(self):
@@ -148,10 +152,9 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
 
         lc_settings = LaserControllerSettings(
             name=self.lineEdit_lc_name.text(),
-            connection=None,
+            connection=self.microscope.get_laser_controller().settings.connection,
             laser=self.lineEdit_lc_type.text(),
         )
-        logging.info(f"Laser Controller settings: {lc_settings}")
         return lc_settings
         
     
