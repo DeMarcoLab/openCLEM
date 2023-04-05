@@ -10,18 +10,7 @@ import threading
 class DemoDetector(Detector):
 
     def __init__(self, detector_settings: DetectorSettings):
-        self.settings = detector_settings
-        self.camera = None
-        self.serial_connection = None
-        self.name = detector_settings.name
-
-        # ? why not just use the settings?
-        self._trigger_source = None
-        self._trigger_edge = None
-        self._exposure_mode = None
-        self._exposure_time = None
-        self._pixel_size = None
-
+        super().__init__(detector_settings)
 
     @classmethod
     def __id__(self):
@@ -61,7 +50,7 @@ class DemoDetector(Detector):
         self._exposure_mode = value
 
     @property
-    def trigger_edge(self):
+    def trigger_edge(self) -> TriggerEdge:
         """Rising or Falling"""
         return self._trigger_edge
     
@@ -70,7 +59,7 @@ class DemoDetector(Detector):
         self._trigger_edge = value
 
     @property
-    def trigger_source(self):
+    def trigger_source(self) -> TriggerSource:
         """Internal, External, Software"""
         return self._trigger_source
     
@@ -79,7 +68,7 @@ class DemoDetector(Detector):
         self._trigger_source = value
 
     @property
-    def exposure_time(self):
+    def exposure_time(self) -> float:
         return self._exposure_time
     
     @exposure_time.setter
@@ -87,12 +76,20 @@ class DemoDetector(Detector):
         self._exposure_time = value
 
     @property
-    def pixel_size(self):
+    def pixel_size(self) -> float:
         return self._pixel_size
     
     @pixel_size.setter
     def pixel_size(self, value: float):
         self._pixel_size = value
+
+    @property
+    def resolution(self) -> tuple[int]:
+        return self._resolution
+
+    @resolution.setter
+    def resolution(self, value: tuple[int]) -> None:
+        self._resolution = value
     
     def grab_image(self, image_settings: ImageSettings, image_queue: Queue, stop_event: threading.Event) -> np.ndarray:
         if self.camera is None or image_settings is None: return

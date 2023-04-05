@@ -18,13 +18,9 @@ image_conversion_dict = {
 
 class HamamatsuOrcaFlash4(Detector):
     def __init__(self, detector_settings: DetectorSettings):
-        self.settings = detector_settings
-        self.name = "Hamamatsu Detector"
-        self.serial_connection = None
-        self.port = None
+        super().__init__(detector_settings)
+
         self.camera = None
-        self._pixel_size = 6.5e-6
-        self._connected = False
 
     def __repr__(self):
         return f"HamamatsuOrcaFlash4({self.settings})"

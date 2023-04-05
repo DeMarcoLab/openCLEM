@@ -66,12 +66,12 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         self.doubleSpinBox_saved_position.setEnabled(False)
 
     def update_ui(self):
-        self.set_ui_from_detector_settings(self.microscope._detector.settings)
-        self.set_ui_from_objective(self.microscope._objective)
+        self.set_ui_from_detector_settings(self.microscope.get_detector().settings)
+        self.set_ui_from_objective(self.microscope.get_objective())
 
-        self.set_ui_from_laser_controller_settings(self.microscope._laser_controller.settings)
+        self.set_ui_from_laser_controller_settings(self.microscope.get_laser_controller().settings)
         current_laser = self.comboBox_selected_laser.currentText()
-        self.set_ui_from_laser_settings(self.microscope._laser_controller.lasers[current_laser].get())
+        self.set_ui_from_laser_settings(self.microscope.get_laser_controller().lasers[current_laser].get())
 
 
     ### Detector
@@ -102,12 +102,12 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
     def apply_detector_settings(self):
 
         logging.info(f"Applying detector settings")
-        self.microscope._detector.settings = self.get_detector_settings_from_ui()
+        detector_settings = self.get_detector_settings_from_ui()
 
         # TODO: actually apply these settings to the detector
 
         napari.utils.notifications.show_info(
-            f"Applied detector settings: {self.microscope._detector.settings}"
+            f"Applied detector settings: {detector_settings}"
         )
 
     ### Laser Controller
@@ -177,22 +177,22 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
     ### Objective
     def get_position(self):
 
-        logging.info(f"Position: {self.microscope._objective.position:.2e}")
+        logging.info(f"Position: {self.microscope.get_objective().position:.2e}")
 
         self.update_ui()
 
-        return self.microscope._objective.position
+        return self.microscope.get_objective().position
 
     def save_position(self):
        
-        self.microscope._objective.save_position(self.microscope._objective.position)
-        logging.info(f"Saved position: {self.microscope._objective.saved_position:.2e}")
+        self.microscope.get_objective().save_position(self.microscope.get_objective().position)
+        logging.info(f"Saved position: {self.microscope.get_objective().saved_position:.2e}")
         self.update_ui()
 
     def go_to_saved_position(self):
             
-        logging.info(f"Go To Saved position: {self.microscope._objective.saved_position:.2e}")
-        self.microscope.get_objective().absolute_move(self.microscope._objective.saved_position)
+        logging.info(f"Go To Saved position: {self.microscope.get_objective().saved_position:.2e}")
+        self.microscope.get_objective().absolute_move(self.microscope.get_objective().saved_position)
         self.update_ui()
 
     def move_absolute(self):
@@ -202,7 +202,7 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         )
         logging.info(f"Absolute position: {abs_position:.2e}")
 
-        self.microscope._objective.absolute_move(abs_position)
+        self.microscope.get_objective().absolute_move(abs_position)
         self.update_ui()
 
     def move_relative(self):
@@ -219,7 +219,7 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
 
         logging.info(f"Relative position: {relative_position:.2e}, ({direction})")
 
-        self.microscope._objective.relative_move(relative_position)
+        self.microscope.get_objective().relative_move(relative_position)
 
         self.update_ui()
 
