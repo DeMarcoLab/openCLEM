@@ -56,7 +56,6 @@ class SocketSettings:
         )
         return socket_settings
     
-    @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "host": self.host,
@@ -64,10 +63,7 @@ class SocketSettings:
             "timeout": self.timeout,
         }
     
-class ConnectionType(Enum):
-    SERIAL = "serial"
-    SOCKET = "socket"
-    SOFTWARE = "software"
+
 
 
 
@@ -100,6 +96,10 @@ class SerialSettings:
             "timeout": self.timeout,
         }
 
+class ConnectionType(Enum):
+    SERIAL = "serial"
+    SOCKET = "socket"
+    SOFTWARE = "software"
 
 @dataclass
 class ConnectionSettings:
@@ -188,7 +188,7 @@ class LaserSettings:
             wavelength=settings["wavelength"],
             power=settings["power"],
             exposure_time=settings["exposure_time"],
-            enabled=False,
+            enabled=settings["enabled"],
             colour=settings["colour"],
         )
         return laser_settings
@@ -196,11 +196,12 @@ class LaserSettings:
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
-            "ID": self.serial_id,
+            "serial_id": self.serial_id,
             "wavelength": self.wavelength,
             "power": self.power,
             "exposure_time": self.exposure_time,
             "colour": self.colour,
+            "enabled": self.enabled,
         }
 @dataclass
 class LaserControllerSettings:
@@ -283,7 +284,6 @@ class SynchroniserSettings:
                 )
             return trigger_settings
 
-    @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
@@ -327,22 +327,24 @@ class SynchroniserMessage:
 
 
 @dataclass
-class ObjectiveSettings:
+class ObjectiveSettings:  
     name: str
     connection: ConnectionSettings
+    magnification: float = 1.0
 
     @staticmethod
     def __from_dict__(settings: dict) -> "ObjectiveSettings":
         objective_settings = ObjectiveSettings(
             name=settings["name"],
+            magnification=settings["magnification"],
             connection=ConnectionSettings.__from_dict__(settings["connection"]),
         )
         return objective_settings
     
-    @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
+            "magnification": self.magnification,
             "connection": ConnectionSettings.__to_dict__(self.connection),
         }
     
