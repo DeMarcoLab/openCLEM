@@ -114,7 +114,7 @@ class HamamatsuOrcaFlash4(Detector):
                 
                 
                 if self.camera.wait_capevent_frameready(timeout_millisec=self.settings.timeout) is not False:
-                    image = np.array(self.camera.buf_getlastframedata()).T
+                    image = np.flipud(np.fliplr(np.array(self.camera.buf_getlastframedata()).T))
                     
                     if image_queue:
                         image_queue.put(image)
