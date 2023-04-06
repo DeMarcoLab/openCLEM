@@ -1,6 +1,10 @@
 from openclem.structures import SerialSettings
 from openclem import utils
 
+# For piedisc, the positions are:
+# Disk: 1
+# Emission filter: 2
+# Dichroic: 1
 
 class XLightV2:
     def __init__(self):
@@ -64,7 +68,8 @@ class XLightV2:
         """
         if position not in range(1, 9):
             raise ValueError('position must be 1-8')
-        command = 'E{}\r'.format(position)
+        command = 'B{}\r'.format(position)
+        print(f"Command: {command}")
         utils.write_serial_command(self.serial_connection, command)
 
     def dichroic(self, position):
