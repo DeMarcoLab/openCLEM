@@ -71,8 +71,10 @@ class BaseLightMicroscope(LightMicroscope):
         # laser settings, detector settings
         #
         # Set up lasers
-        for laser in self._laser_controller.lasers:
-            self._laser_controller.set_power(laser, 4.0)
+
+        # for laser in self._laser_controller.lasers:
+            # self._laser_controller.set_power(laser, 4.0)
+            # self._laser_controller.set_power(laser, laser_settings.power)
         # TODO: add in laser_settings for hardware triggering
 
         for laser in self._laser_controller.lasers:

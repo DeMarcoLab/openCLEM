@@ -76,6 +76,9 @@ class DemoLaserController(LaserController):
         self.serial_connection = None
         self.lasers = {}
 
+    def initialise(self):
+        pass
+
     @classmethod
     def __id__(self):
         return "demo"

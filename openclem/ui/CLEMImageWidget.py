@@ -199,7 +199,12 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
 
         # image = self.image
-        pixelsize = 6.5e-6 / 20 / 2.94 # PATENTED_TECHNOLOGY
+        nominal_pixelsize = 6.5e-6 / 20 #/ 2.94 # PATENTED_TECHNOLOGY
+        pixelsize = 125e-6 / 350 # MEASURED
+
+        # 6.5um/20px = 0.325 um/px
+        #125um/350px = 0.35714285714285715 um/px
+        # 1/0.35714285714285715 = 2.8 px/um
 
         point = conversions.image_to_microscope_image_coordinates(
             Point(x=coords[1], y=coords[0]), image, pixelsize,
@@ -213,8 +218,8 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         logging.info(f"Microscope Stage Position: {self.microscope.get_stage_position()}")
         self.microscope.stable_move(
                 settings=self.settings,
-                dx=-point.x,
-                dy=-point.y,
+                dx=point.x,
+                dy=point.y,
                 beam_type=BeamType.ION,
             )
         logging.info(f"Microscope Stage Position: {self.microscope.get_stage_position()}")

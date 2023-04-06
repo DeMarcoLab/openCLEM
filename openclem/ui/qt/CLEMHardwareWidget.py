@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'CLEMHardwareWidget.ui'
+# Form implementation generated from reading ui file '.\CLEMHardwareWidget.ui'
 #
+# Created by: PyQt5 UI code generator 5.15.9
 # Created by: PyQt5 UI code generator 5.15.9
 #
 # WARNING: Any manual changes made to this file will be lost when pyuic5 is
