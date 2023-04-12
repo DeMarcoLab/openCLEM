@@ -23,6 +23,7 @@ from openclem.ui.qt import CLEMImageWidget
 
 from copy import deepcopy
 
+FIBSEM = False
 
 
 class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
@@ -44,8 +45,6 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.stop_event.set()
 
         self.setup_connections()
-
-        FIBSEM = True
 
         if FIBSEM:
             from fibsem import utils
@@ -96,10 +95,10 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
     def update_imaging_settings(self):
         print("UPDATE SETTINGS")
-        
+
         image_settings, sync_message = self.get_settings_from_ui()
         microscope: LightMicroscope = self.hardware_widget.microscope
-        
+
         microscope.get_synchroniser().stop_sync()
         microscope.get_synchroniser().sync_image(sync_message)
 
@@ -142,7 +141,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
             counter = 0
             while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
-                
+
                 image = self.image_queue.get()
                 # logging.info(
                 #     f"Getting image from queue: {image.shape}, {np.mean(image):.2f}"
@@ -181,7 +180,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
                 color = "magenta"
 
             layer = self.viewer.add_image(arr, name=name, opacity=0.3, blending="translucent", colormap=color)
-            
+
             # register mouse callbacks
             layer.mouse_double_click_callbacks.append(self._double_click)
             self.image = arr
@@ -199,7 +198,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
 
     def _double_click(self, layer, event):
-        
+
         # get coords
         coords = layer.world_to_data(event.position)
 
@@ -212,6 +211,8 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             )
             return
 
+        if FIBSEM is False:
+            return
         from fibsem import conversions, constants
         from fibsem.structures import Point, BeamType
 
