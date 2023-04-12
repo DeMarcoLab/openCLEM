@@ -27,7 +27,7 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         self.image_widget, self.hardware_widget = None, None
         self._hardware_connected = False
 
-        self.lineEdit_config_filename.setText(os.path.join(cfg.BASE_PATH, "config", "piedisc.yaml"))
+        self.lineEdit_config_filename.setText(os.path.join(cfg.BASE_PATH, "config", "system.yaml"))
 
         self.setup_connections()
 
@@ -47,12 +47,12 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         else:
             try:
                 self.microscope, self.settings = utils.setup_session(config_path=config_filename)
-                
+
                 logging.info("Connected to hardware")
                 napari.utils.notifications.show_info("Connected to hardware")
             except Exception as e:
                 self.microscope, self.settings = None, None
-                
+
                 logging.error(f"Error connecting to hardware: {e}")
                 napari.utils.notifications.show_error(
                     f"Error connecting to hardware: {e}"
@@ -64,7 +64,7 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         self._hardware_connected = self.microscope is not None
 
         if self._hardware_connected:
-            
+
             self.hardware_widget = CLEMHardwareWidget(
                 microscope=self.microscope,
                 viewer=self.viewer,
@@ -73,16 +73,16 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
                 viewer=self.viewer,
                 hardware_widget=self.hardware_widget,
             )
-            
+
             self.tabWidget.addTab(self.image_widget, "Imaging")
             self.tabWidget.addTab(self.hardware_widget, "Hardware")
             self.pushButton_connect_hardware.setText("Connected")
             self.pushButton_connect_hardware.setStyleSheet("background-color: green")
 
             self.label_hardware_status.setText(
-                "" + 
-                f"Detector: {self.microscope._detector.name}" + 
-                f"\nLaser Controller: {self.microscope._laser_controller.name}"+ 
+                "" +
+                f"Detector: {self.microscope._detector.name}" +
+                f"\nLaser Controller: {self.microscope._laser_controller.name}"+
                 f"\nLasers: {[laser for laser in self.microscope._laser_controller.lasers]}" +
                 f"\nObjective: {self.microscope._objective.name}" +
                 f"\nSynchroniser: {self.microscope._synchroniser.name}"

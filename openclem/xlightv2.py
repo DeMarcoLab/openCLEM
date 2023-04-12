@@ -8,7 +8,7 @@ from openclem import utils
 
 class XLightV2:
     def __init__(self):
-        self.serial_connection = None
+        self.connection = None
 
     def connect(self):
         serial_settings_dict = {
@@ -17,10 +17,10 @@ class XLightV2:
             'timeout': 1,
         }
         serial_settings = SerialSettings.__from_dict__(serial_settings_dict)
-        self.serial_connection = utils.connect_to_serial_port(serial_settings)
+        self.connection = utils.connect_to_serial_port(serial_settings)
 
     def disconnect(self):
-        self.serial_connection.close()
+        self.connection.close()
 
     def disk_position(self, position: int):
         """moves the spinning disk to the given position
@@ -29,17 +29,17 @@ class XLightV2:
             position (int): position of the disk
             options:
                 0: disk out
-                1: disk in to 70um 
+                1: disk in to 70um
                 2: disk in to 40um
         """
         if position not in [0, 1, 2]:
             raise ValueError('position must be 0, 1 or 2')
         command = 'D{}\r'.format(position)
-        utils.write_serial_command(self.serial_connection, command)
+        utils.write_serial_command(self.connection, command)
 
     def disk_onoff(self, onoff: int):
         """turns the disk on or off
-        
+
         Args:
             onoff (int): 0 or 1
             options:
@@ -49,15 +49,15 @@ class XLightV2:
         if onoff not in [0, 1]:
             raise ValueError('onoff must be 0 or 1')
         command = 'N{}\r'.format(onoff)
-        utils.write_serial_command(self.serial_connection, command)
+        utils.write_serial_command(self.connection, command)
 
     def get_status(self):
         """gets the status of the xlight"""
 
         command = 'q\r'
-        response = utils.write_serial_command(self.serial_connection, command)
+        response = utils.write_serial_command(self.connection, command)
         return response
-    
+
     def emission_filter(self, position):
         """moves the emission filter to the given position
 
@@ -70,11 +70,11 @@ class XLightV2:
             raise ValueError('position must be 1-8')
         command = 'B{}\r'.format(position)
         print(f"Command: {command}")
-        utils.write_serial_command(self.serial_connection, command)
+        utils.write_serial_command(self.connection, command)
 
     def dichroic(self, position):
         """moves the dichroic to the given position
-        
+
         Args:
             position (int): position of the dichroic
             options:
@@ -83,9 +83,9 @@ class XLightV2:
         if position not in range(1, 6):
             raise ValueError('position must be 1-5')
         command = 'C{}\r'.format(position)
-        utils.write_serial_command(self.serial_connection, command)
+        utils.write_serial_command(self.connection, command)
 
     def home(self):
         """homes the xlight"""
         command = 'H\r'
-        utils.write_serial_command(self.serial_connection, command)
+        utils.write_serial_command(self.connection, command)

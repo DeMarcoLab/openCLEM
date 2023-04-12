@@ -15,12 +15,14 @@ class TriggerEdge(Enum):
     RISING = 1
     FALLING = 2
 
+
 class TriggerSource(Enum):
     """Trigger source"""
 
     SOFTWARE = 1
     EXTERNAL = 2
     INTERNAL = 3
+
 
 class ExposureMode(Enum):
     """Exposure mode"""
@@ -36,6 +38,7 @@ class ImageFormat(Enum):
     PNG = 2
     JPG = 3
 
+
 class ImageMode(Enum):
     """Image mode"""
 
@@ -43,33 +46,32 @@ class ImageMode(Enum):
     LIVE = "live"
 
 
+# TODO: merge with SerialSettings into a CommsSettings class?
 @dataclass
-class ImageSettings:
-    """Image settings"""
+class SocketSettings:
+    """Settings class for socket connections"""
 
-    pixel_size: float = 0.0
-    exposure: float = 0.0
-    image_format: str = "tiff"
-    n_images: int = 1
-    mode: ImageMode = ImageMode.SINGLE
+    host: str
+    port: int
+    timeout: int = 5.0  # TODO: universal timing
 
     @staticmethod
-    def __from_dict__(settings: dict) -> "ImageSettings":
-        return ImageSettings(
-            pixel_size=settings["pixel_size"],
-            exposure=settings["exposure"],
-            image_format=settings["image_format"],
-            n_images=settings["n_images"],
-            mode=ImageMode[settings.get("mode", "SINGLE")],
+    def __from_dict__(settings: dict) -> "SocketSettings":
+        if settings is None:
+            return None
+
+        socket_settings = SocketSettings(
+            host=settings["host"],
+            port=settings["port"],
+            timeout=settings["timeout"],
         )
+        return socket_settings
 
     def __to_dict__(self) -> dict:
         return {
-            "pixel_size": self.pixel_size,
-            "exposure": self.exposure,
-            "image_format": self.image_format,
-            "n_images": self.n_images,
-            "mode": self.mode.name,
+            "host": self.host,
+            "port": self.port,
+            "timeout": self.timeout,
         }
 
 
@@ -93,11 +95,87 @@ class SerialSettings:
         )
 
     def __to_dict__(self) -> dict:
+        if self is None:
+            return None
+
         return {
             "port": self.port,
             "baudrate": self.baudrate,
             "timeout": self.timeout,
         }
+
+
+class ConnectionType(Enum):
+    SERIAL = "serial"
+    SOCKET = "socket"
+    SOFTWARE = "software"
+
+
+@dataclass
+class ConnectionSettings:
+    type: ConnectionType
+    settings: Union[SerialSettings, SocketSettings]
+
+    def __to_dict__(self) -> dict:
+        return {
+            "type": self.type.name,
+            "settings": self.settings.__to_dict__()
+            if self.settings is not None
+            else None,
+        }
+
+    @staticmethod
+    def __from_dict__(settings: dict) -> "ConnectionSettings":
+        connection_type = ConnectionType[settings["type"].upper()]
+        if connection_type == ConnectionType.SERIAL:
+            connection_settings = ConnectionSettings(
+                type=connection_type,
+                settings=SerialSettings.__from_dict__(settings.get("settings", None)),
+            )
+        elif connection_type == ConnectionType.SOCKET:
+            connection_settings = ConnectionSettings(
+                type=connection_type,
+                settings=SocketSettings.__from_dict__(settings.get("settings")),
+            )
+        elif connection_type == ConnectionType.SOFTWARE:
+            connection_settings = ConnectionSettings(
+                type=connection_type,
+                settings=None,
+            )
+        else:
+            raise ValueError(f"Invalid connection type: {connection_type}")
+        return connection_settings
+
+
+@dataclass
+class ImageSettings:
+    """Image settings"""
+
+    pixel_size: float = 0.0
+    exposure: float = 0.0
+    n_images: int = 1
+    image_format: ImageFormat = ImageFormat.TIFF
+    mode: ImageMode = ImageMode.SINGLE
+
+    @staticmethod
+    def __from_dict__(settings: dict) -> "ImageSettings":
+        return ImageSettings(
+            pixel_size=settings["pixel_size"],
+            exposure=settings["exposure"],
+            n_images=settings["n_images"],
+            image_format=ImageFormat[settings.get("image_format", "TIFF")],
+            mode=ImageMode[settings.get("mode", "SINGLE")],
+        )
+
+    def __to_dict__(self) -> dict:
+        return {
+            "pixel_size": self.pixel_size,
+            "exposure": self.exposure,
+            "image_format": self.image_format,
+            "n_images": self.n_images,
+            "mode": self.mode.name,
+        }
+
 
 @dataclass
 class LaserSettings:
@@ -111,14 +189,13 @@ class LaserSettings:
 
     @staticmethod
     def __from_dict__(settings: dict) -> "LaserSettings":
-
         laser_settings = LaserSettings(
             name=settings["name"],
-            serial_id=settings["serial_id"],
+            serial_id=settings.get("serial_id", None),
             wavelength=settings["wavelength"],
             power=settings["power"],
             exposure_time=settings["exposure_time"],
-            enabled=False,
+            enabled=settings["enabled"],
             colour=settings["colour"],
         )
         return laser_settings
@@ -126,26 +203,28 @@ class LaserSettings:
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
-            "ID": self.serial_id,
+            "serial_id": self.serial_id,
             "wavelength": self.wavelength,
             "power": self.power,
             "exposure_time": self.exposure_time,
             "colour": self.colour,
+            "enabled": self.enabled,
         }
+
+
 @dataclass
 class LaserControllerSettings:
     """Laser controller settings"""
 
     name: str
-    serial_settings: SerialSettings
     laser: str
+    connection: ConnectionSettings
 
     @staticmethod
     def __from_dict__(settings: dict) -> "LaserControllerSettings":
-
         laser_controller_settings = LaserControllerSettings(
             name=settings["name"],
-            serial_settings=SerialSettings.__from_dict__(settings["serial"]),
+            connection=ConnectionSettings.__from_dict__(settings["connection"]),
             laser=settings["laser"],
         )
         return laser_controller_settings
@@ -153,29 +232,29 @@ class LaserControllerSettings:
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
-            "serial_settings": SerialSettings.__to_dict__(self.serial_settings),
+            "connection": self.connection.__to_dict__(),
             "laser": self.laser,
         }
+
 
 @dataclass
 class DetectorSettings:
     """Detector settings"""
 
     name: str
-    serial_settings: SerialSettings
+    connection: ConnectionSettings
     pixel_size: float
     resolution: list[int]
     trigger_source: TriggerSource = TriggerSource.SOFTWARE
     trigger_edge: TriggerEdge = TriggerEdge.RISING
     exposure_mode: ExposureMode = ExposureMode.TRIGGER_WIDTH
-    timeout: int = 1000 # ms
+    timeout: int = 1000  # ms
 
     @staticmethod
     def __from_dict__(settings: dict) -> "DetectorSettings":
-
         detector_settings = DetectorSettings(
             name=settings["name"],
-            serial_settings=SerialSettings.__from_dict__(settings["serial"]),
+            connection=ConnectionSettings.__from_dict__(settings["connection"]),
             pixel_size=settings["pixel_size"],
             resolution=settings["resolution"],
             trigger_source=TriggerSource[settings["trigger_source"]],
@@ -188,7 +267,7 @@ class DetectorSettings:
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
-            "serial_settings": SerialSettings.__to_dict__(self.serial_settings),
+            "connection": self.connection.__to_dict__(),
             "pixel_size": self.pixel_size,
             "resolution": self.resolution,
             "trigger_source": self.trigger_source.name,
@@ -197,39 +276,50 @@ class DetectorSettings:
             "timeout": self.timeout,
         }
 
+
 @dataclass
 class SynchroniserSettings:
     name: str
-    pins: dict[str: int]
-    serial_settings: SerialSettings = None
+    pins: dict[str:int]
+    connection: ConnectionSettings = None
 
     @staticmethod
     def __from_dict__(settings: dict) -> "SynchroniserSettings":
+        trigger_settings = SynchroniserSettings(
+            name=settings["name"],
+            pins=settings["pins"],
+            connection=ConnectionSettings.__from_dict__(
+                settings.get("connection", None)
+            ),
+        )
+        return trigger_settings
 
-            trigger_settings = SynchroniserSettings(
-                name=settings["name"],
-                pins=settings["pins"],
-                serial_settings=SerialSettings.__from_dict__(settings["serial"]),
-            )
-            return trigger_settings
-
-    @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
             "pins": self.pins,
-            "serial_settings": None if self.serial_settings is None else SerialSettings.__to_dict__(self.serial_settings),
+            "connection": self.connection.__to_dict__(),
         }
+
 
 @dataclass
 class SynchroniserMessage:
     """Synchroniser message"""
 
     exposures: list[float]
-    pins: dict[str: int]
+    pins: dict[str:int]
     mode: ImageMode = ImageMode.SINGLE
     n_slices: int = 0
     trigger_edge: TriggerEdge = TriggerEdge.RISING
+
+    def __to_dict__(self) -> dict:
+        return {
+            "exposures": self.exposures,
+            "pins": self.pins,
+            "mode": self.mode.name,
+            "n_slices": self.n_slices,
+            "trigger_edge": self.trigger_edge.name,
+        }
 
     @staticmethod
     def __from_dict__(settings: dict) -> "SynchroniserMessage":
@@ -242,58 +332,28 @@ class SynchroniserMessage:
         )
         return synchroniser_message
 
-    @staticmethod
-    def __to_dict__(self) -> dict:
-        return {
-            "exposures": self.exposures,
-            "pins": self.pins,
-            "mode": self.mode.name,
-            "n_slices": self.n_slices,
-            "trigger_edge": self.trigger_edge.name,
-        }
 
-# TODO: merge with SerialSettings into a CommsSettings class?
-@dataclass
-class SocketSettings:
-    """Settings class for socket connections"""
-    host: str
-    port: int
-    timeout: int = 5.0 # TODO: universal timing
 
-    @staticmethod
-    def __from_dict__(settings: dict) -> "SocketSettings":
-        socket_settings = SocketSettings(
-            host=settings["host"],
-            port=settings["port"],
-            timeout=settings["timeout"],
-        )
-        return socket_settings
-
-    @staticmethod
-    def __to_dict__(self) -> dict:
-        return {
-            "host": self.host,
-            "port": self.port,
-            "timeout": self.timeout,
-        }
 @dataclass
 class ObjectiveSettings:
     name: str
-    socket_settings: SocketSettings
+    connection: ConnectionSettings
+    magnification: float = 1.0
 
     @staticmethod
     def __from_dict__(settings: dict) -> "ObjectiveSettings":
         objective_settings = ObjectiveSettings(
             name=settings["name"],
-            socket_settings=SocketSettings.__from_dict__(settings["socket"]),
+            magnification=settings["magnification"],
+            connection=ConnectionSettings.__from_dict__(settings["connection"]),
         )
         return objective_settings
 
-    @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
-            "socket_settings": SocketSettings.__to_dict__(self.socket_settings),
+            "magnification": self.magnification,
+            "connection": self.connection.__to_dict__(),
         }
 
 
@@ -315,9 +375,13 @@ class MicroscopeSettings:
         microscope_settings = MicroscopeSettings(
             name=settings["name"],
             detector=DetectorSettings.__from_dict__(settings["detector"]),
-            laser_controller=LaserControllerSettings.__from_dict__(settings["laser_controller"]),
+            laser_controller=LaserControllerSettings.__from_dict__(
+                settings["laser_controller"]
+            ),
             lasers=[LaserSettings.__from_dict__(laser) for laser in settings["lasers"]],
-            objective_stage=ObjectiveSettings.__from_dict__(settings["objective_stage"]),
+            objective_stage=ObjectiveSettings.__from_dict__(
+                settings["objective_stage"]
+            ),
             synchroniser=SynchroniserSettings.__from_dict__(settings["synchroniser"]),
             online=settings["online"],
         )
@@ -327,23 +391,26 @@ class MicroscopeSettings:
         return {
             "name": self.name,
             "detector": DetectorSettings.__to_dict__(self.detector),
-            "laser_controller": LaserControllerSettings.__to_dict__(self.laser_controller),
+            "laser_controller": LaserControllerSettings.__to_dict__(
+                self.laser_controller
+            ),
             "lasers": [LaserSettings.__to_dict__(laser) for laser in self.lasers],
             "objective_stage": ObjectiveSettings.__to_dict__(self.objective_stage),
             "synchroniser": SynchroniserSettings.__to_dict__(self.synchroniser),
             "online": self.online,
         }
 
+
 @dataclass
 class LightImageMetadata:
-    n_channels: int                 # number of channels
-    channels: list[int]             # channel indices
-    time: float                     # time of acquisition
-    lasers: list[LaserSettings]     # laser settings
-    detector: DetectorSettings      # detector settings
-    objective: ObjectiveSettings    # objective settings
-    image: ImageSettings            # image settings
-    sync: SynchroniserMessage       # sync settings
+    n_channels: int  # number of channels
+    channels: list[int]  # channel indices
+    time: float  # time of acquisition
+    lasers: list[LaserSettings]  # laser settings
+    detector: DetectorSettings  # detector settings
+    objective: ObjectiveSettings  # objective settings
+    image: ImageSettings  # image settings
+    sync: SynchroniserMessage  # sync settings
 
     def __to_dict__(self) -> dict:
         return dict(
@@ -352,11 +419,10 @@ class LightImageMetadata:
             time=self.time,
             lasers=[l.__to_dict__() for l in self.lasers],
             detector=self.detector.__to_dict__(),
-            objective=self.objective, # TODO: this is only the position currently
+            objective=self.objective,  # TODO: this is only the position currently
             image=self.image.__to_dict__(),
             sync=self.sync.__to_dict__(),
         )
-
 
     @classmethod
     def __from_dict__(cls, data: dict) -> "LightImageMetadata":
@@ -366,7 +432,7 @@ class LightImageMetadata:
             time=data["time"],
             lasers=[LaserSettings.__from_dict__(l) for l in data["lasers"]],
             detector=DetectorSettings.__from_dict__(data["detector"]),
-            objective=data["objective"], # TODO: this is only the position currently
+            objective=data["objective"],  # TODO: this is only the position currently
             image=ImageSettings.__from_dict__(data["image"]),
             sync=SynchroniserMessage.__from_dict__(data["sync"]),
         )
@@ -394,10 +460,7 @@ class LightImage:
         )
 
     def __repr__(self) -> str:
-
-        return "\n".join([
-            f"image: {self.data.shape}"
-            f"metadata: {self.metadata}"])
+        return "\n".join([f"image: {self.data.shape}" f"metadata: {self.metadata}"])
 
     def save(self, path: Path) -> None:
         """Save image as tiff with metadata in tiff description"""
@@ -418,10 +481,8 @@ class LightImage:
             metadata=metadata_dict,
         )
 
-
     @classmethod
     def load(cls, path: Path) -> "LightImage":
-
         with tff.TiffFile(path) as tiff_image:
             data = tiff_image.asarray()
             try:

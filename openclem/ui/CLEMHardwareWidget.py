@@ -89,7 +89,7 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
 
         detector_settings = DetectorSettings(
             name = self.lineEdit_detector_name.text(),
-            serial_settings=None,
+            connection=None,
             pixel_size= self.doubleSpinBox_pixelsize.value() * constants.MICRO_TO_SI,
             resolution=[int(self.spinBox_resolution_y.value()), int(self.spinBox_resolution_x.value())],
             exposure_mode=ExposureMode[self.comboBox_exposure_mode.currentText()],
@@ -113,13 +113,13 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
     ### Laser Controller
     def apply_laser_settings(self):
 
-        # TODO: actually set these settings        
+        # TODO: actually set these settings
         laser_settings = self.get_laser_settings_from_ui()
         logging.info(f"Laser: {laser_settings}")
 
         lc_settings = self.get_laser_controller_settings_from_ui()
         logging.info(f"Laser Controller: {lc_settings}")
-        
+
         # get current laser
         current_laser = self.comboBox_selected_laser.currentText()
         self.microscope._laser_controller.lasers[current_laser].power = laser_settings.power
@@ -148,13 +148,13 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
 
         lc_settings = LaserControllerSettings(
             name=self.lineEdit_lc_name.text(),
-            serial_settings=None,
+            connection=None,
             laser=self.lineEdit_lc_type.text(),
         )
         logging.info(f"Laser Controller settings: {lc_settings}")
         return lc_settings
-        
-    
+
+
     def set_ui_from_laser_settings(self, laser_settings: LaserSettings):
 
         self.lineEdit_laser_name.setText(laser_settings.name)
@@ -180,7 +180,7 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         return self.microscope._objective.position
 
     def save_position(self):
-       
+
         self.microscope._objective.save_position(self.microscope._objective.position)
         logging.info(f"Saved position: {self.microscope._objective.saved_position:.2e}")
         self.update_ui()

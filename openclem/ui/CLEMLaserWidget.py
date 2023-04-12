@@ -40,7 +40,7 @@ class CLEMLaserWidget(CLEMLaserWidget.Ui_Form, QtWidgets.QWidget):
 
         self.comboBox_selected_laser.addItems(self.lc.lasers.keys())
         self.comboBox_selected_laser.currentTextChanged.connect(self.update_ui)
-    
+
     def update_ui(self):
         print("update_ui")
         self.set_laser_controller_settings_from_ui(self.lc.settings)
@@ -79,18 +79,18 @@ class CLEMLaserWidget(CLEMLaserWidget.Ui_Form, QtWidgets.QWidget):
 
 
     def get_laser_controller_settings_from_ui(self):
-            
+
             print("get_laser_controller_settings_from_ui")
-    
+
             lc_settings = LaserControllerSettings(
                 name=self.lineEdit_lc_name.text(),
-                serial_settings=None,
+                connection=None,
                 laser=self.lineEdit_lc_type.text(),
             )
-    
+
             return lc_settings
-        
-    
+
+
     def set_laser_settings_from_ui(self, laser_settings: LaserSettings):
         print("set_laser_settings_from_ui")
 

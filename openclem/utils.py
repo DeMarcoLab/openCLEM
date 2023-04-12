@@ -64,10 +64,10 @@ def connect_to_serial_port(serial_settings: SerialSettings):
     baudrate = serial_settings.baudrate
     timeout = serial_settings.timeout
 
-    serial_connection = serial.Serial(
+    connection = serial.Serial(
         port=port_name, baudrate=baudrate, timeout=timeout
     )
-    return serial_connection
+    return connection
 
 
 def load_yaml(fname: Path) -> dict:

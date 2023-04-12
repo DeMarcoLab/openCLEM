@@ -10,27 +10,27 @@ class iCLELaserController(LaserController):
         self.settings = laser_controller_settings
         self._name = self.settings.name
         self._laser = self.settings.laser
-        self.serial_connection = None
+        self.connection = None
         self.lasers = {}
-    
+
     @classmethod
     def __id__(self):
         return "iCLE"
-    
+
     @property
     def name(self):
         return self._name
-    
+
     def add_laser(self, laser: Laser):
         self.lasers[laser.name] = laser
 
     def connect(self):
-        self.serial_connection = utils.connect_to_serial_port(serial_settings=self.settings.serial_settings)
+        self.connection = utils.connect_to_serial_port(serial_settings=self.settings.serial_settings)
 
     def disconnect(self):
-        if self.serial_connection is None: return
-        self.serial_connection.close()
-        self.serial_connection = None
+        if self.connection is None: return
+        self.connection.close()
+        self.connection = None
 
     def get_laser(self, name: str) -> Laser:
         return self.lasers[name]
@@ -89,7 +89,7 @@ class iCLELaser(Laser):
     @property
     def power(self):
         return self._power
-    
+
     @power.setter
     def power(self, value):
         pass
@@ -97,7 +97,7 @@ class iCLELaser(Laser):
     @property
     def wavelength(self):
         return self._wavelength
-    
+
     @wavelength.setter
     def wavelength(self, value):
         pass

@@ -12,7 +12,7 @@ class DemoDetector(Detector):
     def __init__(self, detector_settings: DetectorSettings):
         self.settings = detector_settings
         self.camera = None
-        self.serial_connection = None
+        self.connection = None
         self.name = detector_settings.name
 
         # ? why not just use the settings?
@@ -26,28 +26,28 @@ class DemoDetector(Detector):
     @classmethod
     def __id__(self):
         return "demo"
-    
+
     def connect(self) -> None:
         logging.info(f"Connecting to Demo Detector...")
         time.sleep(1)
         logging.info(f"Connected to Demo Detector.")
-    
+
     def disconnect(self) -> None:
         logging.info("Disconnecting from Demo Detector")
         time.sleep(1)
         logging.info("Disconnected from Demo Detector")
 
-    
+
     def init_camera(self):
         logging.info("Initializing Demo Camera")
         self.camera = "DemoCamera"
         logging.info(f"Initialized Demo Camera: {self.camera}")
 
-    
+
     def open_camera(self):
         logging.info("Opening Demo Camera")
 
-    
+
     def close_camera(self):
         logging.info("Closing Demo Camera")
 
@@ -73,12 +73,12 @@ class DemoDetector(Detector):
     @property
     def pixel_size(self):
         pass
-    
+
     def grab_image(self, image_settings: ImageSettings, image_queue: Queue, stop_event: threading.Event) -> np.ndarray:
         if self.camera is None or image_settings is None: return
         logging.info("Grabbing image from Demo Camera")
         image = None
-        
+
         try:
             # open camera
             self.open_camera()
@@ -87,26 +87,26 @@ class DemoDetector(Detector):
             count = image_settings.n_images
             count_ = 0
             while count_ < count and not stop_event.is_set():
-                
+
                 # acquire image
                 time.sleep(image_settings.exposure)
                 image = np.random.randint(0, 255, size=self.settings.resolution, dtype=np.uint8)
-                
+
                 if image_queue:
                     image_queue.put(image)
                     logging.info(f"Putting image {count_} in queue: {image.shape}, {np.mean(image):.2f}")
-                
+
                 if image_settings.mode == ImageMode.SINGLE:
                     count_ += 1
 
                 logging.info(f"COUNT: {count_}, STOP_EVENT: {stop_event.is_set()}")
-            
+
         except Exception as e:
             logging.error(f"Could not grab image from Demo Camera: {e}")
         finally:
             self.close_camera()
             time.sleep(0.5)
             stop_event.set()
-        
+
         return
         # return image

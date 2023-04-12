@@ -12,30 +12,30 @@ class BasleracA1920_155um(Detector):
     def __init__(self, detector_settings: DetectorSettings):
         self.settings = detector_settings
         self.name = "Basler Detector"
-        self.serial_connection = None
+        self.connection = None
         self.camera = None
         self._pixel_size = 5.86e-6
-    
+
     @classmethod
     def __id__(self):
         return "basler"
-    
+
     def connect(self) -> None:
         serial_settings = self.settings.serial_settings
         logging.info("Connecting to Basler detector on port: %s", serial_settings.port)
-        self.serial_connection = utils.connect_to_serial_port(
+        self.connection = utils.connect_to_serial_port(
             serial_settings=serial_settings
         )
         logging.info("Connected to Basler detector on port: %s", serial_settings.port)
 
 
     def disconnect(self):
-        if self.serial_connection is None:
+        if self.connection is None:
             logging.info("No Basler detector to disconnect from")
             return
-    
+
         logging.info("Disconnecting from Basler detector")
-        self.serial_connection.close()
+        self.connection.close()
         logging.info("Disconnected from Basler detector")
 
     def init_camera(self):
@@ -97,11 +97,11 @@ class BasleracA1920_155um(Detector):
         elif exposure_mode == ExposureMode.TRIGGER_WIDTH:
             self.camera.ExposureMode.SetValue("TriggerWidth")
             self.camera.AcquisitionFrameRateEnable.SetValue(False)
-    
+
     @property
     def pixel_size(self):
         return self._pixel_size
-    
+
     @pixel_size.setter
     def pixel_size(self, pixel_size: float = None):
         if pixel_size is None:
@@ -111,7 +111,7 @@ class BasleracA1920_155um(Detector):
     @property
     def trigger_edge(self):
         return self.camera.TriggerSelector.GetValue()
-    
+
     @trigger_edge.setter
     def trigger_edge(self, trigger_edge: str = None):
         if trigger_edge is None:
@@ -121,10 +121,9 @@ class BasleracA1920_155um(Detector):
     @property
     def trigger_source(self):
         return self.camera.TriggerSource.GetValue()
-    
+
     @trigger_source.setter
     def trigger_source(self, trigger_source: str = None):
         if trigger_source is None:
             return
         self.camera.TriggerSource.SetValue(trigger_source)
-    

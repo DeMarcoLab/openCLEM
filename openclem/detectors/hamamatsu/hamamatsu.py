@@ -20,7 +20,7 @@ class HamamatsuOrcaFlash4(Detector):
     def __init__(self, detector_settings: DetectorSettings):
         self.settings = detector_settings
         self.name = "Hamamatsu Detector"
-        self.serial_connection = None
+        self.connection = None
         self.port = None
         self.camera = None
         self._pixel_size = 6.5e-6
@@ -59,19 +59,19 @@ class HamamatsuOrcaFlash4(Detector):
 
         if self.camera is None:
             self.camera = Dcam(0)
-        
+
         self.open_camera()
-           
+
         self.trigger_source = image_conversion_dict["trigger_source"][self.settings.trigger_source]
         self.trigger_edge = image_conversion_dict["trigger_edge"][self.settings.trigger_edge]
         self.exposure_mode = image_conversion_dict["exposure_mode"][self.settings.exposure_mode]
-        
+
         # logging.info(f"Trigger Source: {self.trigger_source}")
         # logging.info(f"Trigger Edge: {self.trigger_edge}")
         # logging.info(f"Exposure Mode: {self.exposure_mode}")
 
         dcamerr = self.camera.lasterr()
-        logging.info(f"DCAM error: {dcamerr}") 
+        logging.info(f"DCAM error: {dcamerr}")
 
     def open_camera(self):
         if self.camera is not None:
@@ -91,7 +91,7 @@ class HamamatsuOrcaFlash4(Detector):
 
     def grab_image(self, image_settings: ImageSettings, image_queue: Queue, stop_event: threading.Event):
         import time
-        
+
         if self.camera:
             if not self.camera.is_opened():
                 self.open_camera()
@@ -101,25 +101,25 @@ class HamamatsuOrcaFlash4(Detector):
 
         count = image_settings.n_images
         count_ = 1
-            
+
         self.camera.buf_alloc(count)
         self.camera.cap_start()
 
-        try:    
+        try:
             while count_ <= count and not stop_event.is_set():
                 # logging.info(f"Capturing image {count_} of {count}")
-                
+
                 if self.settings.trigger_source == TriggerSource.SOFTWARE:
                     self.camera.cap_firetrigger()
-                
-                
+
+
                 if self.camera.wait_capevent_frameready(timeout_millisec=self.settings.timeout) is not False:
                     image = np.flipud(np.fliplr(np.array(self.camera.buf_getlastframedata()).T))
-                    
+
                     if image_queue:
                         image_queue.put(image)
                         # logging.info(f"Putting image {count_} in queue: {image.shape}, {np.mean(image)}")
-                    
+
                     if image_settings.mode is ImageMode.SINGLE:
                         count_ += 1
                 else:

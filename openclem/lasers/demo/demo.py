@@ -75,7 +75,7 @@ class DemoLaserController(LaserController):
         self.settings = laser_controller_settings
         self._name = self.settings.name
         self._laser = self.settings.laser
-        self.serial_connection = None
+        self.connection = None
         self.lasers = {}
 
     def initialise(self):
@@ -94,13 +94,13 @@ class DemoLaserController(LaserController):
 
     def connect(self):
         logging.info(f"Connecting to {self.name}")
-        self.serial_connection = "SerialConnection"
+        self.connection = "SerialConnection"
         logging.info(f"Connected to {self.name}")
 
     def disconnect(self):
-        if self.serial_connection is None: return
+        if self.connection is None: return
         logging.info(f"Disconnecting from {self.name}")
-        self.serial_connection = None
+        self.connection = None
 
     def get_laser(self, name: str) -> Laser:
         return self.lasers[name]

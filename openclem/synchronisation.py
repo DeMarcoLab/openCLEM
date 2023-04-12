@@ -8,7 +8,7 @@ class Synchroniser(ABC):
         self.settings = synchroniser_settings
         self.name = synchroniser_settings.name
         self.pins = {}
-        self.serial_connection = None
+        self.connection = None
 
     @abstractmethod
     def connect(self):

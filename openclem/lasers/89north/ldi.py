@@ -11,7 +11,7 @@ class LdiLaserController(LaserController):
         self.settings = laser_controller_settings
         self._name = self.settings.name
         self._laser = self.settings.laser
-        self.serial_connection = None
+        self.connection = None
         self.lasers = {}
 
     @classmethod
@@ -26,12 +26,12 @@ class LdiLaserController(LaserController):
         self.lasers[laser.name] = laser
 
     def connect(self):
-        self.serial_connection = utils.connect_to_serial_port(serial_settings=self.settings.serial_settings)
+        self.connection = utils.connect_to_serial_port(serial_settings=self.settings.connection.settings)
 
     def disconnect(self):
-        if self.serial_connection is None: return
-        self.serial_connection.close()
-        self.serial_connection = None
+        if self.connection is None: return
+        self.connection.close()
+        self.connection = None
 
     def get_laser(self, name: str) -> Laser:
         return self.lasers[name]
@@ -53,7 +53,7 @@ class LdiLaserController(LaserController):
 
     def initialise(self):
         command = (f"RUN!\r")
-        response = utils.write_serial_command(self.serial_connection, command)
+        response = utils.write_serial_command(self.connection, command)
         logging.info(f"LDI response: {response}")
 
 class LdiLaser(Laser):
@@ -89,7 +89,7 @@ class LdiLaser(Laser):
     @property
     def enabled(self):
         return self._enabled
-    
+
     @enabled.setter
     def enabled(self, value):
         self._enabled = value
@@ -97,7 +97,7 @@ class LdiLaser(Laser):
     @property
     def exposure_time(self):
         return self._exposure_time
-    
+
     @exposure_time.setter
     def exposure_time(self, value):
         self._exposure_time = value
@@ -112,18 +112,18 @@ class LdiLaser(Laser):
 
     @property
     def power(self):
-        if self._parent.serial_connection is None: return
+        if self._parent.connection is None: return
         command = (f"SET?\r")
-        response = utils.write_serial_command(self._parent.serial_connection, command)
+        response = utils.write_serial_command(self._parent.connection, command)
         self._power = self.decode_power(response)
         return self._power
 
     @power.setter
     def power(self, value):
-        if self._parent.serial_connection is None: return
+        if self._parent.connection is None: return
         value = int(np.clip(value, 0.0, 100.0))
         command = (f"SET:{self.serial_id}={value}\r")
-        response = utils.write_serial_command(self._parent.serial_connection, command)
+        response = utils.write_serial_command(self._parent.connection, command)
         logging.info(self._power)
         if not self.check_response(response):
             logging.error(f"Error setting power for {self.name}")
@@ -137,31 +137,31 @@ class LdiLaser(Laser):
         self._wavelength = float(value)
 
     def emission_on(self):
-        if self._parent.serial_connection is None: return
+        if self._parent.connection is None: return
         self._parent.close_shutters()
         self.enable()
         command = (f"RUN!\r")
-        response = utils.write_serial_command(self._parent.serial_connection, command)
+        response = utils.write_serial_command(self._parent.connection, command)
         if not self.check_response(response):
             logging.error(f"Error turning on laser for {self.name}")
 
     def emission_off(self):
-        if self._parent.serial_connection is None: return
+        if self._parent.connection is None: return
         self.disable()
 
     def enable(self):
-        if self._parent.serial_connection is None: return
+        if self._parent.connection is None: return
         command = (f"SHUTTER:{self.serial_id}=OPEN\r")
-        response = utils.write_serial_command(self._parent.serial_connection, command)
+        response = utils.write_serial_command(self._parent.connection, command)
         if self.check_response(response):
             self._shutter_open = True
         else:
             logging.error(f"Error opening shutter for {self.name}: {response}")
 
     def disable(self):
-        if self._parent.serial_connection is None: return
+        if self._parent.connection is None: return
         command = (f"SHUTTER:{self.serial_id}=CLOSED\r")
-        response = utils.write_serial_command(self._parent.serial_connection, command)
+        response = utils.write_serial_command(self._parent.connection, command)
         if self.check_response(response):
             self._shutter_open = False
         else:

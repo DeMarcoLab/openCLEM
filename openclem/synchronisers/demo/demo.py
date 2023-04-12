@@ -15,17 +15,17 @@ class DemoSynchroniser(Synchroniser):
         self.settings = synchroniser_settings
         self.name = synchroniser_settings.name
         self.pins = {}
-        self.serial_connection = None
+        self.connection = None
 
     def connect(self):
-        self.serial_connection = "Serial Connection"
+        self.connection = "Serial Connection"
 
     def disconnect(self):
-        if self.serial_connection is not None:
-            logging.info(f"Closing serial connection {self.serial_connection}")
+        if self.connection is not None:
+            logging.info(f"Closing serial connection {self.connection}")
 
     def send_command(self, command):
-        if self.serial_connection is None: return
+        if self.connection is None: return
 
         logging.info(f"Sending command {command}")
         return "Response"

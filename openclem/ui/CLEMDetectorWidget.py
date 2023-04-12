@@ -54,7 +54,7 @@ class CLEMDetectorWidget(CLEMDetectorWidget.Ui_Form, QtWidgets.QWidget):
 
         detector_settings = DetectorSettings(
             name = self.lineEdit_detector_name.text(),
-            serial_settings=None,
+            connection=None,
             pixel_size= self.doubleSpinBox_pixelsize.value() * constants.MICRO_TO_SI,
             resolution=[int(self.spinBox_resolution_y.value()), int(self.spinBox_resolution_x.value())],
             exposure_mode=ExposureMode[self.comboBox_exposure_mode.currentText()],

@@ -9,7 +9,7 @@ class Detector(ABC):
         self.settings = detector_settings
         self.name = detector_settings.name
         self.camera = None
-        self.serial_connection = None
+        self.connection = None
 
     @classmethod
     @abstractmethod

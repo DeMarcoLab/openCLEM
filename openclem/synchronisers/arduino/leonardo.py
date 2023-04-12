@@ -15,27 +15,27 @@ class ArduinoLeonardo(Synchroniser):
         self.settings = synchroniser_settings
         self.name = synchroniser_settings.name
         self.pins = {}
-        self.serial_connection = None
+        self.connection = None
 
     def connect(self):
         logging.info(f"Connecting to Arduino Leonardo synchroniser {self.name}.")
-        self.serial_connection = utils.connect_to_serial_port(self.settings.serial_settings)
+        self.connection = utils.connect_to_serial_port(self.settings.connection.settings)
         time.sleep(1) # required for initialisation
-        logging.info(f"Serial connection: {self.serial_connection}.")
+        logging.info(f"Serial connection: {self.connection}.")
         logging.info(f"Connected to Arduino Leonardo synchroniser {self.name}.")
 
     def disconnect(self):
-        if self.serial_connection is not None:
+        if self.connection is not None:
             self.stop_sync()
-            self.serial_connection.close()
+            self.connection.close()
 
     def send_command(self, command):
-        if self.serial_connection is None: return
+        if self.connection is None: return
 
-        if not self.serial_connection.is_open:
-            self.serial_connection.open()
+        if not self.connection.is_open:
+            self.connection.open()
             time.sleep(1) # required for initialisation
-        response = utils.write_serial_command(self.serial_connection, command, check=True)
+        response = utils.write_serial_command(self.connection, command, check=True)
         logging.info(f"Arduino Leonardo response: {response}.")
         return response
 
