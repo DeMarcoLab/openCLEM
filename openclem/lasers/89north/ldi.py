@@ -60,19 +60,28 @@ class LdiLaser(Laser):
     def __init__(self, laser_settings: LaserSettings, parent: LaserController):
         self._parent = parent
         self.settings = laser_settings
-        self._name = laser_settings.name
-        self._serial_id = laser_settings.serial_id
-        self._wavelength = laser_settings.wavelength
-        self._power = laser_settings.power
-        self._exposure_time = laser_settings.exposure_time
-        self._enabled = laser_settings.enabled
-        if self._enabled:
-            self.enable()
-        else:
-            self.disable()
+        self.name = laser_settings.name
+        self.serial_id = laser_settings.serial_id
+        self.wavelength = laser_settings.wavelength
+        self.power = laser_settings.power
+        self.exposure_time = laser_settings.exposure_time
+        self.enabled = laser_settings.enabled
+        # if self._enabled:
+            # self.enable()
+        # else:
+            # self.disable()
         self._colour = laser_settings.colour
         # super().__init__(laser_settings, parent) # TODO: fix this
 
+    def get(self) -> LaserSettings:
+
+        return LaserSettings(name=self.name, 
+                             serial_id=self.serial_id, 
+                             wavelength=self.wavelength, 
+                             power=self.power,
+                             exposure_time=self.exposure_time, 
+                             enabled=self.enabled, 
+                             colour=self._colour)
 
     @classmethod
     def __id__(self):
@@ -124,13 +133,12 @@ class LdiLaser(Laser):
         value = int(np.clip(value, 0.0, 100.0))
         command = (f"SET:{self.serial_id}={value}\r")
         response = utils.write_serial_command(self._parent.connection, command)
-        logging.info(self._power)
         if not self.check_response(response):
             logging.error(f"Error setting power for {self.name}")
 
     @property
     def wavelength(self):
-        return f'{self._wavelength}nm'
+        return self._wavelength
 
     @wavelength.setter
     def wavelength(self, value: float):

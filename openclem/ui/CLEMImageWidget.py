@@ -23,8 +23,10 @@ from openclem.ui.qt import CLEMImageWidget
 
 from copy import deepcopy
 
-FIBSEM = False
+import vispy.color as v_color
 
+FIBSEM = False
+OLD_IMAGING = True
 
 class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
     def __init__(
@@ -156,19 +158,19 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         return
 
     def update_live(self, result):
-        image, name = result
-        self.update_viewer(image, name)
+        
 
-    def update_live_finished(self):
-        # self.pushButton_update_settings.setVisible(False)
-        self.pushButton_acquire_image.setText("Acquire Image")
-        self.pushButton_acquire_image.setStyleSheet("background-color: green")
+        # have light images 
+        if OLD_IMAGING is False:
+            image = result
+            colors = {}
+            for i, laser in enumerate(image.metadata.lasers):
+                colors[i] =  v_color.Colormap([[0, 0, 0], laser.color])
+            for i, channel in enumerate(image.metadata.channels):
+                self.update_viewer(image.data[:, :, i], f"Channel {i:02d}", colors[channel])
 
-    def update_viewer(self, arr: np.ndarray, name: str):
-        if name in self.viewer.layers:
-            self.viewer.layers[name].data = arr
-        else:
-
+        if OLD_IMAGING:
+            image, name = result
             # TODO: missing red
             if name == "Channel 00":
                 color = "red"
@@ -179,7 +181,27 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             if name == "Channel 03":
                 color = "magenta"
 
-            layer = self.viewer.add_image(arr, name=name, opacity=0.3, blending="translucent", colormap=color)
+            self.update_viewer(image, name, color)
+
+    def update_live_finished(self):
+        self.pushButton_acquire_image.setText("Acquire Image")
+        self.pushButton_acquire_image.setStyleSheet("background-color: green")
+
+    def update_viewer(self, arr: np.ndarray, name: str, color: str):
+        if name in self.viewer.layers:
+            self.viewer.layers[name].data = arr
+        else:
+
+            if OLD_IMAGING:
+                layer = self.viewer.add_image(arr, name=name, opacity=0.7, 
+                                              blending="additive", colormap=color)
+            else:
+                layer = self.viewer.add_image(data=arr, 
+                                            name=name, 
+                                            opacity=0.7, 
+                                            blending="additive", 
+                )
+                layer.colormap = name, color
 
             # register mouse callbacks
             layer.mouse_double_click_callbacks.append(self._double_click)
@@ -190,7 +212,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
                 self.viewer.add_points(
                     np.array([[arr.shape[1] / 2, arr.shape[0] / 2]]),
                     symbol="cross",
-                    size=10,
+                    size=50,
                     edge_color="white",
                     face_color="white",
                     name="crosshair",

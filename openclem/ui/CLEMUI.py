@@ -27,7 +27,7 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         self.image_widget, self.hardware_widget = None, None
         self._hardware_connected = False
 
-        self.lineEdit_config_filename.setText(os.path.join(cfg.BASE_PATH, "config", "system.yaml"))
+        self.lineEdit_config_filename.setText(os.path.join(cfg.BASE_PATH, "config", "piedisc.yaml"))
 
         self.setup_connections()
 

@@ -70,7 +70,7 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
 
         self.set_ui_from_laser_controller_settings(self.microscope._laser_controller.settings)
         current_laser = self.comboBox_selected_laser.currentText()
-        self.set_ui_from_laser_settings(self.microscope._laser_controller.lasers[current_laser].settings)
+        self.set_ui_from_laser_settings(self.microscope._laser_controller.lasers[current_laser].get())
 
 
 
@@ -138,7 +138,7 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
             power=self.doubleSpinBox_laser_power.value(),
             exposure_time=self.doubleSpinBox_laser_exposure.value() * constants.MILLI_TO_SI,
             enabled=self.checkBox_laser_enabled.isChecked(),
-            colour=str(self.label_laser_color.text()).split(","),
+            colour=list(map(float, self.label_laser_color.text()[1:-1].split(","))),
         )
         logging.info(f"Laser settings: {laser_settings}")
         return laser_settings
