@@ -105,7 +105,7 @@ class Ui_Form(object):
         self.label_lc_type.setText(_translate("Form", "Type"))
         self.label_laser_id.setText(_translate("Form", "ID"))
         self.label_laser_wavelength.setText(_translate("Form", "Wavelength (nm)"))
-        self.label_laser_color.setText(_translate("Form", "Colour"))
+        self.label_laser_color.setText(_translate("Form", "color"))
         self.label_title.setText(_translate("Form", "Laser Controller"))
         self.checkBox_laser_enabled.setText(_translate("Form", "Enabled"))
         self.pushButton_apply_laser_settings.setText(_translate("Form", "Apply Laser Settings"))

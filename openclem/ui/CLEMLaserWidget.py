@@ -72,7 +72,7 @@ class CLEMLaserWidget(CLEMLaserWidget.Ui_Form, QtWidgets.QWidget):
             power=self.doubleSpinBox_laser_power.value(),
             exposure_time=self.doubleSpinBox_laser_exposure.value() * constants.MILLI_TO_SI,
             enabled=self.checkBox_laser_enabled.isChecked(),
-            colour=str(self.label_laser_color.text()).split(","),
+            color=str(self.label_laser_color.text()).split(","),
         )
 
         return laser_settings
@@ -101,7 +101,7 @@ class CLEMLaserWidget(CLEMLaserWidget.Ui_Form, QtWidgets.QWidget):
         self.doubleSpinBox_laser_exposure.setValue(laser_settings.exposure_time * constants.SI_TO_MILLI)
 
         self.checkBox_laser_enabled.setChecked(laser_settings.enabled)
-        self.label_laser_color.setText(str(laser_settings.colour))
+        self.label_laser_color.setText(str(laser_settings.color))
 
     def set_laser_controller_settings_from_ui(self, lc_settings: LaserControllerSettings):
         print("set_laser_controller_settings_from_ui")

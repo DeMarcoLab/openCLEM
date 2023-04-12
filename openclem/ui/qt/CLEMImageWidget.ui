@@ -14,10 +14,10 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="6" column="0" colspan="2">
-    <widget class="QPushButton" name="pushButton_acquire_image">
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_imaging_mode">
      <property name="text">
-      <string>Acquire Image</string>
+      <string>Mode</string>
      </property>
     </widget>
    </item>
@@ -28,7 +28,7 @@
      </property>
     </widget>
    </item>
-   <item row="8" column="0" colspan="2">
+   <item row="9" column="0" colspan="2">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -40,6 +40,19 @@
       </size>
      </property>
     </spacer>
+   </item>
+   <item row="3" column="1">
+    <widget class="QComboBox" name="comboBox_imaging_mode"/>
+   </item>
+   <item row="7" column="0" colspan="2">
+    <widget class="QPushButton" name="pushButton_update_settings">
+     <property name="text">
+      <string>Update Settings</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QComboBox" name="comboBox_imaging_format"/>
    </item>
    <item row="1" column="1">
     <widget class="QDoubleSpinBox" name="doubleSpinBox_exposure">
@@ -60,16 +73,6 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="1">
-    <widget class="QComboBox" name="comboBox_imaging_mode"/>
-   </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="label_imaging_mode">
-     <property name="text">
-      <string>Mode</string>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label_exposure">
      <property name="text">
@@ -77,15 +80,12 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="0" colspan="2">
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+   <item row="6" column="0" colspan="2">
+    <widget class="QPushButton" name="pushButton_acquire_image">
+     <property name="text">
+      <string>Acquire Image</string>
      </property>
     </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QComboBox" name="comboBox_imaging_format"/>
    </item>
    <item row="0" column="0" colspan="2">
     <widget class="QLabel" name="label_title">
@@ -99,10 +99,17 @@
      </property>
     </widget>
    </item>
-   <item row="7" column="0" colspan="2">
-    <widget class="QPushButton" name="pushButton_update_settings">
+   <item row="5" column="0" colspan="2">
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0" colspan="2">
+    <widget class="QPushButton" name="pushButton_save_image">
      <property name="text">
-      <string>Update Settings</string>
+      <string>Save Image</string>
      </property>
     </widget>
    </item>

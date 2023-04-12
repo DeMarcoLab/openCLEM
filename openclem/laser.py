@@ -15,7 +15,7 @@ class Laser(ABC):
         self.exposure_time = settings.exposure_time
         self._name = settings.name
         self._serial_id = settings.serial_id
-        self.colour = settings.colour
+        self.color = settings.color
         if settings.enabled:
             self.enable()
         else:

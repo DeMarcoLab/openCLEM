@@ -70,7 +70,7 @@ class LdiLaser(Laser):
             # self.enable()
         # else:
             # self.disable()
-        self._colour = laser_settings.colour
+        self._color = laser_settings.color
         # super().__init__(laser_settings, parent) # TODO: fix this
 
     def get(self) -> LaserSettings:
@@ -81,7 +81,7 @@ class LdiLaser(Laser):
                              power=self.power,
                              exposure_time=self.exposure_time, 
                              enabled=self.enabled, 
-                             colour=self._colour)
+                             color=self._color)
 
     @classmethod
     def __id__(self):

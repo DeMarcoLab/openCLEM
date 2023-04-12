@@ -45,7 +45,7 @@
    <item row="12" column="0">
     <widget class="QLabel" name="label_laser_color">
      <property name="text">
-      <string>Colour</string>
+      <string>color</string>
      </property>
     </widget>
    </item>

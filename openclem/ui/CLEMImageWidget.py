@@ -17,6 +17,7 @@ from openclem.structures import (
     ImageSettings,
     SynchroniserMessage,
     TriggerEdge,
+    LightImage
 )
 from openclem.ui import CLEMHardwareWidget
 from openclem.ui.qt import CLEMImageWidget
@@ -26,7 +27,7 @@ from copy import deepcopy
 import vispy.color as v_color
 
 FIBSEM = False
-OLD_IMAGING = True
+OLD_IMAGING = False
 
 class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
     def __init__(
@@ -39,6 +40,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.setupUi(self)
 
         self.viewer = viewer
+        self.image = None
         # grid mode on
         # self.viewer.grid.enabled = True
 
@@ -65,6 +67,20 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.comboBox_imaging_format.addItems([format.name for format in ImageFormat])
         self.comboBox_imaging_mode.addItems([mode.name for mode in ImageMode])
 
+        self.pushButton_save_image.clicked.connect(self.save_image)
+
+    def save_image(self):
+        
+        if self.image is None:
+            napari.utils.notifications.show_info(f"No image to save")
+            return 
+        
+        import os
+        fname = os.path.join(os.getcwd(), str(self.image.metadata.time))
+        self.image.save(fname)
+        napari.utils.notifications.show_info(f"Saved image to {fname}")
+
+ 
     def get_settings_from_ui(self):
         image_settings = ImageSettings(
             pixel_size=1e-9,
@@ -109,8 +125,8 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         # check if acquisition is already running
         if not self.stop_event.is_set():
             self.stop_event.set()
-            microscope: LightMicroscope = self.hardware_widget.microscope
-            microscope.get_synchroniser().stop_sync()
+            # microscope: LightMicroscope = self.hardware_widget.microscope
+            self.lm.get_synchroniser().stop_sync()
             logging.info("Stopping Image Acquistion")
             # self.pushButton_update_settings.setVisible(False)
             return
@@ -121,53 +137,37 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             self.pushButton_acquire_image.setStyleSheet("background-color: orange")
 
         image_settings, sync_message = self.get_settings_from_ui()
-        microscope: LightMicroscope = self.hardware_widget.microscope
-        microscope.setup_acquisition()
+        self.lm: LightMicroscope = self.hardware_widget.microscope
+        self.lm.setup_acquisition()
 
         # TODO: disable other microscope interactions
-        worker = self.update_live_image()
+        worker = self.lm.consume_image_queue_ui()
         worker.returned.connect(self.update_live_finished)  # type: ignore
         worker.yielded.connect(self.update_live)  # type: ignore
         worker.start()
 
         # acquire image
-        self.image_queue, self.stop_event = microscope.acquire_image( # TODO: move imgage queue and stop_event to microscope
+        self.image_queue, self.stop_event = self.lm.acquire_image( 
             image_settings=image_settings,
             sync_message=sync_message,
             stop_event=self.stop_event,
         )
 
-    @thread_worker
-    def update_live_image(self):
-        try:
-
-            counter = 0
-            while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
-
-                image = self.image_queue.get()
-                # logging.info(
-                #     f"Getting image from queue: {image.shape}, {np.mean(image):.2f}"
-                # )
-
-                # TODO: construct actual image with metadata
-                yield (image, f"Channel {counter % 4:02d}")
-                counter +=1
-
-        except Exception as e:
-            logging.error(e)
-        return
-
-    def update_live(self, result):
-        
+    def update_live(self, result: LightImage):
 
         # have light images 
         if OLD_IMAGING is False:
-            image = result
+            
+            self.image = result
             colors = {}
-            for i, laser in enumerate(image.metadata.lasers):
+            for i, laser in enumerate(self.image.metadata.lasers):
                 colors[i] =  v_color.Colormap([[0, 0, 0], laser.color])
-            for i, channel in enumerate(image.metadata.channels):
-                self.update_viewer(image.data[:, :, i], f"Channel {i:02d}", colors[channel])
+            
+            print(color for color in colors.values())
+            print(self.image.metadata.channels)
+
+            for i, channel in enumerate(self.image.metadata.channels):
+                self.update_viewer(self.image.data[:, :, i], f"Channel {channel:02d}", colors[channel])
 
         if OLD_IMAGING:
             image, name = result
@@ -205,7 +205,6 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
             # register mouse callbacks
             layer.mouse_double_click_callbacks.append(self._double_click)
-            self.image = arr
 
             # add crosshair at the image centre coordiantes
             if "crosshair" not in self.viewer.layers:
@@ -272,11 +271,11 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         # eb_shape = self.eb_image.data.shape[0], self.eb_image.data.shape[1]
         # ib_shape = self.ib_image.data.shape[0], self.ib_image.data.shape[1] + self.eb_image.data.shape[1]
 
-        if (coords[0] > 0 and coords[0] < self.image.shape[0]) and (
-            coords[1] > 0 and coords[1] < self.image.shape[1]
+        if (coords[0] > 0 and coords[0] < self.image.data.shape[0]) and (
+            coords[1] > 0 and coords[1] < self.image.data.shape[1]
         ):
             beam_type = "LIGHT"
-            image = self.image
+            image = self.image.data
 
         # elif (coords[0] > 0 and coords[0] < ib_shape[0]) and (
         #     coords[1] > eb_shape[0] and coords[1] < ib_shape[1]

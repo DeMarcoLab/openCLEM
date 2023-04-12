@@ -222,7 +222,7 @@ class Ui_Form(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_detector), _translate("Form", "Detector"))
         self.label_lc_type.setText(_translate("Form", "Type"))
         self.label_lc_name.setText(_translate("Form", "Name"))
-        self.label_laser_color.setText(_translate("Form", "Colour"))
+        self.label_laser_color.setText(_translate("Form", "color"))
         self.label_laser_name.setText(_translate("Form", "Name"))
         self.label_laser_power.setText(_translate("Form", "Power (%)"))
         self.pushButton_apply_laser_settings.setText(_translate("Form", "Apply Laser Settings"))

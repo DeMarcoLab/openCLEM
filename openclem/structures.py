@@ -171,7 +171,7 @@ class ImageSettings:
         return {
             "pixel_size": self.pixel_size,
             "exposure": self.exposure,
-            "image_format": self.image_format,
+            "image_format": self.image_format.name,
             "n_images": self.n_images,
             "mode": self.mode.name,
         }
@@ -185,7 +185,7 @@ class LaserSettings:
     power: float
     exposure_time: float  # s
     enabled: bool
-    colour: list
+    color: list
 
     @staticmethod
     def __from_dict__(settings: dict) -> "LaserSettings":
@@ -196,7 +196,7 @@ class LaserSettings:
             power=settings["power"],
             exposure_time=settings["exposure_time"],
             enabled=settings["enabled"],
-            colour=settings["colour"],
+            color=settings["color"],
         )
         return laser_settings
 
@@ -207,7 +207,7 @@ class LaserSettings:
             "wavelength": self.wavelength,
             "power": self.power,
             "exposure_time": self.exposure_time,
-            "colour": self.colour,
+            "color": self.color,
             "enabled": self.enabled,
         }
 

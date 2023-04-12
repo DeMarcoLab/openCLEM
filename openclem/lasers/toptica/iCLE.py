@@ -64,7 +64,7 @@ class iCLELaser(Laser):
             self.enable()
         else:
             self.disable()
-        self._colour = laser_settings.colour
+        self._color = laser_settings.color
 
     @classmethod
     def __id__(self):
