@@ -16,7 +16,7 @@ detector:
   name: demo
   pixel_size: 6.5e-6
   resolution: [2048, 2048]
-  connection: 
+  connection:
     type: software
     settings: null
   trigger_source: SOFTWARE
@@ -31,28 +31,28 @@ lasers:
   power: 0.
   exposure_time: 1.
   enabled: False
-  colour: [0, 0, 0]
+  colour: [0, 0, 1]
 - name: 'laser_2'
   serial_id: '488'
   wavelength: 488.
   power: 0.
   exposure_time: 1.
   enabled: False
-  colour: [0, 0, 0]
+  colour: [0, 1, 0]
 - name: 'laser_3'
   serial_id: '555'
   wavelength: 555.
   power: 0.
   exposure_time: 1.
   enabled: False
-  colour: [0, 0, 0]
+  colour: [1, 0.56, 0.2]
 - name: 'laser_4'
   serial_id: '640'
   wavelength: 640.
   power: 0.
   exposure_time: 1.
   enabled: False
-  colour: [0, 0, 0]
+  colour: [0.58, 0.168, 0.137]
 
 synchroniser:
   name: demo
@@ -62,14 +62,14 @@ synchroniser:
       port: COM7
       baudrate: 115200
       timeout: 1
-  pins: 
+  pins:
     laser_1: 12
     laser_2: 11
     laser_3: 10
     laser_4: 9
-    detector: 8 
+    detector: 8
 
-objective_stage: 
+objective_stage:
   name: demo
   magnification: 1.0
   connection:

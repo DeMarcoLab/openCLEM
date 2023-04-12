@@ -12,16 +12,11 @@ from PyQt5 import QtWidgets
 from openclem import constants
 from openclem.microscope import LightMicroscope
 from openclem.structures import (ImageFormat, ImageMode, ImageSettings,
-                                 SynchroniserMessage, TriggerEdge)
+                                 SynchroniserMessage, TriggerEdge, LightImage)
 from openclem.ui import CLEMHardwareWidget
 from openclem.ui.qt import CLEMImageWidget
 
-try:
-    from fibsem import constants, conversions, utils
-    from fibsem.structures import BeamType, Point
-    FIBSEM = True
-except:
-    FIBSEM = False
+import vispy.color as v_color
 
 class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
     def __init__(
@@ -91,10 +86,10 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
     def update_imaging_settings(self):
         logging.info("UPDATE SETTINGS") # TODO: implement this function correctly
-        
+
         image_settings, sync_message = self.get_settings_from_ui()
         microscope: LightMicroscope = self.hardware_widget.microscope
-        
+
         microscope.get_synchroniser().stop_sync()
         microscope.get_synchroniser().sync_image(sync_message)
 
@@ -125,25 +120,22 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         worker.start()
 
         # acquire image
-        self.image_queue, self.stop_event = self.lm.acquire_image( 
+        self.image_queue, self.stop_event = self.lm.acquire_image(
             image_settings=image_settings,
             sync_message=sync_message,
             stop_event=self.stop_event,
         )
 
-    def update_live(self, result):
+    def update_live(self, result: LightImage):
         image = result
 
-        colors = {
-            0: "red",
-            1: "green",
-            2: "cyan",
-            3: "magenta",
-        }
+        colors = dict()
+        for i, laser in enumerate(image.metadata.lasers):
+            colors[i] = v_color.Colormap([[0.0, 0.0, 0.0], laser.colour])
 
         for i, channel in enumerate(image.metadata.channels):
-            self.update_viewer(image.data[:, :, i], 
-                               name=f"Channel {channel:02d}", 
+            self.update_viewer(image.data[:, :, i],
+                               name=f"Channel {channel:02d}",
                                color=colors[channel])
 
     def update_live_finished(self):
@@ -155,13 +147,13 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         if name in self.viewer.layers:
             self.viewer.layers[name].data = arr
         else:
+            # cmap = name, color
+            layer = self.viewer.add_image(arr,
+                                          name=name,
+                                          opacity=0.3,
+                                          blending="additive")
+            layer.colormap = name, color
 
-            layer = self.viewer.add_image(arr, 
-                                          name=name, 
-                                          opacity=0.3, 
-                                          blending="translucent", 
-                                          colormap=color)
-            
             # register mouse callbacks
             layer.mouse_double_click_callbacks.append(self._double_click)
             self.image = arr
@@ -179,7 +171,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
 
     def _double_click(self, layer, event):
-        
+
         # get coords
         coords = layer.world_to_data(event.position)
 
@@ -194,7 +186,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         if FIBSEM is False:
             napari.utils.notifications.show_info(f"OpenFIBSEM is not enabled. Please activate to move.")
-            return 
+            return
 
 
 

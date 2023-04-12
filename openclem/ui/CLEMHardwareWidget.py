@@ -118,7 +118,7 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
 
         lc_settings = self.get_laser_controller_settings_from_ui()
         logging.info(f"Laser Controller: {lc_settings}")
-        
+
         # get current laser
         current_laser = self.comboBox_selected_laser.currentText()
         laser_controller = self.microscope.get_laser_controller()
@@ -142,7 +142,7 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
             power=self.doubleSpinBox_laser_power.value(),
             exposure_time=self.doubleSpinBox_laser_exposure.value() * constants.MILLI_TO_SI,
             enabled=self.checkBox_laser_enabled.isChecked(),
-            colour=str(self.label_laser_color.text()).split(","),
+            colour=list(map(float, self.label_laser_color.text()[1:-1].split(","))),
         )
         logging.info(f"Laser settings: {laser_settings}")
         return laser_settings
@@ -156,8 +156,8 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
             laser=self.lineEdit_lc_type.text(),
         )
         return lc_settings
-        
-    
+
+
     def set_ui_from_laser_settings(self, laser_settings: LaserSettings):
 
         self.lineEdit_laser_name.setText(laser_settings.name)
@@ -184,13 +184,13 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         return self.microscope.get_objective().position
 
     def save_position(self):
-       
+
         self.microscope.get_objective().save_position(self.microscope.get_objective().position)
         logging.info(f"Saved position: {self.microscope.get_objective().saved_position:.2e}")
         self.update_ui()
 
     def go_to_saved_position(self):
-            
+
         logging.info(f"Go To Saved position: {self.microscope.get_objective().saved_position:.2e}")
         self.microscope.get_objective().absolute_move(self.microscope.get_objective().saved_position)
         self.update_ui()
