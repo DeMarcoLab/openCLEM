@@ -1,3 +1,10 @@
+import numpy as np
+from typing import Union
+import tifffile as tff
+import json
+import os
+from pathlib import Path
+import traceback
 from dataclasses import dataclass
 from enum import Enum
 
@@ -244,7 +251,7 @@ class SynchroniserMessage:
             "n_slices": self.n_slices,
             "trigger_edge": self.trigger_edge.name,
         }
-    
+
 # TODO: merge with SerialSettings into a CommsSettings class?
 @dataclass
 class SocketSettings:
@@ -261,7 +268,7 @@ class SocketSettings:
             timeout=settings["timeout"],
         )
         return socket_settings
-    
+
     @staticmethod
     def __to_dict__(self) -> dict:
         return {
@@ -281,15 +288,15 @@ class ObjectiveSettings:
             socket_settings=SocketSettings.__from_dict__(settings["socket"]),
         )
         return objective_settings
-    
+
     @staticmethod
     def __to_dict__(self) -> dict:
         return {
             "name": self.name,
             "socket_settings": SocketSettings.__to_dict__(self.socket_settings),
         }
-    
-    
+
+
 @dataclass
 class MicroscopeSettings:
     """Microscope settings"""
@@ -326,3 +333,103 @@ class MicroscopeSettings:
             "synchroniser": SynchroniserSettings.__to_dict__(self.synchroniser),
             "online": self.online,
         }
+
+@dataclass
+class LightImageMetadata:
+    n_channels: int                 # number of channels
+    channels: list[int]             # channel indices
+    time: float                     # time of acquisition
+    lasers: list[LaserSettings]     # laser settings
+    detector: DetectorSettings      # detector settings
+    objective: ObjectiveSettings    # objective settings
+    image: ImageSettings            # image settings
+    sync: SynchroniserMessage       # sync settings
+
+    def __to_dict__(self) -> dict:
+        return dict(
+            n_channels=self.n_channels,
+            channels=self.channels,
+            time=self.time,
+            lasers=[l.__to_dict__() for l in self.lasers],
+            detector=self.detector.__to_dict__(),
+            objective=self.objective, # TODO: this is only the position currently
+            image=self.image.__to_dict__(),
+            sync=self.sync.__to_dict__(),
+        )
+
+
+    @classmethod
+    def __from_dict__(cls, data: dict) -> "LightImageMetadata":
+        return cls(
+            n_channels=data["n_channels"],
+            channels=data["channels"],
+            time=data["time"],
+            lasers=[LaserSettings.__from_dict__(l) for l in data["lasers"]],
+            detector=DetectorSettings.__from_dict__(data["detector"]),
+            objective=data["objective"], # TODO: this is only the position currently
+            image=ImageSettings.__from_dict__(data["image"]),
+            sync=SynchroniserMessage.__from_dict__(data["sync"]),
+        )
+
+    def __repr__(self) -> str:
+        return f"LightImageMetadata(n_channels={self.n_channels}, channels={self.channels}, time={self.time}, lasers={self.lasers}, detector={self.detector}, objective={self.objective}, image={self.image}, sync={self.sync})"
+
+
+@dataclass
+class LightImage:
+    data: np.ndarray
+    metadata: LightImageMetadata
+
+    def __to_dict__(self) -> dict:
+        return dict(
+            data=self.data,
+            metadata=self.metadata.__to_dict__(),
+        )
+
+    @classmethod
+    def __from_dict__(cls, data: dict) -> "LightImage":
+        return cls(
+            data=data["data"],
+            metadata=LightImageMetadata.__from_dict__(data["metadata"]),
+        )
+
+    def __repr__(self) -> str:
+
+        return "\n".join([
+            f"image: {self.data.shape}"
+            f"metadata: {self.metadata}"])
+
+    def save(self, path: Path) -> None:
+        """Save image as tiff with metadata in tiff description"""
+
+        # create  directory if it does not exist
+        dir = os.path.dirname(path)
+        if dir != "":
+            os.makedirs(dir, exist_ok=True)
+        path = Path(path).with_suffix(".tif")
+
+        if self.metadata is not None:
+            metadata_dict = self.metadata.__to_dict__()
+        else:
+            metadata_dict = None
+        tff.imwrite(
+            path,
+            self.data,
+            metadata=metadata_dict,
+        )
+
+
+    @classmethod
+    def load(cls, path: Path) -> "LightImage":
+
+        with tff.TiffFile(path) as tiff_image:
+            data = tiff_image.asarray()
+            try:
+                metadata = json.loads(
+                    tiff_image.pages[0].tags["ImageDescription"].value
+                )
+                metadata = LightImageMetadata.__from_dict__(metadata)
+            except Exception as e:
+                metadata = None
+                print(traceback.format_exc())
+        return cls(data=data, metadata=metadata)
