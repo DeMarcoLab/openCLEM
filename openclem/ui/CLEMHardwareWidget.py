@@ -117,13 +117,15 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         laser_settings = self.get_laser_settings_from_ui()
         logging.info(f"Laser: {laser_settings}")
 
+
         lc_settings = self.get_laser_controller_settings_from_ui()
         logging.info(f"Laser Controller: {lc_settings}")
 
         # get current laser
         current_laser = self.comboBox_selected_laser.currentText()
-        self.microscope._laser_controller.lasers[current_laser].power = laser_settings.power
-        self.microscope._laser_controller.lasers[current_laser].exposure_time = laser_settings.exposure_time
+        self.microscope._laser_controller.lasers[current_laser].apply_settings(laser_settings)
+        # self.microscope._laser_controller.lasers[current_laser].power = laser_settings.power
+        # self.microscope._laser_controller.lasers[current_laser].exposure_time = laser_settings.exposure_time
 
         napari.utils.notifications.show_info(
             f"Settings applied to {self.microscope._laser_controller.settings.name}"

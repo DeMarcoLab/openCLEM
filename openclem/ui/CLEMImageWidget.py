@@ -26,7 +26,14 @@ from copy import deepcopy
 
 import vispy.color as v_color
 
-FIBSEM = False
+
+try:
+    from fibsem import utils, conversions, constants
+    from fibsem.structures import Point, BeamType
+    FIBSEM = True
+except ImportError:
+    FIBSEM = False
+
 OLD_IMAGING = False
 
 class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
@@ -51,7 +58,6 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.setup_connections()
 
         if FIBSEM:
-            from fibsem import utils
             self.microscope, self.settings = utils.setup_session()
 
 
@@ -162,9 +168,6 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             colors = {}
             for i, laser in enumerate(self.image.metadata.lasers):
                 colors[i] =  v_color.Colormap([[0, 0, 0], laser.color])
-            
-            print(color for color in colors.values())
-            print(self.image.metadata.channels)
 
             for i, channel in enumerate(self.image.metadata.channels):
                 self.update_viewer(self.image.data[:, :, i], f"Channel {channel:02d}", colors[channel])
@@ -234,8 +237,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         if FIBSEM is False:
             return
-        from fibsem import conversions, constants
-        from fibsem.structures import Point, BeamType
+
 
         # image = self.image
         nominal_pixelsize = 6.5e-6 / 20 #/ 2.94 # PATENTED_TECHNOLOGY
@@ -275,13 +277,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             coords[1] > 0 and coords[1] < self.image.data.shape[1]
         ):
             beam_type = "LIGHT"
-            image = self.image.data
-
-        # elif (coords[0] > 0 and coords[0] < ib_shape[0]) and (
-        #     coords[1] > eb_shape[0] and coords[1] < ib_shape[1]
-        # ):
-        #     image = self.ib_image
-        #     coords = (coords[0], coords[1] - ib_shape[1] // 2)
+            image = self.image.data[:, :, 0]
         else:
             beam_type, image = None, None
 
@@ -293,7 +289,6 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
     # TODO: ui upgrades
     # toggle grid / opacity to show all channels
-
 
     def closeEvent(self, event):
         self.viewer.layers.clear()

@@ -91,7 +91,9 @@ def current_timestamp():
     Returns:
         String: Current time
     """
-    return datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d-%I-%M-%S%p")
+    # timestamp with ms
+    return datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d-%I-%M-%S-%f%p")
+    # return datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d-%I-%M-%S%p")
 
 
 def setup_session(
