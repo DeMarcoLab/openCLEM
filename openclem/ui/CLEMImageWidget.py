@@ -34,7 +34,6 @@ try:
 except ImportError:
     FIBSEM = False
 
-OLD_IMAGING = False
 
 class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
     def __init__(
@@ -157,30 +156,18 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
     def update_live(self, result: LightImage):
 
-        # have light images 
-        if OLD_IMAGING is False:
             
-            self.image = result
-            colors = {}
-            for i, laser in enumerate(self.image.metadata.lasers):
-                colors[i] =  v_color.Colormap([[0, 0, 0], laser.color])
+        self.image = result
+        info = {}
 
-            for i, channel in enumerate(self.image.metadata.channels):
-                self.update_viewer(self.image.data[:, :, i], f"Channel {channel:02d}", colors[channel])
+        for i, laser in enumerate(self.image.metadata.lasers):
+            info[i] = {
+                "color": v_color.Colormap([[0, 0, 0], laser.color]),
+                "display_name": f"Channel {int(laser.wavelength)}nm"
+            }
 
-        if OLD_IMAGING:
-            image, name = result
-            # TODO: missing red
-            if name == "Channel 00":
-                color = "red"
-            if name == "Channel 01":
-                color = "green"
-            if name == "Channel 02":
-                color = "cyan"
-            if name == "Channel 03":
-                color = "magenta"
-
-            self.update_viewer(image, name, color)
+        for i, channel in enumerate(self.image.metadata.channels):
+            self.update_viewer(self.image.data[:, :, i], info[channel]["display_name"], info[channel]["color"])
 
     def update_live_finished(self):
         self.pushButton_acquire_image.setText("Acquire Image")
@@ -191,16 +178,12 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             self.viewer.layers[name].data = arr
         else:
 
-            if OLD_IMAGING:
-                layer = self.viewer.add_image(arr, name=name, opacity=0.7, 
-                                              blending="additive", colormap=color)
-            else:
-                layer = self.viewer.add_image(data=arr, 
-                                            name=name, 
-                                            opacity=0.7, 
-                                            blending="additive", 
-                )
-                layer.colormap = name, color
+            layer = self.viewer.add_image(data=arr, 
+                                        name=name, 
+                                        opacity=0.7, 
+                                        blending="additive", 
+            )
+            layer.colormap = name, color
 
             # register mouse callbacks
             layer.mouse_double_click_callbacks.append(self._double_click)
