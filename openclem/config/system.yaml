@@ -22,35 +22,35 @@ detector:
   trigger_source: SOFTWARE
   trigger_edge: RISING
   exposure_mode: TRIGGER_WIDTH
-  timeout: 1000 # m80
+  timeout: 1000 # ms
 
 lasers:
 - name: 'laser_1'
-  serial_id: '405'
-  wavelength: 405.
-  power: 0.
-  exposure_time: 80.
-  enabled: False
-  color: [0, 0, 1]
-- name: 'laser_2'
-  serial_id: '488'
-  wavelength: 488.
-  power: 80.
-  exposure_time: 1.
-  enabled: False
-  color: [0, 1, 0]
-- name: 'laser_3'
-  serial_id: '555'
-  wavelength: 555.
-  power: 80.
-  exposure_time: 1.
-  enabled: False
-  color: [1, 0.56, 0.2]
-- name: 'laser_4'
   serial_id: '640'
   wavelength: 640.
   power: 0.
-  exposure_time: 1.
+  exposure_time: 0.0
+  enabled: False
+  color: [1, 0., 0.]
+- name: 'laser_2'
+  serial_id: '555'
+  wavelength: 555.
+  power: 80.
+  exposure_time: 0.5
+  enabled: False
+  color: [0, 1, 0]
+- name: 'laser_3'
+  serial_id: '488'
+  wavelength: 488.
+  power: 80.
+  exposure_time: 0.5
+  enabled: False
+  color: [1, 0.56, 0.2]
+- name: 'laser_4'
+  serial_id: '405'
+  wavelength: 405.
+  power: 0.
+  exposure_time: 0.0
   enabled: False
   color: [0.58, 0.168, 0.137]
 

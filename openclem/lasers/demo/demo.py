@@ -9,7 +9,28 @@ from openclem.structures import LaserControllerSettings, LaserSettings
 
 class DemoLaser(Laser):
     def __init__(self, laser_settings: LaserSettings, parent: LaserController):
-        super().__init__(laser_settings, parent)
+        self._parent = parent
+        self.settings = laser_settings
+        self.apply_settings(self.settings)
+
+    def get(self) -> LaserSettings:
+
+        return LaserSettings(name=self.name, 
+                                serial_id=self.serial_id, 
+                                wavelength=self.wavelength, 
+                                power=self.power,
+                                exposure_time=self.exposure_time, 
+                                enabled=self.enabled, 
+                                color=self._color)
+    
+    def apply_settings(self, laser_settings: LaserSettings):
+        self.name = laser_settings.name
+        self.serial_id = laser_settings.serial_id
+        self.wavelength = laser_settings.wavelength
+        self.power = laser_settings.power
+        self.exposure_time = laser_settings.exposure_time
+        self.enabled = laser_settings.enabled
+        self._color = laser_settings.color
 
     @classmethod
     def __id__(self):
@@ -41,7 +62,7 @@ class DemoLaser(Laser):
 
     @property
     def wavelength(self):
-        return f'{self._wavelength}nm'
+        return self._wavelength
 
     @wavelength.setter
     def wavelength(self, value: float):
