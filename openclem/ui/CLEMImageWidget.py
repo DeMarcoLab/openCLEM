@@ -1,35 +1,22 @@
 import logging
 import threading
-import time
-from pathlib import Path
 
 import napari
 import napari.utils.notifications
 import numpy as np
-from napari.qt.threading import thread_worker
+import vispy.color as v_color
 from PyQt5 import QtWidgets
 
 from openclem import constants
 from openclem.microscope import LightMicroscope
-from openclem.structures import (
-    ImageFormat,
-    ImageMode,
-    ImageSettings,
-    SynchroniserMessage,
-    TriggerEdge,
-    LightImage
-)
+from openclem.structures import (ImageMode, ImageSettings, LightImage,
+                                 SynchroniserMessage, TriggerEdge)
 from openclem.ui import CLEMHardwareWidget
 from openclem.ui.qt import CLEMImageWidget
 
-from copy import deepcopy
-
-import vispy.color as v_color
-
-
 try:
-    from fibsem import utils, conversions, constants
-    from fibsem.structures import Point, BeamType
+    from fibsem import constants, conversions, utils
+    from fibsem.structures import BeamType, Point
     FIBSEM = True
 except ImportError:
     FIBSEM = False
