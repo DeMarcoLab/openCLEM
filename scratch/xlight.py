@@ -1,4 +1,4 @@
-from openclem import xlightv2
+from openclem.spinning_disk import xlightv2
 import time
 
 xlight = xlightv2.XLightV2()

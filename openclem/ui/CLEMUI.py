@@ -9,6 +9,7 @@ from openclem.ui.qt import CLEMUI
 
 from openclem.ui.CLEMImageWidget import CLEMImageWidget
 from openclem.ui.CLEMHardwareWidget import CLEMHardwareWidget
+from openclem.ui.OpenLMSpinningDiskWidget import OpenLMSpinningDiskWidget
 from openclem import config as cfg
 import os
 
@@ -73,9 +74,13 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
                 viewer=self.viewer,
                 hardware_widget=self.hardware_widget,
             )
+            self.disk_widget = OpenLMSpinningDiskWidget(
+                self.viewer
+            )
 
             self.tabWidget.addTab(self.image_widget, "Imaging")
             self.tabWidget.addTab(self.hardware_widget, "Hardware")
+            self.tabWidget.addTab(self.disk_widget, "Spinning Disk")
             self.pushButton_connect_hardware.setText("Connected")
             self.pushButton_connect_hardware.setStyleSheet("background-color: green")
 
@@ -89,6 +94,7 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             )
 
         else:
+            self.tabWidget.removeTab(3)
             self.tabWidget.removeTab(2)
             self.tabWidget.removeTab(1)
 
@@ -97,6 +103,7 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
 
             self.image_widget.deleteLater()
             self.hardware_widget.deleteLater()
+            self.disk_widget.deleteLater()
 
             self.pushButton_connect_hardware.setText("Connect Hardware")
             self.pushButton_connect_hardware.setStyleSheet("background-color: gray")
