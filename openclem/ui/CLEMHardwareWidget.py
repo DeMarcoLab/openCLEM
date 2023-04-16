@@ -77,7 +77,7 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
             # no decimals
             spinBox_wavelength.setDecimals(0)
             spinBox_power.setDecimals(0)
-            spinBox_wavelength.setDecimals(0)
+            spinBox_exposure.setDecimals(0)
             # set range
             spinBox_wavelength.setRange(0, 10000)
             spinBox_power.setRange(0, 100)

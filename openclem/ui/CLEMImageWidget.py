@@ -171,6 +171,10 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
                                         blending="additive", 
             )
             layer.colormap = name, color
+            
+            pixelsize = 125e-6 / 350 * constants.SI_TO_MICRO # MEASURED # microns per pixel
+            microns_per_pixel = [pixelsize, pixelsize]
+            layer.scale = microns_per_pixel
 
             # register mouse callbacks
             layer.mouse_double_click_callbacks.append(self._double_click)
@@ -184,7 +188,18 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
                     edge_color="white",
                     face_color="white",
                     name="crosshair",
+                    scale=microns_per_pixel,
                 )
+
+
+                # add scale bar
+                self.viewer.scale_bar.visible = True
+                self.viewer.scale_bar.color = "white"
+                # update to actual units: https://forum.image.sc/t/setting-scale-bar-units-in-other-than-pixels-real-coordinates/49158/12
+                # NB: i think this might break click to move
+                self.viewer.scale_bar.unit = "um"
+            
+
 
 
     def _double_click(self, layer, event):
@@ -200,8 +215,10 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
                 f"Clicked outside image dimensions. Please click inside the image to move."
             )
             return
-
         if FIBSEM is False:
+            msg = f"Stage Movement is disabled (No OpenFIBSEM): Coords: {coords[0]:.2f}, {coords[1]:.2f} "
+            napari.utils.notifications.show_info(msg)
+            logging.info(msg)
             return
 
 
@@ -223,7 +240,6 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         )
 
         logging.info(f"Microscope Stage Position: {self.microscope.get_stage_position()}")
-        # TODO: we need a fibsem microscope
         self.microscope.stable_move(
                 settings=self.settings,
                 dx=point.x,
@@ -232,13 +248,8 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             )
         logging.info(f"Microscope Stage Position: {self.microscope.get_stage_position()}")
 
-
-
     def get_data_from_coord(self, coords: tuple) -> tuple:
         # check inside image dimensions, (y, x)
-        # eb_shape = self.eb_image.data.shape[0], self.eb_image.data.shape[1]
-        # ib_shape = self.ib_image.data.shape[0], self.ib_image.data.shape[1] + self.eb_image.data.shape[1]
-
         if (coords[0] > 0 and coords[0] < self.image.data.shape[0]) and (
             coords[1] > 0 and coords[1] < self.image.data.shape[1]
         ):
@@ -248,13 +259,6 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             beam_type, image = None, None
 
         return coords, beam_type, image
-
-        # all the images are the same size, based on detector...
-        # always light
-        # turn grid off to make this eaiser?
-
-    # TODO: ui upgrades
-    # toggle grid / opacity to show all channels
 
     def closeEvent(self, event):
         self.viewer.layers.clear()
