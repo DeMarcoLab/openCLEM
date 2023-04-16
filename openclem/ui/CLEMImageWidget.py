@@ -33,6 +33,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.setupUi(self)
 
         self.viewer = viewer
+        self._n_layers = len(self.viewer.layers)
         self.image = None
         # grid mode on
         # self.viewer.grid.enabled = True
@@ -145,7 +146,6 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
     def update_live(self, result: LightImage):
 
-            
         self.image = result
         info = {}
 
@@ -200,6 +200,17 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
                 # update to actual units: https://forum.image.sc/t/setting-scale-bar-units-in-other-than-pixels-real-coordinates/49158/12
                 # NB: i think this might break click to move
                 self.viewer.scale_bar.unit = "um"
+
+        # reorder layers
+        if self._n_layers != len(self.viewer.layers):
+            self._n_layers = len(self.viewer.layers)
+            self._reorder_layers()
+        
+    def _reorder_layers(self):
+        # get list of layer names, and order them alphabetically, using the index
+        layer_names = sorted([layer.name for layer in self.viewer.layers])
+        new_order = [layer_names.index(layer.name) for layer in self.viewer.layers]
+        self.viewer.layers.move_multiple(new_order)
 
     def _move_to_microscope(self):
 
