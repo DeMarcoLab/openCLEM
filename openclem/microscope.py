@@ -17,6 +17,7 @@ class LightMicroscope(ABC):
         self._detector: Detector = None
         self._objective: ObjectiveStage = None
         self._laser_controller: LaserController = None
+        self._synchroniser: Synchroniser = None
 
     @abstractmethod
     def connect(self):
