@@ -410,7 +410,6 @@ def test_microscope_settings(microscope_settings: MicroscopeSettings):
 def image_settings() -> ImageSettings:
     return ImageSettings(
         pixel_size=0.1e-6,
-        image_format=ImageFormat.TIFF,
         mode=ImageMode.LIVE,
         exposure=1000,
         n_images=1,
@@ -419,7 +418,6 @@ def image_settings() -> ImageSettings:
 def test_image_settings(image_settings: ImageSettings):
     
         assert image_settings.pixel_size == 0.1e-6
-        assert image_settings.image_format == ImageFormat.TIFF
         assert image_settings.mode == ImageMode.LIVE
         assert image_settings.exposure == 1000
         assert image_settings.n_images == 1
@@ -427,7 +425,6 @@ def test_image_settings(image_settings: ImageSettings):
         # __to_dict__
         assert image_settings.__to_dict__() == {
             "pixel_size": 0.1e-6,
-            "image_format": "TIFF",
             "mode": "LIVE",
             "exposure": 1000,
             "n_images": 1,

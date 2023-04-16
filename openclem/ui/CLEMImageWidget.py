@@ -66,11 +66,6 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             self.pushButton_acquire_image_clicked
         )
 
-        self.pushButton_update_settings.clicked.connect(
-            self.update_imaging_settings
-        )
-        self.pushButton_update_settings.setVisible(False)
-        self.comboBox_imaging_format.addItems([format.name for format in ImageFormat])
         self.comboBox_imaging_mode.addItems([mode.name for mode in ImageMode])
 
         self.pushButton_save_image.clicked.connect(self.save_image)
@@ -90,8 +85,7 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
     def get_settings_from_ui(self):
         image_settings = ImageSettings(
             pixel_size=1e-9,
-            exposure=self.doubleSpinBox_exposure.value() * constants.MILLI_TO_SI,
-            image_format=ImageFormat[self.comboBox_imaging_format.currentText()],
+            exposure=0,
             mode=ImageMode[self.comboBox_imaging_mode.currentText()],
         )
 

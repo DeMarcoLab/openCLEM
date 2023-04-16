@@ -36,7 +36,6 @@ def main():
     image_settings = ImageSettings(
         pixel_size=6.5e-6,
         exposure=0.1,
-        image_format="tiff",
         n_images=1,
     )
 

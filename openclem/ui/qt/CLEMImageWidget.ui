@@ -14,21 +14,31 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="3" column="0">
+   <item row="5" column="0" colspan="2">
+    <widget class="QPushButton" name="pushButton_save_image">
+     <property name="text">
+      <string>Save Image</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="2">
+    <widget class="QPushButton" name="pushButton_acquire_image">
+     <property name="text">
+      <string>Acquire Image</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QComboBox" name="comboBox_imaging_mode"/>
+   </item>
+   <item row="1" column="0">
     <widget class="QLabel" name="label_imaging_mode">
      <property name="text">
       <string>Mode</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="label_imaging_format">
-     <property name="text">
-      <string>Format</string>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="0" colspan="2">
+   <item row="6" column="0" colspan="2">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -41,49 +51,10 @@
      </property>
     </spacer>
    </item>
-   <item row="3" column="1">
-    <widget class="QComboBox" name="comboBox_imaging_mode"/>
-   </item>
-   <item row="7" column="0" colspan="2">
-    <widget class="QPushButton" name="pushButton_update_settings">
-     <property name="text">
-      <string>Update Settings</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QComboBox" name="comboBox_imaging_format"/>
-   </item>
-   <item row="1" column="1">
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_exposure">
-     <property name="decimals">
-      <number>2</number>
-     </property>
-     <property name="minimum">
-      <double>0.010000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>10000000.000000000000000</double>
-     </property>
-     <property name="singleStep">
-      <double>0.010000000000000</double>
-     </property>
-     <property name="value">
-      <double>500.000000000000000</double>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_exposure">
-     <property name="text">
-      <string>Detector Exposure (ms)</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="0" colspan="2">
-    <widget class="QPushButton" name="pushButton_acquire_image">
-     <property name="text">
-      <string>Acquire Image</string>
+   <item row="3" column="0" colspan="2">
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
@@ -96,20 +67,6 @@
      </property>
      <property name="text">
       <string>Imaging</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0" colspan="2">
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="0" colspan="2">
-    <widget class="QPushButton" name="pushButton_save_image">
-     <property name="text">
-      <string>Save Image</string>
      </property>
     </widget>
    </item>

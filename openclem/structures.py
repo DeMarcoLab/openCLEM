@@ -154,7 +154,6 @@ class ImageSettings:
     pixel_size: float = 0.0
     exposure: float = 0.0
     n_images: int = 1
-    image_format: ImageFormat = ImageFormat.TIFF
     mode: ImageMode = ImageMode.SINGLE
 
     @staticmethod
@@ -163,7 +162,6 @@ class ImageSettings:
             pixel_size=settings["pixel_size"],
             exposure=settings["exposure"],
             n_images=settings["n_images"],
-            image_format=ImageFormat[settings.get("image_format", "TIFF")],
             mode=ImageMode[settings.get("mode", "SINGLE")],
         )
 
@@ -171,7 +169,6 @@ class ImageSettings:
         return {
             "pixel_size": self.pixel_size,
             "exposure": self.exposure,
-            "image_format": self.image_format.name,
             "n_images": self.n_images,
             "mode": self.mode.name,
         }
