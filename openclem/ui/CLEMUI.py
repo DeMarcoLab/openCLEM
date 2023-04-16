@@ -78,7 +78,8 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
                 self.viewer
             )
 
-            self.tabWidget.addTab(self.image_widget, "Imaging")
+            self.tabWidget_imaging.addTab(self.image_widget, "Imaging")
+
             self.tabWidget.addTab(self.hardware_widget, "Hardware")
             self.tabWidget.addTab(self.disk_widget, "Spinning Disk")
             self.pushButton_connect_hardware.setText("Connected")
@@ -94,7 +95,8 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             )
 
         else:
-            self.tabWidget.removeTab(3)
+            self.tabWidget_imaging.removeTab(1)
+            
             self.tabWidget.removeTab(2)
             self.tabWidget.removeTab(1)
 

@@ -84,8 +84,8 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
  
     def get_settings_from_ui(self):
         image_settings = ImageSettings(
-            pixel_size=1e-9,
-            exposure=0,
+            pixel_size=1e-9, 
+            exposure=0.25, # Software exposure...
             mode=ImageMode[self.comboBox_imaging_mode.currentText()],
         )
 
