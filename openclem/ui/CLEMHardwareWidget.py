@@ -139,6 +139,9 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         )
 
     ### Laser Controller
+    # TODO: fix laser info, looks ugly
+    # TODO: set width of ui properly on startup?
+    # TODO: be smarter about how we update the ui, dont necessarily need to redraw everything, and update all lasers
     def get_laser_settings_from_ui(self, idx: int):
 
         laser = self.laser_ui[idx]
@@ -160,9 +163,7 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         )
     
     def set_laser_ui(self):
-        # TODO: be smarter about redrawing, and getting settings
         # loop through all lasers, and update the relevant UI elements
-
         laser: Laser
         for i, laser in enumerate(self.microscope._laser_controller.lasers.values()):
             
@@ -254,19 +255,6 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
             self.doubleSpinBox_saved_position.setValue(
                 objective.saved_position * constants.SI_TO_MICRO
             )
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 def main():
 
