@@ -56,6 +56,8 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         self.pushButton_save_image.clicked.connect(self.save_image)
 
+        self.pushButton_move_microscope.clicked.connect(self._move_to_microscope)
+
     def save_image(self):
         
         if self.image is None:
@@ -198,8 +200,49 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
                 # update to actual units: https://forum.image.sc/t/setting-scale-bar-units-in-other-than-pixels-real-coordinates/49158/12
                 # NB: i think this might break click to move
                 self.viewer.scale_bar.unit = "um"
-            
 
+    def _move_to_microscope(self):
+
+        # TODO: fully implement this when have hardware
+        _translation = {"x": 50.541, "y": 0.442, "z": 0.0422}
+        
+        # current_position_x = self.microscope.get_stage_position().x
+        current_position_x = np.random.choice([np.random.randint(-10, 10), np.random.randint(40, 60)])
+
+        fibsem_min = -10
+        fibsem_max = 10
+        lm_min = 40
+        lm_max = 60
+
+        x = _translation["x"]
+        y = _translation["y"]
+        z = _translation["z"]
+        
+        logging.info(f"Current position: {current_position_x}")
+        msg: str
+        if fibsem_min < current_position_x < fibsem_max:
+           msg = 'Under FIBSEM, moving to light microscope'
+        elif lm_min < current_position_x < lm_max:
+            x = -x
+            y = -y
+            z = -z
+            msg = 'Under light microscope, moving to FIBSEM'
+        else:
+            logging.warn('Not positioned under the either microscope, cannot move to other microscope')
+            return
+
+        logging.info(msg)
+        napari.utils.notifications.show_info(msg)
+
+        logging.info(f"Moving to microscope: x={x}, y={y}, z={z}")
+        # new_position = FibsemStagePosition(x=x, y=y, z=z, r=0, t=0)
+        # self.microscope.stable_move(new_position, BeamType.ION)
+        
+        if FIBSEM is False:
+            msg = f"Stage Movement is disabled (No OpenFIBSEM)"
+            napari.utils.notifications.show_info(msg)
+            logging.info(msg)
+            return   
 
 
     def _double_click(self, layer, event):
