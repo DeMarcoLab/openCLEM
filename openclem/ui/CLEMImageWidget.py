@@ -77,7 +77,9 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             return 
         
         import os
-        fname = os.path.join(os.getcwd(), str(self.image.metadata.time))
+        label = f"{self.lineEdit_save_label.text()}_{self.image.metadata.time}"
+        
+        fname = os.path.join(label)
         self.image.save(fname)
         napari.utils.notifications.show_info(f"Saved image to {fname}")
 

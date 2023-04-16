@@ -14,42 +14,12 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="5" column="0" colspan="2">
-    <widget class="QPushButton" name="pushButton_save_image">
-     <property name="text">
-      <string>Save Image</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0" colspan="2">
-    <widget class="QPushButton" name="pushButton_acquire_image">
-     <property name="text">
-      <string>Acquire Image</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QComboBox" name="comboBox_imaging_mode"/>
-   </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label_imaging_mode">
      <property name="text">
       <string>Mode</string>
      </property>
     </widget>
-   </item>
-   <item row="6" column="0" colspan="2">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
    </item>
    <item row="3" column="0" colspan="2">
     <widget class="Line" name="line">
@@ -69,6 +39,43 @@
       <string>Imaging</string>
      </property>
     </widget>
+   </item>
+   <item row="5" column="2">
+    <widget class="QPushButton" name="pushButton_save_image">
+     <property name="text">
+      <string>Save Image</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0" colspan="2">
+    <widget class="QLineEdit" name="lineEdit_save_label">
+     <property name="text">
+      <string>image</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="3">
+    <widget class="QPushButton" name="pushButton_acquire_image">
+     <property name="text">
+      <string>Acquire Image</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1" colspan="2">
+    <widget class="QComboBox" name="comboBox_imaging_mode"/>
+   </item>
+   <item row="7" column="0" colspan="3">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>
