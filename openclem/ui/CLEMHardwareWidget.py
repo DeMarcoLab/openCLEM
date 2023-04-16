@@ -50,12 +50,13 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
             self.apply_laser_settings
         )
 
-        self.comboBox_selected_laser.addItems(self.microscope._laser_controller.lasers.keys())
-        self.comboBox_selected_laser.currentTextChanged.connect(self.update_ui)
-
+        # laser ui
+        self.setup_laser_ui()
+    
         # objective
         self.pushButton_get_position.clicked.connect(self.get_position)
         self.pushButton_save_position.clicked.connect(self.save_position)
+        self.pushButton_goto_saved_position.clicked.connect(self.goto_saved_position)
         self.pushButton_move_absolute.clicked.connect(self.move_absolute)
         self.pushButton_move_relative_down.clicked.connect(self.move_relative)
         self.pushButton_move_relative_up.clicked.connect(self.move_relative)
@@ -64,14 +65,41 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         self.doubleSpinBox_current_position.setEnabled(False)
         self.doubleSpinBox_saved_position.setEnabled(False)
 
+    def setup_laser_ui(self):
+        self.laser_ui = []
+
+        laser: Laser
+        for laser in self.microscope._laser_controller.lasers.values():
+            label = QtWidgets.QLabel(laser.name)
+            spinBox_wavelength = QtWidgets.QDoubleSpinBox()
+            spinBox_power = QtWidgets.QDoubleSpinBox()
+            spinBox_exposure = QtWidgets.QDoubleSpinBox()
+            # no decimals
+            spinBox_wavelength.setDecimals(0)
+            spinBox_power.setDecimals(0)
+            spinBox_wavelength.setDecimals(0)
+            # set range
+            spinBox_wavelength.setRange(0, 10000)
+            spinBox_power.setRange(0, 100)
+            spinBox_exposure.setRange(0, 10000)
+
+            checkBox_enable = QtWidgets.QCheckBox()
+            
+            self.laser_ui.append([label, spinBox_wavelength, spinBox_power, spinBox_exposure, checkBox_enable])
+            r = self.gridLayout_laser.rowCount()
+            self.gridLayout_laser.addWidget(label, r, 0)
+            self.gridLayout_laser.addWidget(spinBox_wavelength, r, 1)
+            self.gridLayout_laser.addWidget(spinBox_power, r, 2)
+            self.gridLayout_laser.addWidget(spinBox_exposure, r, 3)
+            self.gridLayout_laser.addWidget(checkBox_enable, r, 4)
+
+
     def update_ui(self):
         self.set_ui_from_detector_settings(self.microscope._detector.settings)
         self.set_ui_from_objective(self.microscope._objective)
 
         self.set_ui_from_laser_controller_settings(self.microscope._laser_controller.settings)
-        current_laser = self.comboBox_selected_laser.currentText()
-        self.set_ui_from_laser_settings(self.microscope._laser_controller.lasers[current_laser].get())
-
+        self.set_laser_ui()
 
 
     ### Detector
@@ -111,66 +139,59 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         )
 
     ### Laser Controller
+    def get_laser_settings_from_ui(self, idx: int):
+
+        laser = self.laser_ui[idx]
+
+        info = laser[0].text()
+        name = info.split(" - ")[0].strip()
+        serial_id = str(info.split(" - ")[1].strip()[1:-1])
+        color = info.split(" - ")[2].strip()
+        color = list(map(float, color[1:-1].split(",")))
+
+        return LaserSettings(
+            name = name,
+            serial_id=serial_id, 
+            wavelength = laser[1].value(),
+            power = laser[2].value(),
+            exposure_time = laser[3].value() * constants.MILLI_TO_SI,
+            enabled = laser[4].isChecked(),
+            color=color,
+        )
+    
+    def set_laser_ui(self):
+        # TODO: be smarter about redrawing, and getting settings
+        # loop through all lasers, and update the relevant UI elements
+
+        laser: Laser
+        for i, laser in enumerate(self.microscope._laser_controller.lasers.values()):
+            
+            settings: LaserSettings = laser.get()
+            self.set_ui_from_laser_settings(settings, i)
+
+    def set_ui_from_laser_settings(self, settings: LaserSettings, idx: int) -> None:
+        
+        info = f"{settings.name} - ({settings.serial_id}) - {str(settings.color)}"
+        self.laser_ui[idx][0].setText(info)
+        self.laser_ui[idx][1].setValue(settings.wavelength)
+        self.laser_ui[idx][2].setValue(settings.power)
+        self.laser_ui[idx][3].setValue(settings.exposure_time * constants.SI_TO_MILLI)
+        self.laser_ui[idx][4].setChecked(settings.enabled)
+
     def apply_laser_settings(self):
 
-        # TODO: actually set these settings
-        laser_settings = self.get_laser_settings_from_ui()
-        logging.info(f"Laser: {laser_settings}")
+        laser: Laser
+        for idx, laser in enumerate(self.microscope._laser_controller.lasers.values()):
+            settings = self.get_laser_settings_from_ui(idx)
+            logging.info(f"Laser {idx}: {settings}")
 
+            laser.apply_settings(settings)
+        
+        napari.utils.notifications.show_info(f"Applied laser settings.")
 
-        lc_settings = self.get_laser_controller_settings_from_ui()
-        logging.info(f"Laser Controller: {lc_settings}")
-
-        # get current laser
-        current_laser = self.comboBox_selected_laser.currentText()
-        self.microscope._laser_controller.lasers[current_laser].apply_settings(laser_settings)
-        # self.microscope._laser_controller.lasers[current_laser].power = laser_settings.power
-        # self.microscope._laser_controller.lasers[current_laser].exposure_time = laser_settings.exposure_time
-
-        napari.utils.notifications.show_info(
-            f"Settings applied to {self.microscope._laser_controller.settings.name}"
-            )
-
-    def get_laser_settings_from_ui(self):
-
-        laser_settings = LaserSettings(
-            name=self.lineEdit_laser_name.text(),
-            serial_id=self.lineEdit_laser_id.text(),
-            wavelength=int(self.spinBox_laser_wavelength.value()),
-            power=self.doubleSpinBox_laser_power.value(),
-            exposure_time=self.doubleSpinBox_laser_exposure.value() * constants.MILLI_TO_SI,
-            enabled=self.checkBox_laser_enabled.isChecked(),
-            color=list(map(float, self.label_laser_color.text()[1:-1].split(","))),
-        )
-        logging.info(f"Laser settings: {laser_settings}")
-        return laser_settings
-
-
-    def get_laser_controller_settings_from_ui(self):
-
-        lc_settings = LaserControllerSettings(
-            name=self.lineEdit_lc_name.text(),
-            connection=None,
-            laser=self.lineEdit_lc_type.text(),
-        )
-        logging.info(f"Laser Controller settings: {lc_settings}")
-        return lc_settings
-
-
-    def set_ui_from_laser_settings(self, laser_settings: LaserSettings):
-
-        self.lineEdit_laser_name.setText(laser_settings.name)
-        self.lineEdit_laser_id.setText(laser_settings.serial_id)
-        self.spinBox_laser_wavelength.setValue(int(laser_settings.wavelength))
-        self.doubleSpinBox_laser_power.setValue(laser_settings.power)
-        self.doubleSpinBox_laser_exposure.setValue(laser_settings.exposure_time * constants.SI_TO_MILLI)
-
-        self.checkBox_laser_enabled.setChecked(laser_settings.enabled)
-        self.label_laser_color.setText(str(laser_settings.color))
 
     def set_ui_from_laser_controller_settings(self, lc_settings: LaserControllerSettings):
-        self.lineEdit_lc_name.setText(lc_settings.name)
-        self.lineEdit_lc_type.setText(lc_settings.laser)
+        self.label_lc_name.setText(f"Laser Controller: {lc_settings.name}, Lasers: {lc_settings.laser}")
 
     ### Objective
     def get_position(self):
@@ -185,6 +206,13 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
 
         self.microscope._objective.save_position(self.microscope._objective.position)
         logging.info(f"Saved position: {self.microscope._objective.saved_position:.2e}")
+        self.update_ui()
+
+    def goto_saved_position(self):
+
+        position = self.microscope._objective.saved_position
+        logging.info(f"Moving to saved position: {position:.2e}")
+        self.microscope._objective.absolute_move(position)
         self.update_ui()
 
     def move_absolute(self):

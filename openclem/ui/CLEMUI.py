@@ -28,7 +28,9 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         self.image_widget, self.hardware_widget = None, None
         self._hardware_connected = False
 
-        self.lineEdit_config_filename.setText(os.path.join(cfg.BASE_PATH, "config", "piedisc.yaml"))
+        # CFG_PATH = os.path.join(cfg.BASE_PATH, "config", "piedisc.yaml")
+        CFG_PATH = os.path.join(cfg.BASE_PATH, "config", "system.yaml")        
+        self.lineEdit_config_filename.setText(CFG_PATH)
 
         self.setup_connections()
 
@@ -78,7 +80,9 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
                 self.viewer
             )
 
-            self.tabWidget_imaging.addTab(self.image_widget, "Imaging")
+            r = self.gridLayout.rowCount()
+            c = self.gridLayout.columnCount()
+            self.gridLayout.addWidget(self.image_widget, r, 0, 1, c)
 
             self.tabWidget.addTab(self.hardware_widget, "Hardware")
             self.tabWidget.addTab(self.disk_widget, "Spinning Disk")
@@ -95,10 +99,11 @@ class CLEMUI(CLEMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             )
 
         else:
-            self.tabWidget_imaging.removeTab(1)
-            
-            self.tabWidget.removeTab(2)
+            # remove self.image_widget from self.gridLayout
+            self.gridLayout.removeWidget(self.image_widget)
+
             self.tabWidget.removeTab(1)
+            self.tabWidget.removeTab(0)
 
             if self.image_widget is None:
                 return

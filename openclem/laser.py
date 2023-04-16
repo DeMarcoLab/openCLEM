@@ -5,21 +5,28 @@ class Laser(ABC):
 
     def __init__(self, laser_settings: LaserSettings, parent: 'LaserController'):
 
-        self.settings = laser_settings
         self._parent = parent
-        self.set(laser_settings)
+        self.settings = laser_settings
+        self.apply_settings(self.settings)
 
-    def set(self, settings: LaserSettings) -> None:
-        self.power = settings.power
-        self.wavelength = settings.wavelength
-        self.exposure_time = settings.exposure_time
-        self._name = settings.name
-        self._serial_id = settings.serial_id
-        self.color = settings.color
-        if settings.enabled:
-            self.enable()
-        else:
-            self.disable()
+    def get(self) -> LaserSettings:
+
+        return LaserSettings(name=self.name, 
+                                serial_id=self.serial_id, 
+                                wavelength=self.wavelength, 
+                                power=self.power,
+                                exposure_time=self.exposure_time, 
+                                enabled=self.enabled, 
+                                color=self._color)
+    
+    def apply_settings(self, laser_settings: LaserSettings):
+        self.name = laser_settings.name
+        self.serial_id = laser_settings.serial_id
+        self.wavelength = laser_settings.wavelength
+        self.power = laser_settings.power
+        self.exposure_time = laser_settings.exposure_time
+        self.enabled = laser_settings.enabled
+        self._color = laser_settings.color
 
     @classmethod
     @abstractmethod

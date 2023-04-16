@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>397</width>
-    <height>513</height>
+    <width>361</width>
+    <height>514</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,18 +15,12 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="3" column="0">
-     <spacer name="verticalSpacer_2">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_config_filename">
+      <property name="text">
+       <string>Config</string>
       </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
-      </property>
-     </spacer>
+     </widget>
     </item>
     <item row="0" column="0">
      <widget class="QLabel" name="label">
@@ -40,53 +34,45 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="0">
-     <widget class="QTabWidget" name="tabWidget">
-      <property name="currentIndex">
-       <number>0</number>
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="lineEdit_config_filename"/>
+    </item>
+    <item row="3" column="0" colspan="2">
+     <widget class="QPushButton" name="pushButton_connect_hardware">
+      <property name="text">
+       <string>Connect to Hardware</string>
       </property>
-      <widget class="QWidget" name="tab_general">
-       <attribute name="title">
-        <string>General</string>
-       </attribute>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="1">
-         <widget class="QLineEdit" name="lineEdit_config_filename"/>
-        </item>
-        <item row="2" column="0" colspan="2">
-         <widget class="QPushButton" name="pushButton_connect_hardware">
-          <property name="text">
-           <string>Connect to Hardware</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_config_filename">
-          <property name="text">
-           <string>Config</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0" colspan="2">
-         <widget class="QLabel" name="label_hardware_status">
-          <property name="text">
-           <string/>
-          </property>
-          <property name="wordWrap">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
      </widget>
     </item>
-    <item row="2" column="0">
-     <widget class="QTabWidget" name="tabWidget_imaging">
+    <item row="2" column="0" colspan="2">
+     <widget class="QLabel" name="label_hardware_status">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0" colspan="2">
+     <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
        <number>-1</number>
       </property>
      </widget>
+    </item>
+    <item row="5" column="0" colspan="2">
+     <spacer name="verticalSpacer_2">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
+      </property>
+     </spacer>
     </item>
    </layout>
   </widget>
@@ -95,7 +81,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>397</width>
+     <width>361</width>
      <height>21</height>
     </rect>
    </property>
@@ -103,10 +89,16 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionLoad_Config"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionLoad_Config">
+   <property name="text">
+    <string>Load Config</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
