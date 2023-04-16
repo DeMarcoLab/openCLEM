@@ -1,7 +1,7 @@
 import os
-from openclem import utils
-from openclem import config
-from openclem.structures import ImageMode, SynchroniserMessage, ImageSettings, DetectorSettings
+from openlm import utils
+from openlm import config
+from openlm.structures import ImageMode, SynchroniserMessage, ImageSettings, DetectorSettings
 import time
 import logging
 import numpy as np
@@ -9,7 +9,7 @@ from PIL import Image
 
 
 from dataclasses import dataclass
-from openclem.structures import (LaserSettings, ImageMode, TriggerEdge, TriggerSource, 
+from openlm.structures import (LaserSettings, ImageMode, TriggerEdge, TriggerSource, 
     DetectorSettings, ObjectiveSettings, LightImage, LightImageMetadata)
 
 

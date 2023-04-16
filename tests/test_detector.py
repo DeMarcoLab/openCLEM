@@ -1,8 +1,8 @@
 import pytest
 
 
-from openclem.structures import DetectorSettings, ConnectionSettings, ConnectionType
-from openclem.detectors.demo.demo import DemoDetector
+from openlm.structures import DetectorSettings, ConnectionSettings, ConnectionType
+from openlm.detectors.demo.demo import DemoDetector
 
 
 # import fixtures from test_structures.py

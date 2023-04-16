@@ -1,6 +1,6 @@
 import pytest
 
-from openclem.structures import (ConnectionSettings, ConnectionType,
+from openlm.structures import (ConnectionSettings, ConnectionType,
                                  DetectorSettings, ExposureMode, ImageSettings,
                                  LaserControllerSettings, LaserSettings,
                                  MicroscopeSettings, ObjectiveSettings,
@@ -436,7 +436,7 @@ def test_image_settings(image_settings: ImageSettings):
 
 ######### LightImage #########
 
-from openclem.structures import LightImage, LightImageMetadata
+from openlm.structures import LightImage, LightImageMetadata
 import numpy as np
 
 @pytest.fixture
