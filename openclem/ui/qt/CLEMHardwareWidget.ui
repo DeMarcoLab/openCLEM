@@ -122,21 +122,21 @@
        </item>
        <item row="15" column="0" colspan="3">
         <layout class="QGridLayout" name="gridLayout_laser">
-         <item row="0" column="2">
+         <item row="0" column="1">
           <widget class="QLabel" name="label_laser_power_2">
            <property name="text">
             <string>Power (%)</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="label_laser_wavelength_2">
+         <item row="0" column="3">
+          <widget class="QLabel" name="label_laser_enabled_2">
            <property name="text">
-            <string>Wavelength (nm)</string>
+            <string>Enabled</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="3">
+         <item row="0" column="2">
           <widget class="QLabel" name="label_laser_exposure_2">
            <property name="text">
             <string>Exposure (ms)</string>
@@ -147,13 +147,6 @@
           <widget class="QLabel" name="label_laser_name_2">
            <property name="text">
             <string>Laser</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="4">
-          <widget class="QLabel" name="label_laser_enabled_2">
-           <property name="text">
-            <string>Enabled</string>
            </property>
           </widget>
          </item>

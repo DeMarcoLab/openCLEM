@@ -71,27 +71,24 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         laser: Laser
         for laser in self.microscope._laser_controller.lasers.values():
             label = QtWidgets.QLabel(laser.name)
-            spinBox_wavelength = QtWidgets.QDoubleSpinBox()
             spinBox_power = QtWidgets.QDoubleSpinBox()
             spinBox_exposure = QtWidgets.QDoubleSpinBox()
             # no decimals
-            spinBox_wavelength.setDecimals(0)
             spinBox_power.setDecimals(0)
             spinBox_exposure.setDecimals(0)
             # set range
-            spinBox_wavelength.setRange(0, 10000)
             spinBox_power.setRange(0, 100)
             spinBox_exposure.setRange(0, 10000)
 
             checkBox_enable = QtWidgets.QCheckBox()
-            
-            self.laser_ui.append([label, spinBox_wavelength, spinBox_power, spinBox_exposure, checkBox_enable])
+
+            info = {} # container for name, serial_id, wavelength and color
+            self.laser_ui.append([label, spinBox_power, spinBox_exposure, checkBox_enable, info])
             r = self.gridLayout_laser.rowCount()
             self.gridLayout_laser.addWidget(label, r, 0)
-            self.gridLayout_laser.addWidget(spinBox_wavelength, r, 1)
-            self.gridLayout_laser.addWidget(spinBox_power, r, 2)
-            self.gridLayout_laser.addWidget(spinBox_exposure, r, 3)
-            self.gridLayout_laser.addWidget(checkBox_enable, r, 4)
+            self.gridLayout_laser.addWidget(spinBox_power, r, 1)
+            self.gridLayout_laser.addWidget(spinBox_exposure, r, 2)
+            self.gridLayout_laser.addWidget(checkBox_enable, r, 3)
 
 
     def update_ui(self):
@@ -146,19 +143,26 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
 
         laser = self.laser_ui[idx]
 
-        info = laser[0].text()
-        name = info.split(" - ")[0].strip()
-        serial_id = str(info.split(" - ")[1].strip()[1:-1])
-        color = info.split(" - ")[2].strip()
-        color = list(map(float, color[1:-1].split(",")))
+        # info = laser[0].text()
+        # name = info.split(" - ")[0].strip()
+        # serial_id = str(info.split(" - ")[1].strip()[1:-1])
+        # color = info.split(" - ")[2].strip()
+        # color = list(map(float, color[1:-1].split(",")))
+
+        # extra info (not shown to user)
+        info = laser[4]
+        name = info["name"]
+        serial_id = info["serial_id"]
+        color = info["color"]
+        wavelength = info["wavelength"]
 
         return LaserSettings(
             name = name,
             serial_id=serial_id, 
-            wavelength = laser[1].value(),
-            power = laser[2].value(),
-            exposure_time = laser[3].value() * constants.MILLI_TO_SI,
-            enabled = laser[4].isChecked(),
+            wavelength = wavelength,
+            power = laser[1].value(),
+            exposure_time = laser[2].value() * constants.MILLI_TO_SI,
+            enabled = laser[3].isChecked(),
             color=color,
         )
     
@@ -172,12 +176,17 @@ class CLEMHardwareWidget(CLEMHardwareWidget.Ui_Form, QtWidgets.QWidget):
 
     def set_ui_from_laser_settings(self, settings: LaserSettings, idx: int) -> None:
         
-        info = f"{settings.name} - ({settings.serial_id}) - {str(settings.color)}"
+        info = f"Channel {int(settings.wavelength)}nm"
         self.laser_ui[idx][0].setText(info)
-        self.laser_ui[idx][1].setValue(settings.wavelength)
-        self.laser_ui[idx][2].setValue(settings.power)
-        self.laser_ui[idx][3].setValue(settings.exposure_time * constants.SI_TO_MILLI)
-        self.laser_ui[idx][4].setChecked(settings.enabled)
+        self.laser_ui[idx][1].setValue(settings.power)
+        self.laser_ui[idx][2].setValue(settings.exposure_time * constants.SI_TO_MILLI)
+        self.laser_ui[idx][3].setChecked(settings.enabled)
+        self.laser_ui[idx][4] = {
+            "name": settings.name,
+            "serial_id": settings.serial_id,
+            "wavelength": settings.wavelength,
+            "color": settings.color,
+        }
 
     def apply_laser_settings(self):
 

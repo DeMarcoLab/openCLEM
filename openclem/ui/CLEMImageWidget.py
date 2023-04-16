@@ -193,7 +193,6 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
                     scale=microns_per_pixel,
                 )
 
-
                 # add scale bar
                 self.viewer.scale_bar.visible = True
                 self.viewer.scale_bar.color = "white"
@@ -207,10 +206,17 @@ class CLEMImageWidget(CLEMImageWidget.Ui_Form, QtWidgets.QWidget):
             self._reorder_layers()
         
     def _reorder_layers(self):
+        logging.info(f"Layers are being reordered")
         # get list of layer names, and order them alphabetically, using the index
         layer_names = sorted([layer.name for layer in self.viewer.layers])
         new_order = [layer_names.index(layer.name) for layer in self.viewer.layers]
         self.viewer.layers.move_multiple(new_order)
+
+        # centre the camera on the active layer, adjusting for scaling
+        image_centre = (self.viewer.layers[-1].data.shape[1] / 2, self.viewer.layers[-1].data.shape[0] / 2)# type: ignore
+        cam_centre = self.viewer.layers[-1].data_to_world(image_centre)
+        self.viewer.camera.center = cam_centre
+        self.viewer.camera.zoom = 1.0
 
     def _move_to_microscope(self):
 
