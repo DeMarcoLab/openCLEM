@@ -143,12 +143,6 @@ class OpenLMHardwareWidget(OpenLMHardwareWidget.Ui_Form, QtWidgets.QWidget):
 
         laser = self.laser_ui[idx]
 
-        # info = laser[0].text()
-        # name = info.split(" - ")[0].strip()
-        # serial_id = str(info.split(" - ")[1].strip()[1:-1])
-        # color = info.split(" - ")[2].strip()
-        # color = list(map(float, color[1:-1].split(",")))
-
         # extra info (not shown to user)
         info = laser[4]
         name = info["name"]

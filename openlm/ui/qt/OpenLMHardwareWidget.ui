@@ -14,357 +14,338 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QScrollArea" name="scrollArea">
-     <property name="widgetResizable">
-      <bool>true</bool>
+   <item row="21" column="1" colspan="2">
+    <widget class="QComboBox" name="comboBox_trigger_edge"/>
+   </item>
+   <item row="14" column="1">
+    <widget class="QDoubleSpinBox" name="doubleSpinBox_relative_position">
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
      </property>
-     <widget class="QWidget" name="scrollAreaWidgetContents">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>432</width>
-        <height>803</height>
-       </rect>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_5">
-       <item row="22" column="1">
-        <widget class="QPushButton" name="pushButton_save_position">
-         <property name="text">
-          <string>Save Position</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QSpinBox" name="spinBox_resolution_x">
-         <property name="maximum">
-          <number>1000000</number>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1" colspan="2">
-        <widget class="QComboBox" name="comboBox_trigger_source"/>
-       </item>
-       <item row="24" column="0" colspan="3">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_absolute_position">
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-         <property name="minimum">
-          <double>-100000000.000000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>1000000000.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="27" column="2">
-        <widget class="QPushButton" name="pushButton_move_relative_up">
-         <property name="text">
-          <string>Move Up</string>
-         </property>
-        </widget>
-       </item>
-       <item row="17" column="0" colspan="3">
-        <spacer name="verticalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_resolution">
-         <property name="text">
-          <string>Resolution</string>
-         </property>
-        </widget>
-       </item>
-       <item row="16" column="0" colspan="3">
-        <widget class="QPushButton" name="pushButton_apply_laser_settings">
-         <property name="text">
-          <string>Apply Laser Settings</string>
-         </property>
-        </widget>
-       </item>
-       <item row="22" column="2">
-        <widget class="QPushButton" name="pushButton_goto_saved_position">
-         <property name="text">
-          <string>Go To Saved Position</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="1" colspan="2">
-        <widget class="QComboBox" name="comboBox_exposure_mode"/>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="label_trigger_source">
-         <property name="text">
-          <string>Trigger Source</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1" colspan="2">
-        <widget class="QLineEdit" name="lineEdit_detector_name"/>
-       </item>
-       <item row="19" column="0">
-        <widget class="QLabel" name="label_current_position">
-         <property name="text">
-          <string>Current Position (um)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="15" column="0" colspan="3">
-        <layout class="QGridLayout" name="gridLayout_laser">
-         <item row="0" column="1">
-          <widget class="QLabel" name="label_laser_power_2">
-           <property name="text">
-            <string>Power (%)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="3">
-          <widget class="QLabel" name="label_laser_enabled_2">
-           <property name="text">
-            <string>Enabled</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QLabel" name="label_laser_exposure_2">
-           <property name="text">
-            <string>Exposure (ms)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_laser_name_2">
-           <property name="text">
-            <string>Laser</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="27" column="0">
-        <widget class="QPushButton" name="pushButton_move_relative_down">
-         <property name="text">
-          <string>Move Down</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="0" colspan="3">
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="0" column="0" colspan="3">
-        <widget class="QLabel" name="label_detector_header">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Detector</string>
-         </property>
-        </widget>
-       </item>
-       <item row="27" column="1">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_relative_position">
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-         <property name="minimum">
-          <double>-100000000.000000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>1000000000.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="18" column="0">
-        <widget class="QLabel" name="label_objective_header">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Objective Stage</string>
-         </property>
-        </widget>
-       </item>
-       <item row="21" column="0">
-        <widget class="QLabel" name="label_saved_position">
-         <property name="text">
-          <string>Saved Position (um)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="21" column="1" colspan="2">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_saved_position">
-         <property name="minimum">
-          <double>-1000000000.000000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>10000000000.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="19" column="1" colspan="2">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_current_position">
-         <property name="minimum">
-          <double>-10000000000.000000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>100000000.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="22" column="0">
-        <widget class="QPushButton" name="pushButton_get_position">
-         <property name="text">
-          <string>Get Position</string>
-         </property>
-        </widget>
-       </item>
-       <item row="23" column="0">
-        <widget class="QLabel" name="label_absolute_position">
-         <property name="text">
-          <string>Absolute Movement (um)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_pixelsize">
-         <property name="text">
-          <string>Pixel Size (um)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="2">
-        <widget class="QSpinBox" name="spinBox_resolution_y">
-         <property name="maximum">
-          <number>1000000000</number>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
-        <widget class="QLabel" name="label_exposure_mode">
-         <property name="text">
-          <string>Exposure Mode</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_name">
-         <property name="text">
-          <string>Name</string>
-         </property>
-        </widget>
-       </item>
-       <item row="26" column="0">
-        <widget class="QLabel" name="label_relative_position">
-         <property name="text">
-          <string>Relative Movement (um)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="label_trigger_edge">
-         <property name="text">
-          <string>Trigger Edge</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1" colspan="2">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_pixelsize">
-         <property name="decimals">
-          <number>2</number>
-         </property>
-         <property name="minimum">
-          <double>1.000000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>10000.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.010000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1" colspan="2">
-        <widget class="QComboBox" name="comboBox_trigger_edge"/>
-       </item>
-       <item row="8" column="0" colspan="3">
-        <widget class="QPushButton" name="pushButton_apply_detector_settings">
-         <property name="text">
-          <string>Apply Detector Settings</string>
-         </property>
-        </widget>
-       </item>
-       <item row="25" column="0" colspan="3">
-        <widget class="QPushButton" name="pushButton_move_absolute">
-         <property name="text">
-          <string>Move to Position</string>
-         </property>
-        </widget>
-       </item>
-       <item row="28" column="0" colspan="3">
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="12" column="0" colspan="3">
-        <widget class="QLabel" name="label">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Laser Controller</string>
-         </property>
-        </widget>
-       </item>
-       <item row="13" column="0" colspan="2">
-        <widget class="QLabel" name="label_lc_name">
-         <property name="text">
-          <string>Name</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+     <property name="minimum">
+      <double>-100000000.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>1000000000.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="20" column="0">
+    <widget class="QLabel" name="label_trigger_source">
+     <property name="text">
+      <string>Trigger Source</string>
+     </property>
+    </widget>
+   </item>
+   <item row="19" column="2">
+    <widget class="QSpinBox" name="spinBox_resolution_y">
+     <property name="maximum">
+      <number>1000000000</number>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <widget class="QLabel" name="label_saved_position">
+     <property name="text">
+      <string>Saved Position (um)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="18" column="0">
+    <widget class="QLabel" name="label_pixelsize">
+     <property name="text">
+      <string>Pixel Size (um)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="21" column="0">
+    <widget class="QLabel" name="label_trigger_edge">
+     <property name="text">
+      <string>Trigger Edge</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="2">
+    <widget class="QPushButton" name="pushButton_move_relative_up">
+     <property name="text">
+      <string>Move Up</string>
+     </property>
+    </widget>
+   </item>
+   <item row="17" column="0">
+    <widget class="QLabel" name="label_name">
+     <property name="text">
+      <string>Name</string>
+     </property>
+    </widget>
+   </item>
+   <item row="22" column="0">
+    <widget class="QLabel" name="label_exposure_mode">
+     <property name="text">
+      <string>Exposure Mode</string>
+     </property>
+    </widget>
+   </item>
+   <item row="17" column="1" colspan="2">
+    <widget class="QLineEdit" name="lineEdit_detector_name"/>
+   </item>
+   <item row="14" column="0">
+    <widget class="QPushButton" name="pushButton_move_relative_down">
+     <property name="text">
+      <string>Move Down</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_current_position">
+     <property name="text">
+      <string>Current Position (um)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="1">
+    <widget class="QPushButton" name="pushButton_save_position">
+     <property name="text">
+      <string>Save Position</string>
+     </property>
+    </widget>
+   </item>
+   <item row="20" column="1" colspan="2">
+    <widget class="QComboBox" name="comboBox_trigger_source"/>
+   </item>
+   <item row="18" column="1" colspan="2">
+    <widget class="QDoubleSpinBox" name="doubleSpinBox_pixelsize">
+     <property name="decimals">
+      <number>2</number>
+     </property>
+     <property name="minimum">
+      <double>1.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>10000.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.010000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="1" colspan="2">
+    <widget class="QDoubleSpinBox" name="doubleSpinBox_saved_position">
+     <property name="minimum">
+      <double>-1000000000.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>10000000000.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="35" column="0" colspan="3">
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="8" column="2">
+    <widget class="QPushButton" name="pushButton_goto_saved_position">
+     <property name="text">
+      <string>Go To Saved Position</string>
+     </property>
+    </widget>
+   </item>
+   <item row="34" column="0" colspan="3">
+    <widget class="QPushButton" name="pushButton_apply_detector_settings">
+     <property name="text">
+      <string>Apply Detector Settings</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1" colspan="2">
+    <widget class="QDoubleSpinBox" name="doubleSpinBox_current_position">
+     <property name="minimum">
+      <double>-10000000000.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>100000000.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="19" column="1">
+    <widget class="QSpinBox" name="spinBox_resolution_x">
+     <property name="maximum">
+      <number>1000000</number>
+     </property>
+    </widget>
+   </item>
+   <item row="19" column="0">
+    <widget class="QLabel" name="label_resolution">
+     <property name="text">
+      <string>Resolution</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0">
+    <widget class="QPushButton" name="pushButton_get_position">
+     <property name="text">
+      <string>Get Position</string>
+     </property>
+    </widget>
+   </item>
+   <item row="22" column="1" colspan="2">
+    <widget class="QComboBox" name="comboBox_exposure_mode"/>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="QLabel" name="label_lc_name">
+     <property name="text">
+      <string>Name</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="3">
+    <layout class="QGridLayout" name="gridLayout_laser">
+     <item row="0" column="1">
+      <widget class="QLabel" name="label_laser_power_2">
+       <property name="text">
+        <string>Power (%)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="3">
+      <widget class="QLabel" name="label_laser_enabled_2">
+       <property name="text">
+        <string>Enabled</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QLabel" name="label_laser_exposure_2">
+       <property name="text">
+        <string>Exposure (ms)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_laser_name_2">
+       <property name="text">
+        <string>Laser</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="3" column="0" colspan="3">
+    <widget class="QPushButton" name="pushButton_apply_laser_settings">
+     <property name="text">
+      <string>Apply Laser Settings</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="3">
+    <spacer name="verticalSpacer_3">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="9" column="0" colspan="3">
+    <widget class="QLabel" name="label_absolute_position">
+     <property name="text">
+      <string>Absolute Movement (um)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="0" colspan="2">
+    <widget class="QDoubleSpinBox" name="doubleSpinBox_absolute_position">
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="minimum">
+      <double>-100000000.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>1000000000.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="2">
+    <widget class="QPushButton" name="pushButton_move_absolute">
+     <property name="text">
+      <string>Move to Position</string>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="0" colspan="3">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="13" column="0" colspan="3">
+    <widget class="QLabel" name="label_relative_position">
+     <property name="text">
+      <string>Relative Movement (um)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0" colspan="3">
+    <widget class="QLabel" name="label_objective_header">
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Objective Stage</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="3">
+    <widget class="QLabel" name="label">
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Laser Controller</string>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="0" colspan="3">
+    <widget class="QLabel" name="label_detector_header">
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Detector</string>
+     </property>
     </widget>
    </item>
   </layout>
