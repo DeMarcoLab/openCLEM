@@ -520,3 +520,12 @@ class LightImage:
                 metadata = None
                 print(traceback.format_exc())
         return cls(data=data, metadata=metadata)
+
+
+
+@dataclass
+class TileSettings:
+    n_rows: int
+    n_cols: int
+    shift: float
+

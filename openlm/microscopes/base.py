@@ -144,7 +144,7 @@ class BaseLightMicroscope(LightMicroscope):
     
     # TODO: consolidate these two functions when you are smarter
 
-    def consume_image_queue(self):
+    def consume_image_queue(self, save: bool = False):
 
         # update metadata
         metadata = self._update_image_metadata()
@@ -171,9 +171,11 @@ class BaseLightMicroscope(LightMicroscope):
                     )
                     image.metadata.time = utils.current_timestamp()
                     
-                    import os
-                    fname = os.path.join(os.getcwd(), str(image.metadata.time))
-                    image.save(fname)
+                    if save:
+                        import os
+                        fname = os.path.join(os.getcwd(), str(image.metadata.time))
+                        image.save(fname)
+                        logging.info(f"Image saved to {fname}")
                     logging.info(f"Image: {image.data.shape} {image.metadata.time}")
                     logging.info(f"-"*50)
 
@@ -191,11 +193,11 @@ class BaseLightMicroscope(LightMicroscope):
     
     from napari.qt.threading import thread_worker
     @thread_worker
-    def consume_image_queue_ui(self):
+    def consume_image_queue_ui(self, save: bool = False):
 
         # update metadata
         metadata = self._update_image_metadata()
-
+        logging.info("Consuming image queue")
         # consume queue
         try:
             counter = 0
@@ -218,7 +220,7 @@ class BaseLightMicroscope(LightMicroscope):
                     )
                     image.metadata.time = utils.current_timestamp()
                     
-                    save = False
+                    save = True
                     if save:
                         import os
                         fname = os.path.join(os.getcwd(), str(image.metadata.time))

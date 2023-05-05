@@ -10,12 +10,12 @@ from PyQt5 import QtWidgets
 from openlm import constants
 from openlm.microscope import LightMicroscope
 from openlm.structures import (ImageMode, ImageSettings, LightImage,
-                                 SynchroniserMessage, TriggerEdge)
+                                 SynchroniserMessage, TriggerEdge, TileSettings)
 from openlm.ui import OpenLMHardwareWidget
 from openlm.ui.qt import OpenLMImageWidget
 
 try:
-    from fibsem import constants, conversions, utils
+    from fibsem import constants, conversions
     from fibsem.structures import BeamType, Point, FibsemStagePosition
     FIBSEM = True
 except ImportError:
@@ -35,8 +35,6 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.viewer = viewer
         self._n_layers = len(self.viewer.layers)
         self.image = None
-        # grid mode on
-        # self.viewer.grid.enabled = True
 
         self.hardware_widget = hardware_widget
         self.stop_event = threading.Event()
@@ -56,6 +54,16 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.pushButton_save_image.clicked.connect(self.save_image)
 
         self.pushButton_move_microscope.clicked.connect(self._move_to_microscope)
+
+
+
+        # tile
+        self.pushButton_run_tiling.clicked.connect(self.run_tiling)
+
+        self.spinBox_tile_rows.valueChanged.connect(self.update_tile_positions)
+        self.spinBox_tile_columns.valueChanged.connect(self.update_tile_positions)
+        self.doubleSpinBox_tile_shift.valueChanged.connect(self.update_tile_positions)
+
 
     def save_image(self):
         
@@ -109,7 +117,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         microscope.get_synchroniser().stop_sync()
         microscope.get_synchroniser().sync_image(sync_message)
 
-    def pushButton_acquire_image_clicked(self):
+    def pushButton_acquire_image_clicked(self, single_image:bool=False, save=False):
 
         # check if acquisition is already running
         if not self.stop_event.is_set():
@@ -129,8 +137,11 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         # self.lm: LightMicroscope = self.hardware_widget.microscope
         self.lm.setup_acquisition()
 
+        if single_image:
+            image_settings.mode = ImageMode.SINGLE
+
         # TODO: disable other microscope interactions
-        worker = self.lm.consume_image_queue_ui()
+        worker = self.lm.consume_image_queue_ui(save=save)
         worker.returned.connect(self.update_live_finished)  # type: ignore
         worker.yielded.connect(self.update_live)  # type: ignore
         worker.start()
@@ -300,14 +311,12 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             f"Movement: STABLE | COORD {coords} | SHIFT {point.x:.2e}, {point.y:.2e} | {beam_type}"
         )
 
-        # logging.info(f"Microscope Stage Position: {self.lm.fibsem_microscope.get_stage_position()}")
         self.lm.fibsem_microscope.stable_move(
                 settings=self.lm.fibsem_settings,
                 dx=point.x,
                 dy=point.y,
                 beam_type=BeamType.ION,
             )
-        # logging.info(f"Microscope Stage Position: {self.lm.fibsem_microscope.get_stage_position()}")
 
     def get_data_from_coord(self, coords: tuple) -> tuple:
         # check inside image dimensions, (y, x)
@@ -324,7 +333,116 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
     def closeEvent(self, event):
         self.viewer.layers.clear()
         event.accept()
+    
 
+    def take_image_sync(self):
+    
+        image_settings, sync_message = self.get_settings_from_ui()
+
+        # # TODO: disable other microscope interactions
+        # worker = self.lm.consume_image_queue_ui()
+        # worker.returned.connect(self.update_live_finished)  # type: ignore
+        # worker.yielded.connect(self.update_live)  # type: ignore
+        # worker.start()
+
+        image_settings.mode = ImageMode.SINGLE
+
+        # acquire image
+        self.image_queue, self.stop_event = self.lm.acquire_image( 
+            image_settings=image_settings,
+            sync_message=sync_message,
+            stop_event=self.stop_event,
+        )
+        print("Acquired image")
+        import time
+        time.sleep(2)
+
+        self.lm.consume_image_queue_ui(save=True)
+
+        print("Consumed image")
+
+
+    def run_tiling(self):
+        logging.info(f"Running tiling")
+
+        self.update_tile_positions()
+
+
+        n_rows, n_cols = self.tile_settings.n_rows, self.tile_settings.n_cols
+
+
+        dx = 10e-6
+        dy = 10e-6
+
+        base_position = self.lm.fibsem_microscope.get_stage_position()
+
+        import time
+        for row in range(n_rows):
+            
+            self.lm.fibsem_microscope.move_stage_absolute(base_position)
+
+            self.lm.fibsem_microscope.stable_move(
+                        settings=self.lm.fibsem_settings,
+                        dx=0,
+                        dy=row*dy,
+                        beam_type=BeamType.ION,
+                    )     
+
+            for col in range(n_cols):
+                msg = f"Running tiling: {row}, {col}"
+                logging.info(msg)
+                                
+                stage_position = self.lm.fibsem_microscope.get_stage_position()      
+                logging.info(f"start: {stage_position}")
+                
+
+                # move stage
+                if col != 0:
+                    self.lm.fibsem_microscope.stable_move(
+                            settings=self.lm.fibsem_settings,
+                            dx=dx,
+                            dy=0,
+                            beam_type=BeamType.ION,
+                        )  
+                    
+
+                # take image
+                # save image 
+                logging.info(f"--"*50)
+                logging.info(f"Taking Image {row}, {col}")
+                # self.take_image_sync()
+                self.pushButton_acquire_image_clicked(single_image=True, save=True)
+                logging.info(f"--"*50)
+                # time.sleep(1)
+
+                # time.sleep(2)
+                while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
+                    logging.info(f"Image Queue: {self.image_queue.qsize()}")
+                    time.sleep(1)
+
+                
+                stage_position = self.lm.fibsem_microscope.get_stage_position()
+                logging.info(f"end: {stage_position}")
+
+        self.lm.fibsem_microscope.move_stage_absolute(base_position)
+
+
+    def update_tile_positions(self):
+
+        n_rows = self.spinBox_tile_rows.value()
+        n_cols = self.spinBox_tile_columns.value()
+        tile_shift = self.doubleSpinBox_tile_shift.value()
+                   
+
+
+        # total squares
+        n_squares = n_rows * n_cols
+
+        self.tile_settings = TileSettings(
+            n_rows=n_rows, n_cols=n_cols, shift=tile_shift)
+
+        self.label_info_1.setText(f"{self.tile_settings}")
+        self.label_info_2.setText(f"Total Squares: {n_squares}")
 
 def main():
     viewer = napari.Viewer(ndisplay=2)
