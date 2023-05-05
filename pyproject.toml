@@ -3,10 +3,10 @@ requires = ["wheel", "setuptools>=45", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-write_to = "openclem/_version.py"
+write_to = "openlm/_version.py"
 
 [project]
-name = "openclem"
+name = "openlm"
 authors = [
     {name = "David Dierickx", email = "David.Dierickx1@monash.edu"},
 ]

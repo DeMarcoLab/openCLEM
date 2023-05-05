@@ -1,0 +1,83 @@
+# TODO: move individual configs to their own folders
+name: piedisc
+online: true
+
+laser_controller:
+  name: 89North_ldi
+  connection:
+    type: serial
+    settings:
+      port: COM8
+      baudrate: 9600
+      timeout: 10000
+  laser: 89North_ldi_Laser
+
+detector:
+  name: hamamatsuOrcaFlash4
+  pixel_size: 6.5e-6
+  resolution: [2048, 2048]
+  connection:
+    type: software
+    settings: null
+  trigger_source: EXTERNAL
+  trigger_edge: RISING
+  exposure_mode: TRIGGER_WIDTH
+  timeout: 10000 # ms
+
+lasers:
+- name: 'laser_1'
+  serial_id: '640'
+  wavelength: 640.
+  power: 0.
+  exposure_time: 0.0
+  enabled: False
+  color: [1, 0., 0.]
+- name: 'laser_2'
+  serial_id: '555'
+  wavelength: 555.
+  power: 80.
+  exposure_time: 0.5
+  enabled: False
+  color: [0, 1, 0]
+- name: 'laser_3'
+  serial_id: '488'
+  wavelength: 488.
+  power: 80.
+  exposure_time: 0.5
+  enabled: False
+  # color: [1, 0.56, 0.2]
+  color: [0, 1, 0]
+- name: 'laser_4'
+  serial_id: '405'
+  wavelength: 405.
+  power: 0.
+  exposure_time: 0.0
+  enabled: False
+  color: [0.58, 0.168, 0.137]
+
+synchroniser:
+  name: leonardo
+  connection:
+    type: serial
+    settings:
+      port: COM7
+      baudrate: 115200
+      timeout: 1
+  pins: 
+    laser_1: 12
+    laser_2: 5
+    laser_3: 17
+    laser_4: 2
+    detector: 3 
+
+objective_stage: 
+  name: smaract
+  magnification: 10
+  connection: 
+    type: socket
+    settings:
+      host: '169.254.111.111'
+      port: 139
+      timeout: 5.0
+# TODO: make timeouts/timings in general universal
+# TODO: make socket and serial a single comm setting?

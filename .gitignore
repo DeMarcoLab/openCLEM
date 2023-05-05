@@ -85,8 +85,8 @@ docs/_build/
 target/
 *.tif*
 
-# openclem
-openclem/_version.py
+# openlm
+openlm/_version.py
 *.npy
 *.png
 *.code-workspace

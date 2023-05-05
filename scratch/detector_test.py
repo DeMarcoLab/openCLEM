@@ -1,7 +1,7 @@
 import os
-from openclem import utils
-from openclem import config
-from openclem.structures import SynchroniserMessage, ImageSettings, DetectorSettings
+from openlm import utils
+from openlm import config
+from openlm.structures import SynchroniserMessage, ImageSettings, DetectorSettings
 import time
 import matplotlib.pyplot as plt
 
