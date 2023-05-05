@@ -300,14 +300,14 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             f"Movement: STABLE | COORD {coords} | SHIFT {point.x:.2e}, {point.y:.2e} | {beam_type}"
         )
 
-        logging.info(f"Microscope Stage Position: {self.lm.fibsem_microscope.get_stage_position()}")
+        # logging.info(f"Microscope Stage Position: {self.lm.fibsem_microscope.get_stage_position()}")
         self.lm.fibsem_microscope.stable_move(
                 settings=self.lm.fibsem_settings,
                 dx=point.x,
                 dy=point.y,
                 beam_type=BeamType.ION,
             )
-        logging.info(f"Microscope Stage Position: {self.lm.fibsem_microscope.get_stage_position()}")
+        # logging.info(f"Microscope Stage Position: {self.lm.fibsem_microscope.get_stage_position()}")
 
     def get_data_from_coord(self, coords: tuple) -> tuple:
         # check inside image dimensions, (y, x)
