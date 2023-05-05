@@ -13,6 +13,12 @@ from openlm.ui.OpenLMSpinningDiskWidget import OpenLMSpinningDiskWidget
 from openlm import config as cfg
 import os
 
+try:
+    from fibsem import utils as fibsem_utils
+    FIBSEM = True
+except ImportError:
+    FIBSEM = False
+
 
 class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
     def __init__(
@@ -50,6 +56,9 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         else:
             try:
                 self.microscope, self.settings = utils.setup_session(config_path=config_filename)
+
+                if FIBSEM:
+                    self.microscope.fibsem_microscope, self.microscope.fibsem_settings = fibsem_utils.setup_session()
 
                 logging.info("Connected to hardware")
                 napari.utils.notifications.show_info("Connected to hardware")

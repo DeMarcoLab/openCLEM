@@ -15,7 +15,7 @@ from openlm.structures import (ImageSettings, LightImage, LightImageMetadata,
                                  SynchroniserMessage)
 from openlm.synchronisation import Synchroniser
 
-
+# THIS IS ACTUALLY THE PIESCOPE
 class BaseLightMicroscope(LightMicroscope):
     def __init__(self, name: str):
         self.name = name
@@ -24,6 +24,7 @@ class BaseLightMicroscope(LightMicroscope):
         self._objective = None
         self._laser_controller = None
         self._synchroniser = None
+        self.fibsem_microscope = None
 
     def connect(self):
         self._detector.connect()
@@ -119,6 +120,15 @@ class BaseLightMicroscope(LightMicroscope):
         logging.info(f"Exposure indices: {exposure_indices}")
         logging.info(f"Number of exposures: {n_channels}")
 
+        if self.fibsem_microscope:
+            from openlm.structures import StagePosition
+            stage_f = self.fibsem_microscope.get_stage_position()
+            print("STAGE POSITION:", stage_f)
+            # stage = StagePosition(stage_f.x, stage_f.y. stage_f.z, stage_f.r, stage_f.t)
+            stage = StagePosition(0, 0, 0, 0, 0)
+        else:
+            stage = StagePosition(0, 0, 0, 0, 0)
+
         metadata = LightImageMetadata(
             n_channels=n_channels,
             channels=exposure_indices,
@@ -128,6 +138,7 @@ class BaseLightMicroscope(LightMicroscope):
             objective=self.get_objective().position,
             image= self.image_settings,
             sync=self.sync_message,
+            stage=stage,
         )
         return metadata
     

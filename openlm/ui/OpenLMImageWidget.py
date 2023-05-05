@@ -41,11 +41,9 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.hardware_widget = hardware_widget
         self.stop_event = threading.Event()
         self.stop_event.set()
+        self.lm: LightMicroscope = self.hardware_widget.microscope # TODO need to check we are updating this correctly
 
         self.setup_connections()
-
-        if FIBSEM:
-            self.microscope, self.settings = utils.setup_session()
 
 
     def setup_connections(self):
@@ -128,7 +126,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             self.pushButton_acquire_image.setStyleSheet("background-color: orange")
 
         image_settings, sync_message = self.get_settings_from_ui()
-        self.lm: LightMicroscope = self.hardware_widget.microscope
+        # self.lm: LightMicroscope = self.hardware_widget.microscope
         self.lm.setup_acquisition()
 
         # TODO: disable other microscope interactions
@@ -223,8 +221,13 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         # TODO: fully implement this when have hardware
         _translation = {"x": 49.6167e-3, "y": -0.339e-3, "z": 0.137e-3} # TODO: move to config
         
-        current_position_x = self.microscope.get_stage_position().x
-        # current_position_x = np.random.choice([np.random.randint(-10, 10), np.random.randint(40, 60)])
+        if self.lm.fibsem_microscope is None:
+            msg = f"Stage Movement is disabled (No OpenFIBSEM)"
+            napari.utils.notifications.show_info(msg)
+            logging.info(msg)
+            return   
+
+        current_position_x = self.lm.fibsem_microscope.get_stage_position().x
 
         fibsem_min = -10.e-3
         fibsem_max = 10.e-3
@@ -253,15 +256,10 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         logging.info(f"Moving to microscope: x={x}, y={y}, z={z}")
         new_position = FibsemStagePosition(x=x, y=y, z=z, r=0, t=0)
-        # self.microscope.stable_move(new_position, beamtype=BeamType.ION)
-        self.microscope.move_stage_relative(new_position)
+        self.lm.fibsem_microscope.move_stage_relative(new_position)
 
         
-        if FIBSEM is False:
-            msg = f"Stage Movement is disabled (No OpenFIBSEM)"
-            napari.utils.notifications.show_info(msg)
-            logging.info(msg)
-            return   
+
 
 
     def _double_click(self, layer, event):
@@ -277,7 +275,8 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
                 f"Clicked outside image dimensions. Please click inside the image to move."
             )
             return
-        if FIBSEM is False:
+        
+        if self.lm.fibsem_microscope is None:
             msg = f"Stage Movement is disabled (No OpenFIBSEM): Coords: {coords[0]:.2f}, {coords[1]:.2f} "
             napari.utils.notifications.show_info(msg)
             logging.info(msg)
@@ -301,14 +300,14 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             f"Movement: STABLE | COORD {coords} | SHIFT {point.x:.2e}, {point.y:.2e} | {beam_type}"
         )
 
-        logging.info(f"Microscope Stage Position: {self.microscope.get_stage_position()}")
-        self.microscope.stable_move(
-                settings=self.settings,
+        logging.info(f"Microscope Stage Position: {self.lm.fibsem_microscope.get_stage_position()}")
+        self.lm.fibsem_microscope.stable_move(
+                settings=self.lm.fibsem_settings,
                 dx=point.x,
                 dy=point.y,
                 beam_type=BeamType.ION,
             )
-        logging.info(f"Microscope Stage Position: {self.microscope.get_stage_position()}")
+        logging.info(f"Microscope Stage Position: {self.lm.fibsem_microscope.get_stage_position()}")
 
     def get_data_from_coord(self, coords: tuple) -> tuple:
         # check inside image dimensions, (y, x)

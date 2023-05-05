@@ -397,7 +397,33 @@ class MicroscopeSettings:
             "online": self.online,
         }
 
+@dataclass
+class StagePosition:
+    x: float
+    y: float
+    z: float
+    r: float
+    t: float
 
+    def __to_dict__(self) -> dict:
+        return {
+            "x": self.x,
+            "y": self.y,
+            "z": self.z,
+            "r": self.r,
+            "t": self.t,
+        }
+    
+    @staticmethod
+    def __from_dict__(settings: dict) -> "StagePosition":
+        stage_position = StagePosition(
+            x=settings["x"],
+            y=settings["y"],
+            z=settings["z"],
+            r=settings["r"],
+            t=settings["t"],
+        )
+        return stage_position
 @dataclass
 class LightImageMetadata:
     n_channels: int  # number of channels
@@ -408,6 +434,7 @@ class LightImageMetadata:
     objective: ObjectiveSettings  # objective settings
     image: ImageSettings  # image settings
     sync: SynchroniserMessage  # sync settings
+    stage: StagePosition # stage position
 
     def __to_dict__(self) -> dict:
         return dict(
@@ -419,6 +446,7 @@ class LightImageMetadata:
             objective=self.objective,  # TODO: this is only the position currently
             image=self.image.__to_dict__(),
             sync=self.sync.__to_dict__(),
+            stage=self.stage.__to_dict__(),
         )
 
     @classmethod
@@ -432,6 +460,7 @@ class LightImageMetadata:
             objective=data["objective"],  # TODO: this is only the position currently
             image=ImageSettings.__from_dict__(data["image"]),
             sync=SynchroniserMessage.__from_dict__(data["sync"]),
+            stage=StagePosition.__from_dict__(data["stage"]),
         )
 
     def __repr__(self) -> str:
