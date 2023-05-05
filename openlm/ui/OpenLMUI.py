@@ -102,8 +102,8 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             # remove self.image_widget from self.gridLayout
             self.gridLayout.removeWidget(self.image_widget)
 
+            self.tabWidget.removeTab(2)
             self.tabWidget.removeTab(1)
-            self.tabWidget.removeTab(0)
 
             if self.image_widget is None:
                 return
