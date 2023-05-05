@@ -225,6 +225,7 @@ class BaseLightMicroscope(LightMicroscope):
                         import os
                         fname = os.path.join(os.getcwd(), str(image.metadata.time))
                         image.save(fname)
+                        logging.info(f"Image saved to {fname}")
                     logging.info(f"Image: {image.data.shape} {image.metadata.time}")
                     logging.info(f"-"*50)
 

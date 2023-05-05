@@ -122,7 +122,6 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         # check if acquisition is already running
         if not self.stop_event.is_set():
             self.stop_event.set()
-            # microscope: LightMicroscope = self.hardware_widget.microscope
             self.lm.get_synchroniser().stop_sync()
             logging.info("Stopping Image Acquistion")
             # self.pushButton_update_settings.setVisible(False)
@@ -391,13 +390,10 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             for col in range(n_cols):
                 msg = f"Running tiling: {row}, {col}"
                 logging.info(msg)
-                                
-                stage_position = self.lm.fibsem_microscope.get_stage_position()      
-                logging.info(f"start: {stage_position}")
-                
-
+                                       
                 # move stage
                 if col != 0:
+                    # TODO: LOCK
                     self.lm.fibsem_microscope.stable_move(
                             settings=self.lm.fibsem_settings,
                             dx=dx,
@@ -419,10 +415,6 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
                 while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
                     logging.info(f"Image Queue: {self.image_queue.qsize()}")
                     time.sleep(1)
-
-                
-                stage_position = self.lm.fibsem_microscope.get_stage_position()
-                logging.info(f"end: {stage_position}")
 
         self.lm.fibsem_microscope.move_stage_absolute(base_position)
 
