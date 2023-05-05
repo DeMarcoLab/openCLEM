@@ -45,7 +45,8 @@ lasers:
   power: 80.
   exposure_time: 0.5
   enabled: False
-  color: [1, 0.56, 0.2]
+  # color: [1, 0.56, 0.2]
+  color: [0, 1, 0]
 - name: 'laser_4'
   serial_id: '405'
   wavelength: 405.

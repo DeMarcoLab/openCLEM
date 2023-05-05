@@ -28,8 +28,8 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         self.image_widget, self.hardware_widget = None, None
         self._hardware_connected = False
 
-        # CFG_PATH = os.path.join(cfg.BASE_PATH, "config", "piedisc.yaml")
-        CFG_PATH = os.path.join(cfg.BASE_PATH, "config", "system.yaml")        
+        CFG_PATH = os.path.join(cfg.BASE_PATH, "config", "piedisc.yaml")
+        # CFG_PATH = os.path.join(cfg.BASE_PATH, "config", "system.yaml")        
         self.lineEdit_config_filename.setText(CFG_PATH)
 
         self.setup_connections()

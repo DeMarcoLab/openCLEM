@@ -16,7 +16,7 @@ from openlm.ui.qt import OpenLMImageWidget
 
 try:
     from fibsem import constants, conversions, utils
-    from fibsem.structures import BeamType, Point
+    from fibsem.structures import BeamType, Point, FibsemStagePosition
     FIBSEM = True
 except ImportError:
     FIBSEM = False
@@ -221,15 +221,15 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
     def _move_to_microscope(self):
 
         # TODO: fully implement this when have hardware
-        _translation = {"x": 50.541, "y": 0.442, "z": 0.0422}
+        _translation = {"x": 49.6167e-3, "y": -0.339e-3, "z": 0.137e-3} # TODO: move to config
         
-        # current_position_x = self.microscope.get_stage_position().x
-        current_position_x = np.random.choice([np.random.randint(-10, 10), np.random.randint(40, 60)])
+        current_position_x = self.microscope.get_stage_position().x
+        # current_position_x = np.random.choice([np.random.randint(-10, 10), np.random.randint(40, 60)])
 
-        fibsem_min = -10
-        fibsem_max = 10
-        lm_min = 40
-        lm_max = 60
+        fibsem_min = -10.e-3
+        fibsem_max = 10.e-3
+        lm_min = 40.e-3
+        lm_max = 60.e-3
 
         x = _translation["x"]
         y = _translation["y"]
@@ -252,8 +252,10 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         napari.utils.notifications.show_info(msg)
 
         logging.info(f"Moving to microscope: x={x}, y={y}, z={z}")
-        # new_position = FibsemStagePosition(x=x, y=y, z=z, r=0, t=0)
-        # self.microscope.stable_move(new_position, BeamType.ION)
+        new_position = FibsemStagePosition(x=x, y=y, z=z, r=0, t=0)
+        # self.microscope.stable_move(new_position, beamtype=BeamType.ION)
+        self.microscope.move_stage_relative(new_position)
+
         
         if FIBSEM is False:
             msg = f"Stage Movement is disabled (No OpenFIBSEM)"
