@@ -136,8 +136,6 @@ class OpenLMCalibrationWidget(OpenLMCalibrationWidget.Ui_Form, QtWidgets.QWidget
 
         self.update_ui()
 
-        # TODO: hook up to objective stage movement
-
     def save_calibration(self):
         logging.info("save_calibration")
 
@@ -146,13 +144,15 @@ class OpenLMCalibrationWidget(OpenLMCalibrationWidget.Ui_Form, QtWidgets.QWidget
         # self.microscope.fibsem_settings.system.stage.tilt_flat_to_electron += self.dpretilt
         self.parent.microscope.fibsem_settings.system.stage.tilt_flat_to_electron += self.dpretilt
 
-        # TODO: need to update the parent
-
-
-        # save to file
-        # allow raw editing of value
-
         self.update_ui()
+
+
+# TODO:
+# - give access to system pre-tilt through UI
+# - live update when objective changes or stage moves
+# - write changes to system.yaml
+# - button: update stage tilt to flat to beam when pre-tilt changes
+# - safety checks
 
 
 def main():
