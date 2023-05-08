@@ -5,7 +5,7 @@ import napari
 import napari.utils.notifications
 import numpy as np
 import vispy.color as v_color
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 
 from openlm import constants
 from openlm.microscope import LightMicroscope
@@ -21,8 +21,10 @@ try:
 except ImportError:
     FIBSEM = False
 
+import time
 
 class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
+    image_signal = QtCore.pyqtSignal(dict)
     def __init__(
         self,
         hardware_widget: OpenLMHardwareWidget,
@@ -54,6 +56,9 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.pushButton_save_image.clicked.connect(self.save_image)
 
         self.pushButton_move_microscope.clicked.connect(self._move_to_microscope)
+
+
+        self.image_signal.connect(self.update_image)
 
 
 
@@ -140,9 +145,8 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             image_settings.mode = ImageMode.SINGLE
 
         # TODO: disable other microscope interactions
-        worker = self.microscope.consume_image_queue_ui(save=save)
+        worker = self.microscope.consume_image_queue(parent_ui=self)
         worker.returned.connect(self.update_live_finished)  # type: ignore
-        worker.yielded.connect(self.update_live)  # type: ignore
         worker.start()
 
         # acquire image
@@ -151,6 +155,96 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             sync_message=sync_message,
             stop_event=self.stop_event,
         )
+
+    def setup_workflow(self):
+
+        dat = {"type": "image", "sync": None, "settings": None}
+
+        mode = ImageMode.SINGLE
+        image_settings, sync_message = self.get_settings_from_ui()
+        image_settings.mode = mode
+        image_settings.n_images = len([v for v in sync_message.exposures if v > 0])
+
+        dat["settings"] = image_settings
+        dat["sync"] = sync_message
+
+        # stage move
+        dat2 = {"type": "move_stage", "dx": 10e-6, "dy": 0e-6}
+        dat3 = {"type": "move_stage", "dx": 0e-6, "dy": 10e-6}
+        
+        # obj move
+        dat4 = {"type": "move_objective", "dz": 500e-6}
+
+        from copy import deepcopy
+        # self.workflow = [dat, dat2, deepcopy(dat), dat3, deepcopy(dat)]
+        self.workflow = [dat, dat4, deepcopy(dat)]
+        
+        logging.info(f"Workflow: {self.workflow}")
+         
+
+    def run_workflow(self):
+        
+        self.idx = 0
+        # self.workflow = workflow
+
+        self.run_workflow_step()
+
+
+    def run_workflow_step(self):
+
+        step = self.workflow[self.idx]
+
+        logging.info(f"Running Workflow Step: {step}")
+
+        if step["type"] == "image":
+
+            self.stop_event.clear()
+            self.microscope.setup_acquisition()
+    
+            # TODO: disable other microscope interactions
+            worker = self.microscope.consume_image_queue(parent_ui=self)
+            worker.returned.connect(self.finish_workflow_step)  # type: ignore
+            worker.start()
+
+            time.sleep(1)
+
+            # acquire image
+            self.image_queue, self.stop_event = self.microscope.acquire_image( 
+                image_settings=step["settings"],
+                sync_message=step["sync"],
+                stop_event=self.stop_event,
+            )
+
+        if step["type"] == "move_stage":
+            logging.info(step)
+
+            worker = self.microscope.move_stage(dx=step["dx"], dy=step["dy"])
+            worker.returned.connect(self.finish_workflow_step)  # type: ignore
+            worker.start()
+
+        if step["type"] == "move_objective":
+            
+            logging.info(f"Objective Move: {step}")
+            worker = self.microscope.move_objective_stage(dz=step["dz"])
+            worker.returned.connect(self.finish_workflow_step)  # type: ignore
+            worker.start()
+
+    def finish_workflow_step(self):
+
+        logging.info("Finished Workflow Step")
+        self.idx += 1
+        logging.info(f"Workflow: {self.idx}/{len(self.workflow)}")
+
+        if self.idx < len(self.workflow):
+            self.run_workflow_step()
+        else:
+            logging.info("Finished Workflow")
+  
+    def update_image(self, dat: dict):
+
+        logging.info(f"recv: {dat.keys()}")
+
+        self.update_live(dat["image"])
 
     def update_live(self, result: LightImage):
 
@@ -330,61 +424,65 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
     
 
     def run_tiling(self):
-        logging.info(f"Running tiling")
-
-        self.update_tile_positions()
+        logging.info(f"Running Workflow")
 
 
-        n_rows, n_cols = self.tile_settings.n_rows, self.tile_settings.n_cols
+        self.setup_workflow()
+
+        self.run_workflow()
 
 
-        dx = 10e-6
-        dy = 10e-6
+        # self.update_tile_positions()
+        # n_rows, n_cols = self.tile_settings.n_rows, self.tile_settings.n_cols
 
-        base_position = self.microscope.fibsem_microscope.get_stage_position()
 
-        import time
-        for row in range(n_rows):
+        # dx = 10e-6
+        # dy = 10e-6
+
+        # base_position = self.microscope.fibsem_microscope.get_stage_position()
+
+        # import time
+        # for row in range(n_rows):
             
-            self.microscope.fibsem_microscope.move_stage_absolute(base_position)
+        #     self.microscope.fibsem_microscope.move_stage_absolute(base_position)
 
-            self.microscope.fibsem_microscope.stable_move(
-                        settings=self.microscope.fibsem_settings,
-                        dx=0,
-                        dy=row*dy,
-                        beam_type=BeamType.ION,
-                    )     
+        #     self.microscope.fibsem_microscope.stable_move(
+        #                 settings=self.microscope.fibsem_settings,
+        #                 dx=0,
+        #                 dy=row*dy,
+        #                 beam_type=BeamType.ION,
+        #             )     
 
-            for col in range(n_cols):
-                msg = f"Running tiling: {row}, {col}"
-                logging.info(msg)
+        #     for col in range(n_cols):
+        #         msg = f"Running tiling: {row}, {col}"
+        #         logging.info(msg)
                                        
-                # move stage
-                if col != 0:
-                    # TODO: LOCK
-                    self.microscope.fibsem_microscope.stable_move(
-                            settings=self.microscope.fibsem_settings,
-                            dx=dx,
-                            dy=0,
-                            beam_type=BeamType.ION,
-                        )  
+        #         # move stage
+        #         if col != 0:
+        #             # TODO: LOCK
+        #             self.microscope.fibsem_microscope.stable_move(
+        #                     settings=self.microscope.fibsem_settings,
+        #                     dx=dx,
+        #                     dy=0,
+        #                     beam_type=BeamType.ION,
+        #                 )  
                     
 
-                # take image
-                # save image 
-                logging.info(f"--"*50)
-                logging.info(f"Taking Image {row}, {col}")
-                # self.take_image_sync()
-                self.pushButton_acquire_image_clicked(single_image=True, save=True)
-                logging.info(f"--"*50)
-                # time.sleep(1)
+        #         # take image
+        #         # save image 
+        #         logging.info(f"--"*50)
+        #         logging.info(f"Taking Image {row}, {col}")
+        #         # self.take_image_sync()
+        #         self.pushButton_acquire_image_clicked(single_image=True, save=True)
+        #         logging.info(f"--"*50)
+        #         # time.sleep(1)
 
-                # time.sleep(2)
-                while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
-                    logging.info(f"Image Queue: {self.image_queue.qsize()}")
-                    time.sleep(1)
+        #         # time.sleep(2)
+        #         while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
+        #             logging.info(f"Image Queue: {self.image_queue.qsize()}")
+        #             time.sleep(1)
 
-        self.microscope.fibsem_microscope.move_stage_absolute(base_position)
+        # self.microscope.fibsem_microscope.move_stage_absolute(base_position)
 
 
     def update_tile_positions(self):

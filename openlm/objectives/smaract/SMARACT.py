@@ -198,6 +198,7 @@ class SMARACTObjectiveStage(ObjectiveStage):
             Return string from the stage controller.
             Gives information about whether or not call succeeded.
         """
+        logging.info(f"Moving {self.name} objective by relative distance: {distance:.4e}m")
         
         # convert to nm
         distance = int(distance*constants.SI_TO_NANO)
@@ -223,6 +224,7 @@ class SMARACTObjectiveStage(ObjectiveStage):
             Return string from the stage controller.
             Gives information about whether or not call succeeded.
         """
+        logging.info(f"Moving {self.name} objective to absolute position: {position:.4e}m")
 
         # convert to nm
         position = int(position*constants.SI_TO_NANO)

@@ -79,10 +79,6 @@ class LightMicroscope(ABC):
     def consume_image_queue(self):
         pass
 
-    @abstractmethod
-    def consume_image_queue_ui(self):
-        pass
-
     def get_lasers(microscope) -> list[LaserSettings]:
         lasers = microscope.get_laser_controller().lasers
         return [microscope.get_laser_controller().get_laser(laser).get() for laser in lasers]

@@ -19,12 +19,19 @@ from openlm.structures import (
 )
 from openlm.synchronisation import Synchroniser
 from openlm.structures import OpenLMStagePosition, ImageMode
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
+
+# import QtWidget
+from PyQt5.QtWidgets import QWidget
+
 
 QUEUE_TIMEOUT = 5
 
+from napari.qt.threading import thread_worker
 
 # THIS IS ACTUALLY THE PIESCOPE
 class BaseLightMicroscope(LightMicroscope):
+    
     def __init__(self, name: str):
         self.name = name
         self._connection = None
@@ -135,11 +142,10 @@ class BaseLightMicroscope(LightMicroscope):
             from fibsem.structures import FibsemStagePosition
 
             stage_f: FibsemStagePosition = self.fibsem_microscope.get_stage_position()
-            print("STAGE POSITION:", stage_f)
             stage = OpenLMStagePosition(
                 x=stage_f.x, y=stage_f.y, z=stage_f.z, r=stage_f.r, t=stage_f.t
             )
-        #     stage = OpenLMStagePosition(x=0, y=0, z=0, r=0, t=0)
+
         else:
             stage = OpenLMStagePosition(x=0, y=0, z=0, r=0, t=0)
 
@@ -156,9 +162,9 @@ class BaseLightMicroscope(LightMicroscope):
         )
         return metadata
 
-    # TODO: consolidate these two functions when you are smarter
-
-    def consume_image_queue(self, save: bool = False):
+    
+    @thread_worker
+    def consume_image_queue(self, save: bool = False, parent_ui: QWidget = None):
         # update metadata
         metadata = self._update_image_metadata()
         logging.info("Consuming image queue")
@@ -177,23 +183,22 @@ class BaseLightMicroscope(LightMicroscope):
                     or self.image_settings.mode is ImageMode.LIVE
                 )
             ):
-                logging.info(
-                    f"ImageSettings: {self.image_settings.mode}, {self.image_settings.n_images}, {counter}"
-                )
-                logging.info(f"Image Queue size: {self.image_queue.qsize()}")
-                logging.info(f"STOP EVENT: {not self.stop_event.is_set()}")
-                logging.info(f"COUNTER: {(counter < self.image_settings.n_images) or self.image_settings.mode is ImageMode.LIVE}")
-                # get image
+                # logging.info(
+                #     f"ImageSettings: {self.image_settings.mode}, {self.image_settings.n_images}, {counter}"
+                # )
+                # logging.info(f"Image Queue size: {self.image_queue.qsize()}")
+                # logging.info(f"STOP EVENT: {not self.stop_event.is_set()}")
+                # logging.info(f"COUNTER: {(counter < self.image_settings.n_images) or self.image_settings.mode is ImageMode.LIVE}")
+                # # get image
                 image = self.image_queue.get()
-                logging.info(f"Image: {image.shape}")
+                
                 channel = counter % metadata.n_channels
                 if channel == 0:
                     # expand dims to add channel axis
                     arr = np.expand_dims(image, axis=-1)
                 else:
                     arr = np.dstack((arr, image))
-                logging.info(f"COUNTER: {counter}")
-
+                
                 if channel == metadata.n_channels - 1:
                     image = LightImage(
                         data=arr,
@@ -208,6 +213,10 @@ class BaseLightMicroscope(LightMicroscope):
                         logging.info(f"Image saved to {fname}")
                     logging.info(f"Image: {image.data.shape} {image.metadata.time}")
                     logging.info(f"-" * 50)
+
+                    # emit this as a signal
+                    if parent_ui is not None:
+                        parent_ui.image_signal.emit({"image": image})
 
                 counter += 1
 
@@ -221,52 +230,47 @@ class BaseLightMicroscope(LightMicroscope):
             self.get_synchroniser().stop_sync()
             logging.info("Thread stopped.")
 
-    from napari.qt.threading import thread_worker
+    @thread_worker
+    def move_stage(self, dx:float, dy: float):
+
+        from fibsem.structures import BeamType
+
+        self.fibsem_microscope.stable_move(
+                        settings=self.fibsem_settings,
+                        dx=dx,
+                        dy=dy,
+                        beam_type=BeamType.ION,
+                    )
+
+        return
+    
 
     @thread_worker
-    def consume_image_queue_ui(self, save: bool = False):
-        # update metadata
-        metadata = self._update_image_metadata()
-        logging.info("Consuming image queue")
-        # consume queue
-        try:
-            counter = 0
-            while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
-                # get image
-                image = self.image_queue.get()
+    def move_objective_stage(self, dz:float):
 
-                channel = counter % metadata.n_channels
-                if channel == 0:
-                    # expand dims to add channel axis
-                    arr = np.expand_dims(image, axis=-1)
-                else:
-                    arr = np.dstack((arr, image))
+        # move objective
+        desired_position = self.get_objective().position + dz
+        self.get_objective().relative_move(dz)
 
-                if channel == metadata.n_channels - 1:
-                    image = LightImage(
-                        data=arr,
-                        metadata=metadata,
-                    )
-                    image.metadata.time = utils.current_timestamp()
+        # poll untill there is no change in position
+        last_position = self.get_objective().position
 
-                    save = False
-                    if save:
-                        import os
+        logging.info("Polling objective position")
+        _counter = 5
 
-                        fname = os.path.join(os.getcwd(), str(image.metadata.time))
-                        image.save(fname)
-                        logging.info(f"Image saved to {fname}")
-                    logging.info(f"Image: {image.data.shape} {image.metadata.time}")
-                    logging.info(f"-" * 50)
+        while not np.isclose(desired_position, last_position, atol=10e-9):
+            
+            time.sleep(0.5) # TODO: OPTIMIZATION
 
-                    yield image
-                counter += 1
+            last_position = self.get_objective().position
+            logging.info(f"Desired: {desired_position:.5e}, Position: {last_position:.5e}, diff: {desired_position - last_position:.5e}")
+            
+            self.get_objective().absolute_move(desired_position)
 
-        except Exception as e:
-            self.stop_event.set()
-            logging.error(traceback.format_exc())
-        finally:
-            self.get_synchroniser().stop_sync()
-            logging.info("Thread stopped.")
+            if _counter == 0:
+                logging.info("Objective position not reached")
+                break
 
+            _counter -= 1
+            
         return
