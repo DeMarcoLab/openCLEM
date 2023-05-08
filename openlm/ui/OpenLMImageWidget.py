@@ -9,22 +9,31 @@ from PyQt5 import QtWidgets, QtCore
 
 from openlm import constants
 from openlm.microscope import LightMicroscope
-from openlm.structures import (ImageMode, ImageSettings, LightImage,
-                                 SynchroniserMessage, TriggerEdge, TileSettings)
+from openlm.structures import (
+    ImageMode,
+    ImageSettings,
+    LightImage,
+    SynchroniserMessage,
+    TriggerEdge,
+    TileSettings,
+)
 from openlm.ui import OpenLMHardwareWidget
 from openlm.ui.qt import OpenLMImageWidget
 
 try:
     from fibsem import constants, conversions
     from fibsem.structures import BeamType, Point, FibsemStagePosition
+
     FIBSEM = True
 except ImportError:
     FIBSEM = False
 
 import time
 
+
 class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
     image_signal = QtCore.pyqtSignal(dict)
+
     def __init__(
         self,
         hardware_widget: OpenLMHardwareWidget,
@@ -41,10 +50,11 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.hardware_widget = hardware_widget
         self.stop_event = threading.Event()
         self.stop_event.set()
-        self.microscope: LightMicroscope = self.hardware_widget.microscope # TODO need to check we are updating this correctly
+        self.microscope: LightMicroscope = (
+            self.hardware_widget.microscope
+        )  # TODO need to check we are updating this correctly
 
         self.setup_connections()
-
 
     def setup_connections(self):
         self.pushButton_acquire_image.clicked.connect(
@@ -57,10 +67,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         self.pushButton_move_microscope.clicked.connect(self._move_to_microscope)
 
-
         self.image_signal.connect(self.update_image)
-
-
 
         # tile
         self.pushButton_run_tiling.clicked.connect(self.run_tiling)
@@ -69,32 +76,30 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.spinBox_tile_columns.valueChanged.connect(self.update_tile_positions)
         self.doubleSpinBox_tile_shift.valueChanged.connect(self.update_tile_positions)
 
-
     def save_image(self):
-        
         if self.image is None:
             napari.utils.notifications.show_info(f"No image to save")
-            return 
-        
+            return
+
         import os
+
         label = f"{self.lineEdit_save_label.text()}_{self.image.metadata.time}"
-        
+
         fname = os.path.join(label)
         self.image.save(fname)
         napari.utils.notifications.show_info(f"Saved image to {fname}")
 
- 
     def get_settings_from_ui(self):
         image_settings = ImageSettings(
-            pixel_size=1e-9, 
-            exposure=0.25, # Software exposure...
+            pixel_size=1e-9,
+            exposure=0.25,  # Software exposure...
             mode=ImageMode[self.comboBox_imaging_mode.currentText()],
         )
 
         # get laser exposures
         microscope: LightMicroscope = self.hardware_widget.microscope
         exposure_times = microscope.get_laser_controller().get_exposure_times().values()
-        exposures = [int(v *constants.SI_TO_MILLI) for v in exposure_times]
+        exposures = [int(v * constants.SI_TO_MILLI) for v in exposure_times]
 
         # number of non zero exposures
         image_settings.n_images = len([v for v in exposures if v > 0])
@@ -108,8 +113,8 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
                 "laser4": 4,
             },  # TODO actually do something
             mode=image_settings.mode,
-            n_slices=image_settings.n_images,# TODO: get from UI
-            trigger_edge=TriggerEdge.RISING, # TODO: get from UI
+            n_slices=image_settings.n_images,  # TODO: get from UI
+            trigger_edge=TriggerEdge.RISING,  # TODO: get from UI
         )
         return image_settings, sync_message
 
@@ -122,8 +127,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         microscope.get_synchroniser().stop_sync()
         microscope.get_synchroniser().sync_image(sync_message)
 
-    def pushButton_acquire_image_clicked(self, single_image:bool=False, save=False):
-
+    def pushButton_acquire_image_clicked(self, single_image: bool = False, save=False):
         # check if acquisition is already running
         if not self.stop_event.is_set():
             self.stop_event.set()
@@ -150,66 +154,103 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         worker.start()
 
         # acquire image
-        self.image_queue, self.stop_event = self.microscope.acquire_image( 
+        self.image_queue, self.stop_event = self.microscope.acquire_image(
             image_settings=image_settings,
             sync_message=sync_message,
             stop_event=self.stop_event,
         )
 
     def setup_workflow(self):
-
-        dat = {"type": "image", "sync": None, "settings": None}
+        dat_image = {"type": "image", "sync": None, "settings": None}
 
         mode = ImageMode.SINGLE
         image_settings, sync_message = self.get_settings_from_ui()
         image_settings.mode = mode
         image_settings.n_images = len([v for v in sync_message.exposures if v > 0])
 
-        dat["settings"] = image_settings
-        dat["sync"] = sync_message
+        dat_image["settings"] = image_settings
+        dat_image["sync"] = sync_message
 
         # stage move
-        dat2 = {"type": "move_stage", "dx": 10e-6, "dy": 0e-6}
-        dat3 = {"type": "move_stage", "dx": 0e-6, "dy": 10e-6}
-        
+        datx = {"type": "move_stage", "dx": 100e-6, "dy": 0e-6}
+        daty = {"type": "move_stage", "dx": 0e-6, "dy": 300e-6}
+        dat_move_back = {"type": "move_stage", "dx": -200e-6, "dy": -100e-6}
+
         # obj move
-        dat4 = {"type": "move_objective", "dz": 500e-6}
+        dat_obj = {"type": "move_objective", "dz": -5e-6}
+        dat_obj_up = {"type": "move_objective", "dz": 10e-6}
 
         from copy import deepcopy
-        # self.workflow = [dat, dat2, deepcopy(dat), dat3, deepcopy(dat)]
-        self.workflow = [dat, dat4, deepcopy(dat)]
-        
+
+        # self.workflow = [
+        #                 # 1
+        #                  dat_image,
+        #                  datx,
+        #                  deepcopy(dat_image),
+        #                  datx,
+        #                  deepcopy(dat_image),
+        #                  dat_move_back,
+        #                  # 2
+        #                  deepcopy(dat_image),
+        #                  datx,
+        #                  deepcopy(dat_image),
+        #                  datx,
+        #                  deepcopy(dat_image),
+        #                  dat_move_back,
+        #                  # 3
+        #                  deepcopy(dat_image),
+        #                  datx,
+        #                  deepcopy(dat_image),
+        #                  datx,
+        #                  deepcopy(dat_image),
+        #                  dat_move_back,
+        #                 #  deepcopy(dat_image),
+        #                  daty
+        #                 # deepcopy(dat_image),
+        #                  ]
+
+        self.workflow = [
+            deepcopy(dat_image),
+            dat_obj_up,
+            deepcopy(dat_image),
+            dat_obj,
+            deepcopy(dat_image),
+            dat_obj,
+            deepcopy(dat_image),
+            dat_obj,
+            deepcopy(dat_image),
+            dat_obj,
+            deepcopy(dat_image),
+            dat_obj_up,
+            deepcopy(dat_image),
+        ]
+
         logging.info(f"Workflow: {self.workflow}")
-         
 
     def run_workflow(self):
-        
         self.idx = 0
         # self.workflow = workflow
 
         self.run_workflow_step()
 
-
     def run_workflow_step(self):
-
         step = self.workflow[self.idx]
 
         logging.info(f"Running Workflow Step: {step}")
 
         if step["type"] == "image":
-
             self.stop_event.clear()
             self.microscope.setup_acquisition()
-    
+
             # TODO: disable other microscope interactions
-            worker = self.microscope.consume_image_queue(parent_ui=self)
+            worker = self.microscope.consume_image_queue(save=True, parent_ui=self)
             worker.returned.connect(self.finish_workflow_step)  # type: ignore
             worker.start()
 
             time.sleep(1)
 
             # acquire image
-            self.image_queue, self.stop_event = self.microscope.acquire_image( 
+            self.image_queue, self.stop_event = self.microscope.acquire_image(
                 image_settings=step["settings"],
                 sync_message=step["sync"],
                 stop_event=self.stop_event,
@@ -223,14 +264,18 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             worker.start()
 
         if step["type"] == "move_objective":
-            
             logging.info(f"Objective Move: {step}")
             worker = self.microscope.move_objective_stage(dz=step["dz"])
             worker.returned.connect(self.finish_workflow_step)  # type: ignore
             worker.start()
 
-    def finish_workflow_step(self):
+        if step["type"] == "restore_state":
+            logging.info("Restoring Microscope")
+            # self.microscope.restore()
 
+            # self.finish_workflow_step()
+
+    def finish_workflow_step(self):
         logging.info("Finished Workflow Step")
         self.idx += 1
         logging.info(f"Workflow: {self.idx}/{len(self.workflow)}")
@@ -239,26 +284,28 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             self.run_workflow_step()
         else:
             logging.info("Finished Workflow")
-  
-    def update_image(self, dat: dict):
 
+    def update_image(self, dat: dict):
         logging.info(f"recv: {dat.keys()}")
 
         self.update_live(dat["image"])
 
     def update_live(self, result: LightImage):
-
         self.image = result
         info = {}
 
         for i, laser in enumerate(self.image.metadata.lasers):
             info[i] = {
                 "color": v_color.Colormap([[0, 0, 0], laser.color]),
-                "display_name": f"Channel {int(laser.wavelength)}nm"
+                "display_name": f"Channel {int(laser.wavelength)}nm",
             }
 
         for i, channel in enumerate(self.image.metadata.channels):
-            self.update_viewer(self.image.data[:, :, i], info[channel]["display_name"], info[channel]["color"])
+            self.update_viewer(
+                self.image.data[:, :, i],
+                info[channel]["display_name"],
+                info[channel]["color"],
+            )
 
     def update_live_finished(self):
         self.pushButton_acquire_image.setText("Acquire Image")
@@ -268,15 +315,17 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         if name in self.viewer.layers:
             self.viewer.layers[name].data = arr
         else:
-
-            layer = self.viewer.add_image(data=arr, 
-                                        name=name, 
-                                        opacity=0.7, 
-                                        blending="additive", 
+            layer = self.viewer.add_image(
+                data=arr,
+                name=name,
+                opacity=0.7,
+                blending="additive",
             )
             layer.colormap = name, color
-            
-            pixelsize = 125e-6 / 350 * constants.SI_TO_MICRO # MEASURED # microns per pixel
+
+            pixelsize = (
+                125e-6 / 350 * constants.SI_TO_MICRO
+            )  # MEASURED # microns per pixel
             microns_per_pixel = [pixelsize, pixelsize]
             layer.scale = microns_per_pixel
 
@@ -305,7 +354,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         if self._n_layers != len(self.viewer.layers):
             self._n_layers = len(self.viewer.layers)
             self._reorder_layers()
-        
+
     def _reorder_layers(self):
         logging.info(f"Layers are being reordered")
         # get list of layer names, and order them alphabetically, using the index
@@ -314,44 +363,49 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.viewer.layers.move_multiple(new_order)
 
         # centre the camera on the active layer, adjusting for scaling
-        image_centre = (self.viewer.layers[-1].data.shape[1] / 2, self.viewer.layers[-1].data.shape[0] / 2)# type: ignore
+        image_centre = (self.viewer.layers[-1].data.shape[1] / 2, self.viewer.layers[-1].data.shape[0] / 2)  # type: ignore
         cam_centre = self.viewer.layers[-1].data_to_world(image_centre)
         self.viewer.camera.center = cam_centre
         self.viewer.camera.zoom = 1.0
 
     def _move_to_microscope(self):
-
         # TODO: fully implement this when have hardware
-        _translation = {"x": 49.6167e-3, "y": -0.339e-3, "z": 0.137e-3} # TODO: move to config
-        
+        _translation = {
+            "x": 49.6167e-3,
+            "y": -0.339e-3,
+            "z": 0.137e-3,
+        }  # TODO: move to config
+
         if self.microscope.fibsem_microscope is None:
             msg = f"Stage Movement is disabled (No OpenFIBSEM)"
             napari.utils.notifications.show_info(msg)
             logging.info(msg)
-            return   
+            return
 
         current_position_x = self.microscope.fibsem_microscope.get_stage_position().x
 
-        fibsem_min = -10.e-3
-        fibsem_max = 10.e-3
-        lm_min = 40.e-3
-        lm_max = 60.e-3
+        fibsem_min = -10.0e-3
+        fibsem_max = 10.0e-3
+        lm_min = 40.0e-3
+        lm_max = 60.0e-3
 
         x = _translation["x"]
         y = _translation["y"]
         z = _translation["z"]
-        
+
         logging.info(f"Current position: {current_position_x}")
         msg: str
         if fibsem_min < current_position_x < fibsem_max:
-           msg = 'Under FIBSEM, moving to light microscope'
+            msg = "Under FIBSEM, moving to light microscope"
         elif lm_min < current_position_x < lm_max:
             x = -x
             y = -y
             z = -z
-            msg = 'Under light microscope, moving to FIBSEM'
+            msg = "Under light microscope, moving to FIBSEM"
         else:
-            logging.warn('Not positioned under the either microscope, cannot move to other microscope')
+            logging.warn(
+                "Not positioned under the either microscope, cannot move to other microscope"
+            )
             return
 
         logging.info(msg)
@@ -362,7 +416,6 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.microscope.fibsem_microscope.move_stage_relative(new_position)
 
     def _double_click(self, layer, event):
-
         # get coords
         coords = layer.world_to_data(event.position)
 
@@ -374,24 +427,25 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
                 f"Clicked outside image dimensions. Please click inside the image to move."
             )
             return
-        
+
         if self.microscope.fibsem_microscope is None:
             msg = f"Stage Movement is disabled (No OpenFIBSEM): Coords: {coords[0]:.2f}, {coords[1]:.2f} "
             napari.utils.notifications.show_info(msg)
             logging.info(msg)
             return
 
-
         # image = self.image
-        nominal_pixelsize = 6.5e-6 / 20 #/ 2.94 # PATENTED_TECHNOLOGY
-        pixelsize = 125e-6 / 350 # MEASURED
+        nominal_pixelsize = 6.5e-6 / 20  # / 2.94 # PATENTED_TECHNOLOGY
+        pixelsize = 125e-6 / 350  # MEASURED
 
         # 6.5um/20px = 0.325 um/px
-        #125um/350px = 0.35714285714285715 um/px
+        # 125um/350px = 0.35714285714285715 um/px
         # 1/0.35714285714285715 = 2.8 px/um
 
         point = conversions.image_to_microscope_image_coordinates(
-            Point(x=coords[1], y=coords[0]), image, pixelsize,
+            Point(x=coords[1], y=coords[0]),
+            image,
+            pixelsize,
         )
         logging.info(f"IMAGE: {image.shape}, PIXELSIZE: {pixelsize:.2e}")
 
@@ -400,11 +454,11 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         )
 
         self.microscope.fibsem_microscope.stable_move(
-                settings=self.microscope.fibsem_settings,
-                dx=point.x,
-                dy=point.y,
-                beam_type=BeamType.ION,
-            )
+            settings=self.microscope.fibsem_settings,
+            dx=point.x,
+            dy=point.y,
+            beam_type=BeamType.ION,
+        )
 
     def get_data_from_coord(self, coords: tuple) -> tuple:
         # check inside image dimensions, (y, x)
@@ -421,20 +475,16 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
     def closeEvent(self, event):
         self.viewer.layers.clear()
         event.accept()
-    
 
     def run_tiling(self):
         logging.info(f"Running Workflow")
-
 
         self.setup_workflow()
 
         self.run_workflow()
 
-
         # self.update_tile_positions()
         # n_rows, n_cols = self.tile_settings.n_rows, self.tile_settings.n_cols
-
 
         # dx = 10e-6
         # dy = 10e-6
@@ -443,7 +493,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         # import time
         # for row in range(n_rows):
-            
+
         #     self.microscope.fibsem_microscope.move_stage_absolute(base_position)
 
         #     self.microscope.fibsem_microscope.stable_move(
@@ -451,12 +501,12 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         #                 dx=0,
         #                 dy=row*dy,
         #                 beam_type=BeamType.ION,
-        #             )     
+        #             )
 
         #     for col in range(n_cols):
         #         msg = f"Running tiling: {row}, {col}"
         #         logging.info(msg)
-                                       
+
         #         # move stage
         #         if col != 0:
         #             # TODO: LOCK
@@ -465,11 +515,10 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         #                     dx=dx,
         #                     dy=0,
         #                     beam_type=BeamType.ION,
-        #                 )  
-                    
+        #                 )
 
         #         # take image
-        #         # save image 
+        #         # save image
         #         logging.info(f"--"*50)
         #         logging.info(f"Taking Image {row}, {col}")
         #         # self.take_image_sync()
@@ -484,23 +533,21 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         # self.microscope.fibsem_microscope.move_stage_absolute(base_position)
 
-
     def update_tile_positions(self):
-
         n_rows = self.spinBox_tile_rows.value()
         n_cols = self.spinBox_tile_columns.value()
         tile_shift = self.doubleSpinBox_tile_shift.value()
-                   
-
 
         # total squares
         n_squares = n_rows * n_cols
 
         self.tile_settings = TileSettings(
-            n_rows=n_rows, n_cols=n_cols, shift=tile_shift)
+            n_rows=n_rows, n_cols=n_cols, shift=tile_shift
+        )
 
         self.label_info_1.setText(f"{self.tile_settings}")
         self.label_info_2.setText(f"Total Squares: {n_squares}")
+
 
 def main():
     viewer = napari.Viewer(ndisplay=2)
