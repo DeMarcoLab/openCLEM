@@ -39,7 +39,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.hardware_widget = hardware_widget
         self.stop_event = threading.Event()
         self.stop_event.set()
-        self.lm: LightMicroscope = self.hardware_widget.microscope # TODO need to check we are updating this correctly
+        self.microscope: LightMicroscope = self.hardware_widget.microscope # TODO need to check we are updating this correctly
 
         self.setup_connections()
 
@@ -122,7 +122,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         # check if acquisition is already running
         if not self.stop_event.is_set():
             self.stop_event.set()
-            self.lm.get_synchroniser().stop_sync()
+            self.microscope.get_synchroniser().stop_sync()
             logging.info("Stopping Image Acquistion")
             # self.pushButton_update_settings.setVisible(False)
             return
@@ -133,20 +133,20 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             self.pushButton_acquire_image.setStyleSheet("background-color: orange")
 
         image_settings, sync_message = self.get_settings_from_ui()
-        # self.lm: LightMicroscope = self.hardware_widget.microscope
-        self.lm.setup_acquisition()
+        # self.microscope: LightMicroscope = self.hardware_widget.microscope
+        self.microscope.setup_acquisition()
 
         if single_image:
             image_settings.mode = ImageMode.SINGLE
 
         # TODO: disable other microscope interactions
-        worker = self.lm.consume_image_queue_ui(save=save)
+        worker = self.microscope.consume_image_queue_ui(save=save)
         worker.returned.connect(self.update_live_finished)  # type: ignore
         worker.yielded.connect(self.update_live)  # type: ignore
         worker.start()
 
         # acquire image
-        self.image_queue, self.stop_event = self.lm.acquire_image( 
+        self.image_queue, self.stop_event = self.microscope.acquire_image( 
             image_settings=image_settings,
             sync_message=sync_message,
             stop_event=self.stop_event,
@@ -205,7 +205,6 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
                 self.viewer.scale_bar.visible = True
                 self.viewer.scale_bar.color = "white"
                 # update to actual units: https://forum.image.sc/t/setting-scale-bar-units-in-other-than-pixels-real-coordinates/49158/12
-                # NB: i think this might break click to move
                 self.viewer.scale_bar.unit = "um"
 
         # reorder layers
@@ -231,13 +230,13 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         # TODO: fully implement this when have hardware
         _translation = {"x": 49.6167e-3, "y": -0.339e-3, "z": 0.137e-3} # TODO: move to config
         
-        if self.lm.fibsem_microscope is None:
+        if self.microscope.fibsem_microscope is None:
             msg = f"Stage Movement is disabled (No OpenFIBSEM)"
             napari.utils.notifications.show_info(msg)
             logging.info(msg)
             return   
 
-        current_position_x = self.lm.fibsem_microscope.get_stage_position().x
+        current_position_x = self.microscope.fibsem_microscope.get_stage_position().x
 
         fibsem_min = -10.e-3
         fibsem_max = 10.e-3
@@ -266,11 +265,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         logging.info(f"Moving to microscope: x={x}, y={y}, z={z}")
         new_position = FibsemStagePosition(x=x, y=y, z=z, r=0, t=0)
-        self.lm.fibsem_microscope.move_stage_relative(new_position)
-
-        
-
-
+        self.microscope.fibsem_microscope.move_stage_relative(new_position)
 
     def _double_click(self, layer, event):
 
@@ -286,7 +281,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             )
             return
         
-        if self.lm.fibsem_microscope is None:
+        if self.microscope.fibsem_microscope is None:
             msg = f"Stage Movement is disabled (No OpenFIBSEM): Coords: {coords[0]:.2f}, {coords[1]:.2f} "
             napari.utils.notifications.show_info(msg)
             logging.info(msg)
@@ -310,8 +305,8 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             f"Movement: STABLE | COORD {coords} | SHIFT {point.x:.2e}, {point.y:.2e} | {beam_type}"
         )
 
-        self.lm.fibsem_microscope.stable_move(
-                settings=self.lm.fibsem_settings,
+        self.microscope.fibsem_microscope.stable_move(
+                settings=self.microscope.fibsem_settings,
                 dx=point.x,
                 dy=point.y,
                 beam_type=BeamType.ION,
@@ -334,33 +329,6 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         event.accept()
     
 
-    def take_image_sync(self):
-    
-        image_settings, sync_message = self.get_settings_from_ui()
-
-        # # TODO: disable other microscope interactions
-        # worker = self.lm.consume_image_queue_ui()
-        # worker.returned.connect(self.update_live_finished)  # type: ignore
-        # worker.yielded.connect(self.update_live)  # type: ignore
-        # worker.start()
-
-        image_settings.mode = ImageMode.SINGLE
-
-        # acquire image
-        self.image_queue, self.stop_event = self.lm.acquire_image( 
-            image_settings=image_settings,
-            sync_message=sync_message,
-            stop_event=self.stop_event,
-        )
-        print("Acquired image")
-        import time
-        time.sleep(2)
-
-        self.lm.consume_image_queue_ui(save=True)
-
-        print("Consumed image")
-
-
     def run_tiling(self):
         logging.info(f"Running tiling")
 
@@ -373,15 +341,15 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         dx = 10e-6
         dy = 10e-6
 
-        base_position = self.lm.fibsem_microscope.get_stage_position()
+        base_position = self.microscope.fibsem_microscope.get_stage_position()
 
         import time
         for row in range(n_rows):
             
-            self.lm.fibsem_microscope.move_stage_absolute(base_position)
+            self.microscope.fibsem_microscope.move_stage_absolute(base_position)
 
-            self.lm.fibsem_microscope.stable_move(
-                        settings=self.lm.fibsem_settings,
+            self.microscope.fibsem_microscope.stable_move(
+                        settings=self.microscope.fibsem_settings,
                         dx=0,
                         dy=row*dy,
                         beam_type=BeamType.ION,
@@ -394,8 +362,8 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
                 # move stage
                 if col != 0:
                     # TODO: LOCK
-                    self.lm.fibsem_microscope.stable_move(
-                            settings=self.lm.fibsem_settings,
+                    self.microscope.fibsem_microscope.stable_move(
+                            settings=self.microscope.fibsem_settings,
                             dx=dx,
                             dy=0,
                             beam_type=BeamType.ION,
@@ -416,7 +384,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
                     logging.info(f"Image Queue: {self.image_queue.qsize()}")
                     time.sleep(1)
 
-        self.lm.fibsem_microscope.move_stage_absolute(base_position)
+        self.microscope.fibsem_microscope.move_stage_absolute(base_position)
 
 
     def update_tile_positions(self):

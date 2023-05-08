@@ -11,9 +11,17 @@ from openlm.detector import Detector
 from openlm.laser import LaserController
 from openlm.microscope import LightMicroscope
 from openlm.objective import ObjectiveStage
-from openlm.structures import (ImageSettings, LightImage, LightImageMetadata,
-                                 SynchroniserMessage)
+from openlm.structures import (
+    ImageSettings,
+    LightImage,
+    LightImageMetadata,
+    SynchroniserMessage,
+)
 from openlm.synchronisation import Synchroniser
+from openlm.structures import OpenLMStagePosition, ImageMode
+
+QUEUE_TIMEOUT = 5
+
 
 # THIS IS ACTUALLY THE PIESCOPE
 class BaseLightMicroscope(LightMicroscope):
@@ -42,7 +50,7 @@ class BaseLightMicroscope(LightMicroscope):
         # self._detector.initialise() # REFACTOR
         # self._laser_controller.initialise() # REFACTOR
         # self._objective.initialise()
-        self._laser_controller.initialise() # mvoe to INIT
+        self._laser_controller.initialise()  # mvoe to INIT
 
     def add_detector(self, detector: Detector):
         self._detector = detector
@@ -74,17 +82,18 @@ class BaseLightMicroscope(LightMicroscope):
         # Set up lasers
 
         # for laser in self._laser_controller.lasers:
-            # self._laser_controller.set_power(laser, 4.0)
-            # self._laser_controller.set_power(laser, laser_settings.power)
+        # self._laser_controller.set_power(laser, 4.0)
+        # self._laser_controller.set_power(laser, laser_settings.power)
         # TODO: add in laser_settings for hardware triggering
 
         for laser in self._laser_controller.lasers:
             logging.info(f"Laser: {laser}: {self._laser_controller.get_power(laser)}")
 
     def acquire_image(
-        self, image_settings: ImageSettings, 
-        sync_message: SynchroniserMessage, 
-        stop_event: threading.Event= threading.Event()
+        self,
+        image_settings: ImageSettings,
+        sync_message: SynchroniserMessage,
+        stop_event: threading.Event = threading.Event(),
     ):
         # Set up detector # TODO: move this into initialise
         self._detector.init_camera()
@@ -114,20 +123,25 @@ class BaseLightMicroscope(LightMicroscope):
         # update image metadata
 
         # get index of non-zero exposures
-        exposure_indices = [i for i, v in enumerate(self.sync_message.exposures) if v > 0]
+        exposure_indices = [
+            i for i, v in enumerate(self.sync_message.exposures) if v > 0
+        ]
         n_channels = len(exposure_indices)
 
         logging.info(f"Exposure indices: {exposure_indices}")
         logging.info(f"Number of exposures: {n_channels}")
 
         if self.fibsem_microscope:
-            from openlm.structures import StagePosition
-            stage_f = self.fibsem_microscope.get_stage_position()
+            from fibsem.structures import FibsemStagePosition
+
+            stage_f: FibsemStagePosition = self.fibsem_microscope.get_stage_position()
             print("STAGE POSITION:", stage_f)
-            # stage = StagePosition(stage_f.x, stage_f.y. stage_f.z, stage_f.r, stage_f.t)
-            stage = StagePosition(0, 0, 0, 0, 0)
+            stage = OpenLMStagePosition(
+                x=stage_f.x, y=stage_f.y, z=stage_f.z, r=stage_f.r, t=stage_f.t
+            )
+        #     stage = OpenLMStagePosition(x=0, y=0, z=0, r=0, t=0)
         else:
-            stage = StagePosition(0, 0, 0, 0, 0)
+            stage = OpenLMStagePosition(x=0, y=0, z=0, r=0, t=0)
 
         metadata = LightImageMetadata(
             n_channels=n_channels,
@@ -136,33 +150,49 @@ class BaseLightMicroscope(LightMicroscope):
             time=utils.current_timestamp(),
             detector=self.get_detector().settings,
             objective=self.get_objective().position,
-            image= self.image_settings,
+            image=self.image_settings,
             sync=self.sync_message,
             stage=stage,
         )
         return metadata
-    
+
     # TODO: consolidate these two functions when you are smarter
 
     def consume_image_queue(self, save: bool = False):
-
         # update metadata
         metadata = self._update_image_metadata()
-
+        logging.info("Consuming image queue")
         # consume queue
         try:
             counter = 0
-            while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
-                
+            
+            # continue while there are images in the queue, and the stop event has not been set
+            # and while the counter is less than the number of images, unless the image mode is live
+
+            while (
+                ((self.image_queue.qsize()) > 0) 
+                or (not self.stop_event.is_set())
+                and (
+                    (counter < self.image_settings.n_images)
+                    or self.image_settings.mode is ImageMode.LIVE
+                )
+            ):
+                logging.info(
+                    f"ImageSettings: {self.image_settings.mode}, {self.image_settings.n_images}, {counter}"
+                )
+                logging.info(f"Image Queue size: {self.image_queue.qsize()}")
+                logging.info(f"STOP EVENT: {not self.stop_event.is_set()}")
+                logging.info(f"COUNTER: {(counter < self.image_settings.n_images) or self.image_settings.mode is ImageMode.LIVE}")
                 # get image
                 image = self.image_queue.get()
-                
-                channel = counter % metadata.n_channels 
+                logging.info(f"Image: {image.shape}")
+                channel = counter % metadata.n_channels
                 if channel == 0:
                     # expand dims to add channel axis
                     arr = np.expand_dims(image, axis=-1)
                 else:
                     arr = np.dstack((arr, image))
+                logging.info(f"COUNTER: {counter}")
 
                 if channel == metadata.n_channels - 1:
                     image = LightImage(
@@ -170,14 +200,14 @@ class BaseLightMicroscope(LightMicroscope):
                         metadata=metadata,
                     )
                     image.metadata.time = utils.current_timestamp()
-                    
                     if save:
                         import os
+
                         fname = os.path.join(os.getcwd(), str(image.metadata.time))
                         image.save(fname)
                         logging.info(f"Image saved to {fname}")
                     logging.info(f"Image: {image.data.shape} {image.metadata.time}")
-                    logging.info(f"-"*50)
+                    logging.info(f"-" * 50)
 
                 counter += 1
 
@@ -190,11 +220,11 @@ class BaseLightMicroscope(LightMicroscope):
         finally:
             self.get_synchroniser().stop_sync()
             logging.info("Thread stopped.")
-    
+
     from napari.qt.threading import thread_worker
+
     @thread_worker
     def consume_image_queue_ui(self, save: bool = False):
-
         # update metadata
         metadata = self._update_image_metadata()
         logging.info("Consuming image queue")
@@ -202,11 +232,10 @@ class BaseLightMicroscope(LightMicroscope):
         try:
             counter = 0
             while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
-                
                 # get image
                 image = self.image_queue.get()
 
-                channel = counter % metadata.n_channels 
+                channel = counter % metadata.n_channels
                 if channel == 0:
                     # expand dims to add channel axis
                     arr = np.expand_dims(image, axis=-1)
@@ -219,15 +248,16 @@ class BaseLightMicroscope(LightMicroscope):
                         metadata=metadata,
                     )
                     image.metadata.time = utils.current_timestamp()
-                    
-                    save = True
+
+                    save = False
                     if save:
                         import os
+
                         fname = os.path.join(os.getcwd(), str(image.metadata.time))
                         image.save(fname)
                         logging.info(f"Image saved to {fname}")
                     logging.info(f"Image: {image.data.shape} {image.metadata.time}")
-                    logging.info(f"-"*50)
+                    logging.info(f"-" * 50)
 
                     yield image
                 counter += 1
@@ -238,5 +268,5 @@ class BaseLightMicroscope(LightMicroscope):
         finally:
             self.get_synchroniser().stop_sync()
             logging.info("Thread stopped.")
-        
+
         return

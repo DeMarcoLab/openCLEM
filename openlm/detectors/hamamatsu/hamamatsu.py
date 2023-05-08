@@ -106,19 +106,19 @@ class HamamatsuOrcaFlash4(Detector):
         self.camera.cap_start()
 
         try:
+            logging.info(f"START, {count_}, {count}, {stop_event.is_set()}")
             while count_ <= count and not stop_event.is_set():
-                # logging.info(f"Capturing image {count_} of {count}")
+                logging.info(f"Capturing image {count_} of {count}")
 
                 if self.settings.trigger_source == TriggerSource.SOFTWARE:
                     self.camera.cap_firetrigger()
-
 
                 if self.camera.wait_capevent_frameready(timeout_millisec=self.settings.timeout) is not False:
                     image = np.flipud(np.fliplr(np.array(self.camera.buf_getlastframedata()).T))
 
                     if image_queue:
                         image_queue.put(image)
-                        # logging.info(f"Putting image {count_} in queue: {image.shape}, {np.mean(image)}")
+                        logging.info(f"Putting image {count_} in queue: {image.shape}, {np.mean(image)}")
 
                     if image_settings.mode is ImageMode.SINGLE:
                         count_ += 1

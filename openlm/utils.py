@@ -249,3 +249,7 @@ def create_microscope(
         # TODO: set laser power properly
 
     return lm
+
+
+
+

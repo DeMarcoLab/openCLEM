@@ -398,7 +398,7 @@ class MicroscopeSettings:
         }
 
 @dataclass
-class StagePosition:
+class OpenLMStagePosition:
     x: float
     y: float
     z: float
@@ -415,8 +415,8 @@ class StagePosition:
         }
     
     @staticmethod
-    def __from_dict__(settings: dict) -> "StagePosition":
-        stage_position = StagePosition(
+    def __from_dict__(settings: dict) -> "OpenLMStagePosition":
+        stage_position = OpenLMStagePosition(
             x=settings["x"],
             y=settings["y"],
             z=settings["z"],
@@ -434,7 +434,7 @@ class LightImageMetadata:
     objective: ObjectiveSettings  # objective settings
     image: ImageSettings  # image settings
     sync: SynchroniserMessage  # sync settings
-    stage: StagePosition # stage position
+    stage: OpenLMStagePosition # stage position
 
     def __to_dict__(self) -> dict:
         return dict(
@@ -460,7 +460,7 @@ class LightImageMetadata:
             objective=data["objective"],  # TODO: this is only the position currently
             image=ImageSettings.__from_dict__(data["image"]),
             sync=SynchroniserMessage.__from_dict__(data["sync"]),
-            stage=StagePosition.__from_dict__(data["stage"]),
+            stage=OpenLMStagePosition.__from_dict__(data["stage"]),
         )
 
     def __repr__(self) -> str:
