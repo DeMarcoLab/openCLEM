@@ -161,87 +161,26 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         )
 
     def setup_workflow(self):
-        dat_image = {"type": "acquire_image", "sync": None, "settings": None}
 
         mode = ImageMode.SINGLE
         image_settings, sync_message = self.get_settings_from_ui()
         image_settings.mode = mode
         image_settings.n_images = len([v for v in sync_message.exposures if v > 0])
 
-        dat_image["settings"] = image_settings
-        dat_image["sync"] = sync_message
-
-        # stage move
-        datx = {"type": "move_stage", "dx": 100e-6, "dy": 0e-6}
-        daty = {"type": "move_stage", "dx": 0e-6, "dy": 300e-6}
-        dat_move_back = {"type": "move_stage", "dx": -200e-6, "dy": -100e-6}
-
-        # obj move
-        dat_obj = {"type": "move_objective", "dz": -5e-6}
-        dat_obj_up = {"type": "move_objective", "dz": 10e-6}
-
-        from copy import deepcopy
-
         from openlm.workflow import _gen_tiling_workflow, _gen_volume_workflow, _gen_workflow
 
-        tile_coords = _gen_tiling_workflow(n_rows=2, n_cols=2, dx=100e-6, dy=100e-6)
         # This gives us the relative x, y coordinates for each imaging position
+        tile_coords = _gen_tiling_workflow(n_rows=3, n_cols=3, dx=100e-6, dy=100e-6)
 
-        volume_coords = _gen_volume_workflow(n_slices=3, step_size=5e-6)
         # This gives us the relative z coordinates for each imaging position
+        volume_coords = _gen_volume_workflow(n_slices=3, step_size=5e-6)
 
         self.workflow = _gen_workflow(tile_coords, volume_coords, 
                                 image_settings=image_settings, 
                                 sync_message=sync_message,
-                                ) 
+                                )
 
-        from pprint import pprint
-        pprint(self.workflow)
-
-        # self.workflow = [
-        #                 # 1
-        #                  dat_image,
-        #                  datx,
-        #                  deepcopy(dat_image),
-        #                  datx,
-        #                  deepcopy(dat_image),
-        #                  dat_move_back,
-        #                  # 2
-        #                  deepcopy(dat_image),
-        #                  datx,
-        #                  deepcopy(dat_image),
-        #                  datx,
-        #                  deepcopy(dat_image),
-        #                  dat_move_back,
-        #                  # 3
-        #                  deepcopy(dat_image),
-        #                  datx,
-        #                  deepcopy(dat_image),
-        #                  datx,
-        #                  deepcopy(dat_image),
-        #                  dat_move_back,
-        #                 #  deepcopy(dat_image),
-        #                  daty
-        #                 # deepcopy(dat_image),
-        #                  ]
-
-        # self.workflow = [
-        #     deepcopy(dat_image),
-        #     dat_obj_up,
-        #     deepcopy(dat_image),
-        #     dat_obj,
-        #     deepcopy(dat_image),
-        #     dat_obj,
-        #     deepcopy(dat_image),
-        #     dat_obj,
-        #     deepcopy(dat_image),
-        #     dat_obj,
-        #     deepcopy(dat_image),
-        #     dat_obj_up,
-        #     deepcopy(dat_image),
-        # ]
-
-        logging.info(f"Workflow: {self.workflow}")
+        logging.info(f"Workflow Length: {len(self.workflow)}")
 
     def run_workflow(self):
         self.idx = 0
