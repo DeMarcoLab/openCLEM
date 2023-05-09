@@ -7,7 +7,7 @@ import numpy as np
 import vispy.color as v_color
 from PyQt5 import QtWidgets, QtCore
 
-from openlm import constants
+from openlm import constants, utils
 from openlm.microscope import LightMicroscope
 from openlm.structures import (
     ImageMode,
@@ -17,9 +17,10 @@ from openlm.structures import (
     TriggerEdge,
     TileSettings,
 )
+import os
 from openlm.ui import OpenLMHardwareWidget
 from openlm.ui.qt import OpenLMImageWidget
-
+from openlm import config as cfg
 try:
     from fibsem import constants, conversions
     from fibsem.structures import BeamType, Point, FibsemStagePosition
@@ -133,11 +134,9 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             self.stop_event.set()
             self.microscope.get_synchroniser().stop_sync()
             logging.info("Stopping Image Acquistion")
-            # self.pushButton_update_settings.setVisible(False)
             return
         else:
             self.stop_event.clear()
-            # self.pushButton_update_settings.setVisible(True)
             self.pushButton_acquire_image.setText("Acquiring...")
             self.pushButton_acquire_image.setStyleSheet("background-color: orange")
 
@@ -167,13 +166,16 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         image_settings.mode = mode
         image_settings.n_images = len([v for v in sync_message.exposures if v > 0])
 
+        image_settings.path = os.path.join(cfg.LOG_PATH, f"workflow_{utils.current_timestamp()}")
+        os.makedirs(image_settings.path, exist_ok=True)
+
         from openlm.workflow import _gen_tiling_workflow, _gen_volume_workflow, _gen_workflow
 
         # This gives us the relative x, y coordinates for each imaging position
-        tile_coords = _gen_tiling_workflow(n_rows=3, n_cols=3, dx=100e-6, dy=100e-6)
+        tile_coords = _gen_tiling_workflow(n_rows=2, n_cols=2, dx=100e-6, dy=100e-6)
 
         # This gives us the relative z coordinates for each imaging position
-        volume_coords = _gen_volume_workflow(n_slices=3, step_size=5e-6)
+        volume_coords = _gen_volume_workflow(n_slices=1, step_size=5e-6)
 
         self.workflow = _gen_workflow(tile_coords, volume_coords, 
                                 image_settings=image_settings, 
@@ -212,14 +214,11 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             )
 
         if step["type"] == "move_stage":
-            logging.info(step)
-
             worker = self.microscope.move_stage(dx=step["dx"], dy=step["dy"])
             worker.returned.connect(self.finish_workflow_step)  # type: ignore
             worker.start()
 
         if step["type"] == "move_objective":
-            logging.info(f"Objective Move: {step}")
             worker = self.microscope.move_objective_stage(dz=step["dz"])
             worker.returned.connect(self.finish_workflow_step)  # type: ignore
             worker.start()
@@ -238,12 +237,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             logging.info("Finished Workflow")
 
     def update_image(self, dat: dict):
-        logging.info(f"recv: {dat.keys()}")
-
-        self.update_live(dat["image"])
-
-    def update_live(self, result: LightImage):
-        self.image = result
+        self.image = dat["image"]
         info = {}
 
         for i, laser in enumerate(self.image.metadata.lasers):
@@ -434,56 +428,6 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.setup_workflow()
 
         self.run_workflow()
-
-        # self.update_tile_positions()
-        # n_rows, n_cols = self.tile_settings.n_rows, self.tile_settings.n_cols
-
-        # dx = 10e-6
-        # dy = 10e-6
-
-        # base_position = self.microscope.fibsem_microscope.get_stage_position()
-
-        # import time
-        # for row in range(n_rows):
-
-        #     self.microscope.fibsem_microscope.move_stage_absolute(base_position)
-
-        #     self.microscope.fibsem_microscope.stable_move(
-        #                 settings=self.microscope.fibsem_settings,
-        #                 dx=0,
-        #                 dy=row*dy,
-        #                 beam_type=BeamType.ION,
-        #             )
-
-        #     for col in range(n_cols):
-        #         msg = f"Running _gen_tiling_workflow: {row}, {col}"
-        #         logging.info(msg)
-
-        #         # move stage
-        #         if col != 0:
-        #             # TODO: LOCK
-        #             self.microscope.fibsem_microscope.stable_move(
-        #                     settings=self.microscope.fibsem_settings,
-        #                     dx=dx,
-        #                     dy=0,
-        #                     beam_type=BeamType.ION,
-        #                 )
-
-        #         # take image
-        #         # save image
-        #         logging.info(f"--"*50)
-        #         logging.info(f"Taking Image {row}, {col}")
-        #         # self.take_image_sync()
-        #         self.pushButton_acquire_image_clicked(single_image=True, save=True)
-        #         logging.info(f"--"*50)
-        #         # time.sleep(1)
-
-        #         # time.sleep(2)
-        #         while self.image_queue.qsize() > 0 or not self.stop_event.is_set():
-        #             logging.info(f"Image Queue: {self.image_queue.qsize()}")
-        #             time.sleep(1)
-
-        # self.microscope.fibsem_microscope.move_stage_absolute(base_position)
 
     def update_tile_positions(self):
         n_rows = self.spinBox_tile_rows.value()

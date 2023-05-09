@@ -1,29 +1,24 @@
 import logging
+import os
 import threading
 import time
 import traceback
 from queue import Queue
 
 import numpy as np
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
+# import QtWidget
+from PyQt5.QtWidgets import QWidget
 
 from openlm import utils
 from openlm.detector import Detector
 from openlm.laser import LaserController
 from openlm.microscope import LightMicroscope
 from openlm.objective import ObjectiveStage
-from openlm.structures import (
-    ImageSettings,
-    LightImage,
-    LightImageMetadata,
-    SynchroniserMessage,
-)
+from openlm.structures import (ImageMode, ImageSettings, LightImage,
+                               LightImageMetadata, OpenLMStagePosition,
+                               SynchroniserMessage, UserMetadata)
 from openlm.synchronisation import Synchroniser
-from openlm.structures import OpenLMStagePosition, ImageMode
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
-
-# import QtWidget
-from PyQt5.QtWidgets import QWidget
-
 
 QUEUE_TIMEOUT = 5
 
@@ -89,13 +84,6 @@ class BaseLightMicroscope(LightMicroscope):
         return self._synchroniser
 
     def setup_acquisition(self):
-        # laser settings, detector settings
-        #
-        # Set up lasers
-
-        # for laser in self._laser_controller.lasers:
-        # self._laser_controller.set_power(laser, 4.0)
-        # self._laser_controller.set_power(laser, laser_settings.power)
         # TODO: add in laser_settings for hardware triggering
 
         for laser in self._laser_controller.lasers:
@@ -164,14 +152,17 @@ class BaseLightMicroscope(LightMicroscope):
             image=self.image_settings,
             sync=self.sync_message,
             stage=stage,
+            user=UserMetadata(username="pc")
         )
         return metadata
 
     
     @thread_worker
     def consume_image_queue(self, save: bool = False, parent_ui: QWidget = None):
+        
         # update metadata
         metadata = self._update_image_metadata()
+
         logging.info("Consuming image queue")
         # consume queue
         try:
@@ -205,15 +196,16 @@ class BaseLightMicroscope(LightMicroscope):
                     arr = np.dstack((arr, image))
                 
                 if channel == metadata.n_channels - 1:
+                    # change axis order to 2, 0, 1
+                    # arr = np.moveaxis(arr, -1, 0)
                     image = LightImage(
                         data=arr,
                         metadata=metadata,
                     )
                     image.metadata.time = utils.current_timestamp()
                     if save:
-                        import os
 
-                        fname = os.path.join(os.getcwd(), str(image.metadata.time))
+                        fname = os.path.join(self.image_settings.path, str(image.metadata.time))
                         image.save(fname)
                         logging.info(f"Image saved to {fname}")
                     logging.info(f"Image: {image.data.shape} {image.metadata.time}")

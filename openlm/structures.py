@@ -155,6 +155,7 @@ class ImageSettings:
     exposure: float = 0.0
     n_images: int = 1
     mode: ImageMode = ImageMode.SINGLE
+    path: Path = None
 
     @staticmethod
     def __from_dict__(settings: dict) -> "ImageSettings":
@@ -424,6 +425,37 @@ class OpenLMStagePosition:
             t=settings["t"],
         )
         return stage_position
+
+@dataclass
+class UserMetadata:
+    username: str = "Default"
+    name: str = "Default"
+    email: str = "Default"
+    institution: str = "Default"
+    date: str = None
+
+    def __to_dict__(self) -> dict:
+        return dict(
+            username=self.username,
+            name=self.name,
+            email=self.email,
+            institution=self.institution,
+            date=self.date,
+        )
+    
+    @staticmethod
+    def __from_dict__(settings: dict) -> "UserMetadata":
+        user_metadata = UserMetadata(
+            username=settings["username"],
+            name=settings["name"],
+            email=settings["email"],
+            institution=settings["institution"],
+            date=settings["date"],
+
+        )
+        return user_metadata
+
+
 @dataclass
 class LightImageMetadata:
     n_channels: int  # number of channels
@@ -435,6 +467,7 @@ class LightImageMetadata:
     image: ImageSettings  # image settings
     sync: SynchroniserMessage  # sync settings
     stage: OpenLMStagePosition # stage position
+    user: UserMetadata # user metadata
 
     def __to_dict__(self) -> dict:
         return dict(
@@ -447,6 +480,7 @@ class LightImageMetadata:
             image=self.image.__to_dict__(),
             sync=self.sync.__to_dict__(),
             stage=self.stage.__to_dict__(),
+            user=self.user.__to_dict__(),
         )
 
     @classmethod
@@ -461,6 +495,7 @@ class LightImageMetadata:
             image=ImageSettings.__from_dict__(data["image"]),
             sync=SynchroniserMessage.__from_dict__(data["sync"]),
             stage=OpenLMStagePosition.__from_dict__(data["stage"]),
+            user=None, #UserMetadata.__from_dict__(data["user"]) TODO: update
         )
 
     def __repr__(self) -> str:
