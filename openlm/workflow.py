@@ -45,4 +45,69 @@ def test_acq(microscope: LightMicroscope, mode: ImageMode = ImageMode.SINGLE):
 
     microscope.consume_image_queue()
 
+import numpy as np
+import itertools
+from pprint import pprint
 
+def _gen_tiling_workflow(n_rows=1, n_cols=1, dx=0, dy=0):
+    """Generator for tile indices"""    
+    moves = [[j*dx, i*dy] for i in range(n_rows) for j in range(n_cols)]
+    return moves
+
+def _gen_volume_workflow(n_slices, step_size):
+    if n_slices % 2 == 0:
+        n_slices += 1
+        print("Must be odd atm, adding 1")
+
+    list_ = list(np.linspace(-(n_slices-1)//2, n_slices//2, n_slices)*step_size)
+    return list_[::-1]
+
+# check the difference in each element of the list compared to the previous element
+# if the difference is 0, then the stage is not moving
+from copy import deepcopy
+
+
+def _gen_workflow(tile_coords:list, 
+                  volume_coords:list,
+                  image_settings:ImageSettings,
+                  sync_message:SynchroniserMessage, 
+                  ) -> list[dict]:
+    workflow = []
+
+    current_position = [0, 0, 0]
+
+    for tile_coord in tile_coords:
+        dx = tile_coord[0] - current_position[0]
+        dy = -(tile_coord[1] - current_position[1])
+
+        if not(dx == 0 and dy == 0):
+            # print(f"Tile moves by dx={dx}, dy={dy}")
+            workflow.append({"type": "move_stage", "dx": dx, "dy": dy})
+
+        current_position[0] = tile_coord[0]
+        current_position[1] = tile_coord[1]
+        # print("--"*20)
+
+        for volume_coord in volume_coords:
+            dz = volume_coord - current_position[2]
+            if not (dz == 0):
+                workflow.append({"type": "move_objective", "dz": dz})
+            current_position[2] = volume_coord
+
+            ## REPLACE THIS WITH IMAGE DAT ## 
+            workflow.append({"type": "acquire_image", 
+                             "sync": deepcopy(sync_message), 
+                             "settings": deepcopy(image_settings), 
+                             "stop_event": None})
+
+    # move back to begining
+    dx = -current_position[0]
+    dy = current_position[1]
+    dz = -current_position[2]
+    if not (dx == 0 and dy == 0):
+        workflow.append({"type": "move_stage", "dx": dx, "dy": dy})
+    if not (dz == 0):
+        workflow.append({"type": "move_objective", "dz": dz})
+
+    return workflow
+    

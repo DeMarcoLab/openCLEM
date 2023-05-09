@@ -62,7 +62,7 @@ class OpenLMCoordinateWidget(OpenLMCoordinateWidget.Ui_Form, QtWidgets.QWidget):
 
         msg = "Saved Positions: \n"
         for pos in self.positions:
-            msg += f"x:{pos.x*constants.SI_TO_MICRO:.2f} y:{pos.y*constants.SI_TO_MICRO:.2f} z:{pos.z*constants.SI_TO_MICRO:.2f} \n"
+            msg += f"x:{pos.x*constants.SI_TO_MILLI:.2f} y:{pos.y*constants.SI_TO_MILLI:.2f} z:{pos.z*constants.SI_TO_MILLI:.2f} \n"
 
         self.label_coordinate_list.setText(msg)
 
@@ -72,10 +72,10 @@ class OpenLMCoordinateWidget(OpenLMCoordinateWidget.Ui_Form, QtWidgets.QWidget):
         logging.info("add_coordinate")
 
         import random 
-        dx = random.randint(0, 100) * 1e-6
-        dy = random.randint(0, 100) * 1e-6
+        # dx = random.randint(0, 100) * 1e-6
+        # dy = random.randint(0, 100) * 1e-6
         # move stge by random amount
-        self.microscope.stable_move(self.settings, dx=dx, dy=dy, beam_type=BeamType.ELECTRON)
+        # self.microscope.stable_move(self.settings, dx=dx, dy=dy, beam_type=BeamType.ELECTRON)
 
         # get the current stage position
         from copy import deepcopy
@@ -116,7 +116,7 @@ def main():
     viewer = napari.Viewer(ndisplay=2)
     
 
-    microscope, settings = fibsem_utils.setup_session(manufacturer="Demo")
+    microscope, settings = fibsem_utils.setup_session(manufacturer="Thermo", ip_address="10.0.0.1")
     openlm_coordinate = OpenLMCoordinateWidget(microscope=microscope, settings=settings, viewer=viewer)
 
     viewer.window.add_dock_widget(

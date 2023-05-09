@@ -29,17 +29,22 @@ QUEUE_TIMEOUT = 5
 
 from napari.qt.threading import thread_worker
 
-# THIS IS ACTUALLY THE PIESCOPE
+try: 
+    from fibsem.microscope import FibsemMicroscope
+except:
+    pass
+
+# THIS IS ACTUALLY THE PIESCOPE_DISC
 class BaseLightMicroscope(LightMicroscope):
     
     def __init__(self, name: str):
         self.name = name
         self._connection = None
-        self._detector = None
-        self._objective = None
-        self._laser_controller = None
-        self._synchroniser = None
-        self.fibsem_microscope = None
+        self._detector: Detector = None
+        self._objective: ObjectiveStage = None
+        self._laser_controller: LaserController = None
+        self._synchroniser: Synchroniser = None
+        self.fibsem_microscope: 'FibsemMicroscope' = None
 
     def connect(self):
         self._detector.connect()
@@ -77,7 +82,7 @@ class BaseLightMicroscope(LightMicroscope):
     def get_laser_controller(self) -> LaserController:
         return self._laser_controller
 
-    def add_synchroniser(self, synchroniser) -> None:
+    def add_synchroniser(self, synchroniser: Synchroniser) -> None:
         self._synchroniser = synchroniser
 
     def get_synchroniser(self) -> Synchroniser:
@@ -274,3 +279,10 @@ class BaseLightMicroscope(LightMicroscope):
             _counter -= 1
             
         return
+    
+    @thread_worker
+    def move_stage_and_objective(self, dx: float, dy: float, dz: float):
+
+        self.move_stage(dx, dy)
+
+        self.move_objective_stage(dz)

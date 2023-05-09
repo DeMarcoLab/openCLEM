@@ -161,7 +161,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         )
 
     def setup_workflow(self):
-        dat_image = {"type": "image", "sync": None, "settings": None}
+        dat_image = {"type": "acquire_image", "sync": None, "settings": None}
 
         mode = ImageMode.SINGLE
         image_settings, sync_message = self.get_settings_from_ui()
@@ -181,6 +181,22 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         dat_obj_up = {"type": "move_objective", "dz": 10e-6}
 
         from copy import deepcopy
+
+        from openlm.workflow import _gen_tiling_workflow, _gen_volume_workflow, _gen_workflow
+
+        tile_coords = _gen_tiling_workflow(n_rows=2, n_cols=2, dx=100e-6, dy=100e-6)
+        # This gives us the relative x, y coordinates for each imaging position
+
+        volume_coords = _gen_volume_workflow(n_slices=3, step_size=5e-6)
+        # This gives us the relative z coordinates for each imaging position
+
+        self.workflow = _gen_workflow(tile_coords, volume_coords, 
+                                image_settings=image_settings, 
+                                sync_message=sync_message,
+                                ) 
+
+        from pprint import pprint
+        pprint(self.workflow)
 
         # self.workflow = [
         #                 # 1
@@ -209,21 +225,21 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         #                 # deepcopy(dat_image),
         #                  ]
 
-        self.workflow = [
-            deepcopy(dat_image),
-            dat_obj_up,
-            deepcopy(dat_image),
-            dat_obj,
-            deepcopy(dat_image),
-            dat_obj,
-            deepcopy(dat_image),
-            dat_obj,
-            deepcopy(dat_image),
-            dat_obj,
-            deepcopy(dat_image),
-            dat_obj_up,
-            deepcopy(dat_image),
-        ]
+        # self.workflow = [
+        #     deepcopy(dat_image),
+        #     dat_obj_up,
+        #     deepcopy(dat_image),
+        #     dat_obj,
+        #     deepcopy(dat_image),
+        #     dat_obj,
+        #     deepcopy(dat_image),
+        #     dat_obj,
+        #     deepcopy(dat_image),
+        #     dat_obj,
+        #     deepcopy(dat_image),
+        #     dat_obj_up,
+        #     deepcopy(dat_image),
+        # ]
 
         logging.info(f"Workflow: {self.workflow}")
 
@@ -238,7 +254,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         logging.info(f"Running Workflow Step: {step}")
 
-        if step["type"] == "image":
+        if step["type"] == "acquire_image":
             self.stop_event.clear()
             self.microscope.setup_acquisition()
 
@@ -271,16 +287,13 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         if step["type"] == "restore_state":
             logging.info("Restoring Microscope")
-            # self.microscope.restore()
-
-            # self.finish_workflow_step()
 
     def finish_workflow_step(self):
-        logging.info("Finished Workflow Step")
+        logging.info(f"Finished Workflow Step {self.idx+1}")
         self.idx += 1
-        logging.info(f"Workflow: {self.idx}/{len(self.workflow)}")
 
         if self.idx < len(self.workflow):
+            logging.info(f"Workflow: {self.idx+1}/{len(self.workflow)}")
             self.run_workflow_step()
         else:
             logging.info("Finished Workflow")
@@ -504,7 +517,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         #             )
 
         #     for col in range(n_cols):
-        #         msg = f"Running tiling: {row}, {col}"
+        #         msg = f"Running _gen_tiling_workflow: {row}, {col}"
         #         logging.info(msg)
 
         #         # move stage
