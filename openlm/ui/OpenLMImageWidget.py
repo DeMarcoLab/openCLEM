@@ -30,6 +30,8 @@ except ImportError:
     FIBSEM = False
 
 import time
+from openlm.workflow import _gen_tiling_workflow, _gen_volume_workflow, _gen_workflow
+from openlm.structures import WorkflowSettings
 
 
 class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
@@ -70,12 +72,15 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         self.image_signal.connect(self.update_image)
 
-        # tile
-        self.pushButton_run_tiling.clicked.connect(self.run_tiling)
+        # workflows
+        self.pushButton_run_tiling.clicked.connect(self.run_workflow)
 
-        self.spinBox_tile_rows.valueChanged.connect(self.update_tile_positions)
-        self.spinBox_tile_columns.valueChanged.connect(self.update_tile_positions)
-        self.doubleSpinBox_tile_shift.valueChanged.connect(self.update_tile_positions)
+        self.spinBox_tile_n_rows.valueChanged.connect(self.update_workflow_ui)
+        self.spinBox_tile_n_cols.valueChanged.connect(self.update_workflow_ui)
+        self.doubleSpinBox_tile_dx.valueChanged.connect(self.update_workflow_ui)
+        self.doubleSpinBox_tile_dy.valueChanged.connect(self.update_workflow_ui)
+        self.spinBox_vol_n_slices.valueChanged.connect(self.update_workflow_ui)
+        self.doubleSpinBox_vol_dz.valueChanged.connect(self.update_workflow_ui) 
 
     def save_image(self):
         if self.image is None:
@@ -159,6 +164,27 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             stop_event=self.stop_event,
         )
 
+    def run_workflow(self):
+        logging.info(f"Running Workflow")
+
+        self.setup_workflow()
+
+        self.idx = 0
+        self.run_workflow_step()
+
+    def update_workflow_ui(self):
+        
+        workflow_settings = WorkflowSettings(
+            n_rows = self.spinBox_tile_n_rows.value(),
+            n_cols = self.spinBox_tile_n_cols.value(),
+            dx = self.doubleSpinBox_tile_dx.value() * constants.MICRO_TO_SI,
+            dy = self.doubleSpinBox_tile_dy.value() * constants.MICRO_TO_SI,
+            n_slices = self.spinBox_vol_n_slices.value(),
+            dz = self.doubleSpinBox_vol_dz.value() * constants.MICRO_TO_SI,
+        )
+
+        return workflow_settings
+
     def setup_workflow(self):
 
         mode = ImageMode.SINGLE
@@ -169,17 +195,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         image_settings.path = os.path.join(cfg.LOG_PATH, f"workflow_{utils.current_timestamp()}")
         os.makedirs(image_settings.path, exist_ok=True)
 
-        from openlm.workflow import _gen_tiling_workflow, _gen_volume_workflow, _gen_workflow
-        from openlm.structures import WorkflowSettings
-
-        image_settings.workflow = WorkflowSettings(
-            n_rows = 2,
-            n_cols = 2,
-            dx = 100e-6,
-            dy = 100e-6,
-            n_slices = 1,
-            dz = 5e-6,
-            )
+        image_settings.workflow = self.update_workflow_ui()
 
         wf = image_settings.workflow
 
@@ -196,9 +212,11 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         logging.info(f"Workflow Length: {len(self.workflow)}")
 
-    def run_workflow(self):
-        self.idx = 0
-        self.run_workflow_step()
+        from collections import Counter
+        c = Counter([step["type"] for step in self.workflow])
+
+        self.label_info_1.setText(f"Workflow Length: {len(self.workflow)}")
+        self.label_info_2.setText(f"Workflow Steps: {c}")
 
     def run_workflow_step(self):
         step = self.workflow[self.idx]
@@ -432,27 +450,6 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.viewer.layers.clear()
         event.accept()
 
-    def run_tiling(self):
-        logging.info(f"Running Workflow")
-
-        self.setup_workflow()
-
-        self.run_workflow()
-
-    def update_tile_positions(self):
-        n_rows = self.spinBox_tile_rows.value()
-        n_cols = self.spinBox_tile_columns.value()
-        tile_shift = self.doubleSpinBox_tile_shift.value()
-
-        # total squares
-        n_squares = n_rows * n_cols
-
-        self.tile_settings = TileSettings(
-            n_rows=n_rows, n_cols=n_cols, shift=tile_shift
-        )
-
-        self.label_info_1.setText(f"{self.tile_settings}")
-        self.label_info_2.setText(f"Total Squares: {n_squares}")
 
 
 def main():
