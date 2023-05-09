@@ -179,13 +179,7 @@ class BaseLightMicroscope(LightMicroscope):
                     or self.image_settings.mode is ImageMode.LIVE
                 )
             ):
-                # logging.info(
-                #     f"ImageSettings: {self.image_settings.mode}, {self.image_settings.n_images}, {counter}"
-                # )
-                # logging.info(f"Image Queue size: {self.image_queue.qsize()}")
-                # logging.info(f"STOP EVENT: {not self.stop_event.is_set()}")
-                # logging.info(f"COUNTER: {(counter < self.image_settings.n_images) or self.image_settings.mode is ImageMode.LIVE}")
-                # # get image
+                # get image
                 image = self.image_queue.get()
                 
                 channel = counter % metadata.n_channels
@@ -208,6 +202,7 @@ class BaseLightMicroscope(LightMicroscope):
                         fname = os.path.join(self.image_settings.path, str(image.metadata.time))
                         image.save(fname)
                         logging.info(f"Image saved to {fname}")
+                    
                     logging.info(f"Image: {image.data.shape} {image.metadata.time}")
                     logging.info(f"-" * 50)
 

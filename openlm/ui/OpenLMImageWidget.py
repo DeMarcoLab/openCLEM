@@ -170,12 +170,24 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         os.makedirs(image_settings.path, exist_ok=True)
 
         from openlm.workflow import _gen_tiling_workflow, _gen_volume_workflow, _gen_workflow
+        from openlm.structures import WorkflowSettings
+
+        image_settings.workflow = WorkflowSettings(
+            n_rows = 2,
+            n_cols = 2,
+            dx = 100e-6,
+            dy = 100e-6,
+            n_slices = 1,
+            dz = 5e-6,
+            )
+
+        wf = image_settings.workflow
 
         # This gives us the relative x, y coordinates for each imaging position
-        tile_coords = _gen_tiling_workflow(n_rows=2, n_cols=2, dx=100e-6, dy=100e-6)
+        tile_coords = _gen_tiling_workflow(n_rows=wf.n_rows, n_cols=wf.n_cols, dx=wf.dx, dy=wf.dy)
 
         # This gives us the relative z coordinates for each imaging position
-        volume_coords = _gen_volume_workflow(n_slices=1, step_size=5e-6)
+        volume_coords = _gen_volume_workflow(n_slices=wf.n_slices, step_size=wf.dz)
 
         self.workflow = _gen_workflow(tile_coords, volume_coords, 
                                 image_settings=image_settings, 
@@ -186,8 +198,6 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
 
     def run_workflow(self):
         self.idx = 0
-        # self.workflow = workflow
-
         self.run_workflow_step()
 
     def run_workflow_step(self):

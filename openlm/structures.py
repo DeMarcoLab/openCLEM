@@ -146,6 +146,37 @@ class ConnectionSettings:
             raise ValueError(f"Invalid connection type: {connection_type}")
         return connection_settings
 
+@dataclass
+class WorkflowSettings:
+    n_rows: int = 1
+    n_cols: int = 1
+    dx: float = 0.0
+    dy: float = 0.0
+    n_slices: int = 1
+    dz: float = 0.0
+
+    def __to_dict__(self) -> dict:
+        return dict(
+            n_rows=self.n_rows,
+            n_cols=self.n_cols,
+            dx=self.dx,
+            dy=self.dy,
+            n_slices=self.n_slices,
+            dz=self.dz,
+        )
+    
+    @staticmethod
+    def __from_dict__(settings: dict) -> "WorkflowSettings":
+        workflow_settings = WorkflowSettings(
+            n_rows=settings["n_rows"],
+            n_cols=settings["n_cols"],
+            dx=settings["dx"],
+            dy=settings["dy"],
+            n_slices=settings["n_slices"],
+            dz=settings["dz"],
+        )
+        return workflow_settings
+
 
 @dataclass
 class ImageSettings:
@@ -156,6 +187,7 @@ class ImageSettings:
     n_images: int = 1
     mode: ImageMode = ImageMode.SINGLE
     path: Path = None
+    workflow: WorkflowSettings = None
 
     @staticmethod
     def __from_dict__(settings: dict) -> "ImageSettings":
@@ -164,6 +196,8 @@ class ImageSettings:
             exposure=settings["exposure"],
             n_images=settings["n_images"],
             mode=ImageMode[settings.get("mode", "SINGLE")],
+            path=Path(settings.get("path", None)),
+            workflow = settings.get("workflow", None)
         )
 
     def __to_dict__(self) -> dict:
@@ -172,6 +206,8 @@ class ImageSettings:
             "exposure": self.exposure,
             "n_images": self.n_images,
             "mode": self.mode.name,
+            "path": str(self.path) if self.path is not None else None,
+            "workflow": self.workflow.__to_dict__() if self.workflow is not None else None,
         }
 
 
@@ -456,6 +492,7 @@ class UserMetadata:
         return user_metadata
 
 
+
 @dataclass
 class LightImageMetadata:
     n_channels: int  # number of channels
@@ -500,6 +537,8 @@ class LightImageMetadata:
 
     def __repr__(self) -> str:
         return f"LightImageMetadata(n_channels={self.n_channels}, channels={self.channels}, time={self.time}, lasers={self.lasers}, detector={self.detector}, objective={self.objective}, image={self.image}, sync={self.sync})"
+
+
 
 
 @dataclass
