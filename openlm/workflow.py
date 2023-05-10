@@ -54,12 +54,12 @@ def _gen_tiling_workflow(n_rows=1, n_cols=1, dx=0, dy=0):
     moves = [[j*dx, i*dy] for i in range(n_rows) for j in range(n_cols)]
     return moves
 
-def _gen_volume_workflow(n_slices, step_size):
+def _gen_volume_workflow(n_slices, dz):
     if n_slices % 2 == 0:
         n_slices += 1
         print("Must be odd atm, adding 1")
 
-    list_ = list(np.linspace(-(n_slices-1)//2, n_slices//2, n_slices)*step_size)
+    list_ = list(np.linspace(-(n_slices-1)//2, n_slices//2, n_slices)*dz)
     return list_[::-1]
 
 # check the difference in each element of the list compared to the previous element
@@ -110,4 +110,17 @@ def _gen_workflow(tile_coords:list,
         workflow.append({"type": "move_objective", "dz": dz})
 
     return workflow
-    
+
+from openlm.structures import WorkflowSettings
+def generate_workflow(workflow_settings: WorkflowSettings, image_settings: ImageSettings, sync_message: SynchroniserMessage):
+    """Generate a workflow based on the workflow settings"""
+    tile_coords = _gen_tiling_workflow(workflow_settings.n_rows, workflow_settings.n_cols, workflow_settings.dx, workflow_settings.dy)
+    volume_coords = _gen_volume_workflow(workflow_settings.n_slices, workflow_settings.dz)
+    workflow = _gen_workflow(tile_coords, volume_coords, image_settings, sync_message)
+    return workflow
+
+
+
+
+
+

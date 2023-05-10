@@ -30,7 +30,7 @@ except ImportError:
     FIBSEM = False
 
 import time
-from openlm.workflow import _gen_tiling_workflow, _gen_volume_workflow, _gen_workflow
+from openlm.workflow import _gen_tiling_workflow, _gen_volume_workflow, _gen_workflow, generate_workflow
 from openlm.structures import WorkflowSettings
 
 
@@ -197,18 +197,25 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         image_settings.workflow = self.update_workflow_ui()
 
+
         wf = image_settings.workflow
 
-        # This gives us the relative x, y coordinates for each imaging position
-        tile_coords = _gen_tiling_workflow(n_rows=wf.n_rows, n_cols=wf.n_cols, dx=wf.dx, dy=wf.dy)
+        _NEW_WORKFLOW = False
+        if _NEW_WORKFLOW:
+            # TODO: turn on
+            self.workflow = generate_workflow(wf, image_settings, sync_message)
+        else:
+            # This gives us the relative x, y coordinates for each imaging position
+            tile_coords = _gen_tiling_workflow(n_rows=wf.n_rows, n_cols=wf.n_cols, dx=wf.dx, dy=wf.dy)
 
-        # This gives us the relative z coordinates for each imaging position
-        volume_coords = _gen_volume_workflow(n_slices=wf.n_slices, step_size=wf.dz)
+            # This gives us the relative z coordinates for each imaging position
+            volume_coords = _gen_volume_workflow(n_slices=wf.n_slices, dz=wf.dz)
 
-        self.workflow = _gen_workflow(tile_coords, volume_coords, 
-                                image_settings=image_settings, 
-                                sync_message=sync_message,
-                                )
+            self.workflow = _gen_workflow(tile_coords, volume_coords, 
+                                    image_settings=image_settings, 
+                                    sync_message=sync_message,
+                                    )
+        
 
         logging.info(f"Workflow Length: {len(self.workflow)}")
 
@@ -216,7 +223,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         c = Counter([step["type"] for step in self.workflow])
 
         self.label_info_1.setText(f"Workflow Length: {len(self.workflow)}")
-        self.label_info_2.setText(f"Workflow Steps: {c}")
+        self.label_info_2.setText(f"Workflow Steps: {[f'{k}:{c[k]}' for k in c.keys()]}")
 
     def run_workflow_step(self):
         step = self.workflow[self.idx]
