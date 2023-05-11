@@ -59,6 +59,8 @@ class OpenLMCalibrationWidget(OpenLMCalibrationWidget.Ui_Form, QtWidgets.QWidget
         if self.parent is not None:
             self.parent.hardware_widget.objective_moved.connect(self.calculate_pretilt)
 
+        self.pushButton_move_stage_flat.clicked.connect(self.move_flat_to_beam)
+
     def update_ui(self):
         stage_msg = (
             f"Stage:\nExpected (dy): \t{(self._cum_dy * constants.SI_TO_MICRO):.2f} um"
@@ -89,6 +91,13 @@ class OpenLMCalibrationWidget(OpenLMCalibrationWidget.Ui_Form, QtWidgets.QWidget
         msg = f"{stage_msg}\n{obj_msg}\n{pretilt_msg}\n\n{instruction_msg}"
 
         self.label_info.setText(msg)
+
+        # flat to beam
+        flat_to_ion = self.microscope.fibsem_settings.system.stage.tilt_flat_to_ion
+        pre_tilt = self.microscope.fibsem_settings.system.stage.pre_tilt
+        target = flat_to_ion - pre_tilt
+        msg = f"Flat to Beam: {target:.2f} deg (Ion Tilt: {flat_to_ion:.2f} deg, Pre-Tilt: {pre_tilt:.2f} deg)"
+        self.label_move_stage_flat.setText(msg)
 
     def reset_calibration(self):
         logging.info("reset_calibration")
@@ -156,6 +165,10 @@ class OpenLMCalibrationWidget(OpenLMCalibrationWidget.Ui_Form, QtWidgets.QWidget
 
         self.update_ui()
 
+    def move_flat_to_beam(self):
+
+        self.microscope.fibsem_microscope.move_flat_to_beam(settings=self.microscope.fibsem_settings, 
+                                                            beam_type=BeamType.ION)
 
 # TODO:
 # - give access to system pre-tilt through UI

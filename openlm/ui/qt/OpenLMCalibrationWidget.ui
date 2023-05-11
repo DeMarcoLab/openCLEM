@@ -14,7 +14,7 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="16" column="0" colspan="2">
+   <item row="17" column="0" colspan="2">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -96,6 +96,20 @@
      </property>
      <property name="wordWrap">
       <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="1">
+    <widget class="QPushButton" name="pushButton_move_stage_flat">
+     <property name="text">
+      <string>Move Flat to Beam</string>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="0">
+    <widget class="QLabel" name="label_move_stage_flat">
+     <property name="text">
+      <string>TextLabel</string>
      </property>
     </widget>
    </item>
