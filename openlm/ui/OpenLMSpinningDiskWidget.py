@@ -11,7 +11,7 @@ from openlm.ui.qt import OpenLMSpinningDiskWidget
 logging.basicConfig(level=logging.INFO)
 
 __SUPPORTED_SPINNING_DISKS__ = [xlightv2.XLightV2, demo_disk.DemoDisk]
-__SUPPORTED_SPINNING_DISK_MODES__ = ["WideField", "Confocal"]
+__SUPPORTED_SPINNING_DISK_MODES__ = ["WideField", "Confocal", "Custom"]
 
 
 class OpenLMSpinningDiskWidget(OpenLMSpinningDiskWidget.Ui_Form, QtWidgets.QWidget):
@@ -38,11 +38,8 @@ class OpenLMSpinningDiskWidget(OpenLMSpinningDiskWidget.Ui_Form, QtWidgets.QWidg
         )
         self.pushButton_disk_connect.clicked.connect(self.on_connect)
 
-        # self.checkBox_disk_onoff.stateChanged.connect(self.update_ui)
-        # self.spinBox_disk_emission_filter.valueChanged.connect(self.update_ui)
         self.spinBox_disk_emission_filter.setMinimum(1)
         self.spinBox_disk_emission_filter.setMaximum(9)
-        # self.spinBox_disk_position.valueChanged.connect(self.update_ui)
         self.spinBox_disk_position.setMinimum(0)
         self.spinBox_disk_position.setMaximum(2)
 
@@ -102,6 +99,7 @@ class OpenLMSpinningDiskWidget(OpenLMSpinningDiskWidget.Ui_Form, QtWidgets.QWidg
                 self.spinBox_disk_position.setValue(0)
                 self.spinBox_disk_emission_filter.setValue(1)
 
+                self.checkBox_disk_onoff.setEnabled(False)
                 self.spinBox_disk_position.setEnabled(False)
                 self.spinBox_disk_emission_filter.setEnabled(False)
 
@@ -109,8 +107,20 @@ class OpenLMSpinningDiskWidget(OpenLMSpinningDiskWidget.Ui_Form, QtWidgets.QWidg
                 self.checkBox_disk_onoff.setChecked(True)
                 self.spinBox_disk_position.setValue(1)
                 self.spinBox_disk_emission_filter.setValue(1)
+                self.checkBox_disk_onoff.setEnabled(False)
                 self.spinBox_disk_position.setEnabled(True)
                 self.spinBox_disk_emission_filter.setEnabled(True)
+
+            if mode == "Custom":
+                self.checkBox_disk_onoff.setChecked(False)
+                self.spinBox_disk_position.setValue(0)
+                self.spinBox_disk_emission_filter.setValue(1)
+                self.checkBox_disk_onoff.setEnabled(True)
+                self.spinBox_disk_position.setEnabled(True)
+                self.spinBox_disk_emission_filter.setEnabled(True)
+
+            self.label_disk_status.setText(f"mode: {mode}, status: Not Applied")
+
 
     def update_disk(self):
         # apply
@@ -132,7 +142,9 @@ class OpenLMSpinningDiskWidget(OpenLMSpinningDiskWidget.Ui_Form, QtWidgets.QWidg
             # status = "Dummy status"
             logging.info(f"status: {status}")
             napari.utils.notifications.show_info(f"status: {status}")
-            self.label_disk_status.setText(f"status: {status}")
+            mode = self.comboBox_disk_mode.currentText()
+            self.label_disk_status.setText(f"mode: {mode}, status: {self.spinning_disk.get_status()}")
+
 
 
 def main():
