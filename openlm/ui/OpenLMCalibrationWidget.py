@@ -14,22 +14,14 @@ import napari.utils.notifications
 import numpy as np
 from PyQt5 import QtWidgets
 
-from openlm import constants, utils
-from openlm.detector import Detector
-from openlm.laser import Laser, LaserController
+from openlm import constants
 from openlm.microscope import LightMicroscope
-from openlm.objective import ObjectiveStage
-from openlm.structures import (DetectorSettings, ExposureMode, ImageSettings,
-                                 LaserControllerSettings, LaserSettings,
-                                 TriggerEdge, TriggerSource)
-from openlm.ui.qt import OpenLMHardwareWidget, OpenLMObjectiveWidget
-
 from openlm.ui.qt import OpenLMCalibrationWidget
-
 
 try:
     from fibsem import constants, conversions
-    from fibsem.structures import BeamType, Point, FibsemStagePosition
+    from fibsem.structures import BeamType, FibsemStagePosition, Point
+
     FIBSEM = True
 except ImportError:
     FIBSEM = False
@@ -39,7 +31,7 @@ class OpenLMCalibrationWidget(OpenLMCalibrationWidget.Ui_Form, QtWidgets.QWidget
     def __init__(
         self,
         viewer: napari.Viewer = None,
-        microscope: LightMicroscope = None, 
+        microscope: LightMicroscope = None,
         parent=None,
     ):
         super(OpenLMCalibrationWidget, self).__init__(parent=parent)
@@ -62,28 +54,49 @@ class OpenLMCalibrationWidget(OpenLMCalibrationWidget.Ui_Form, QtWidgets.QWidget
         self.pushButton_save_calibration.clicked.connect(self.save_calibration)
         self.pushButton_reset_calibration.clicked.connect(self.reset_calibration)
 
-        # self.pushButton_calculate_pretilt.setVisible(False)
+        self.pushButton_calculate_pretilt.setVisible(False)
 
+        if self.parent is not None:
+            self.parent.hardware_widget.objective_moved.connect(self.calculate_pretilt)
 
     def update_ui(self):
-        self.label_pretilt.setText(f"{self.microscope.fibsem_settings.system.stage.tilt_flat_to_electron:.2f} deg")
-        self.label_objective_start.setText(f"Objective Start: {(self.obj_z0 * constants.SI_TO_MICRO):.2f} um")
-        self.label_objective_finish.setText(f"Objective dz: {(self.obj_dz * constants.SI_TO_MICRO):.2f} um")
-        self.label_cum_dy.setText(f"{(self._cum_dy * constants.SI_TO_MICRO):.2f} um")
-        self.label_cum_dy_corrected.setText(f"{(self._cum_dy_corrected * constants.SI_TO_MICRO):.2f} um")
-        self.label_cum_dz_corrected.setText(f"{(self._cum_dz_corrected * constants.SI_TO_MICRO):.2f} um")
-        self.label_dpretilt.setText(f"{self.dpretilt:.4f} deg")
+        stage_msg = (
+            f"Stage:\nExpected (dy): \t{(self._cum_dy * constants.SI_TO_MICRO):.2f} um"
+        )
+        stage_msg += (
+            f"\nActual (dy): \t{(self._cum_dy_corrected * constants.SI_TO_MICRO):.2f} um"
+        )
+        stage_msg += (
+            f"\nActual (dz): \t{(self._cum_dz_corrected * constants.SI_TO_MICRO):.2f} um"
+        )
 
+        obj_msg = (
+            f"\nObjective:\nStart (z): \t{(self.obj_z0 * constants.SI_TO_MICRO):.2f} um"
+        )
+        obj_msg += f"\nDelta (dz): \t{(self.obj_dz * constants.SI_TO_MICRO):.2f} um"
 
+        pretilt_msg = f"\nPre-Tilt:\nStart: \t\t{self.microscope.fibsem_settings.system.stage.pre_tilt:.2f} deg"
+        pretilt_msg += f"\nDelta: \t\t{self.dpretilt:.4f} deg"
+
+        instruction_msg = f"Instructions:"
+        instruction_msg += f"\n1. Move stage to a position where the sample is in focus, and press Reset Calibration"
+        instruction_msg += f"\n2. Move stage in steps of {self.doubleSpinBox_dy.value()} um until the sample is out of focus"
+        instruction_msg += f"\n3. Refocus using the Objective (Hardware Tab)'"
+        instruction_msg += f"\n4. Click 'Save Calibration' to update the pre-tilt angle"
+        instruction_msg += f"\n5. Click 'Reset Calibration' to start over"
+        instruction_msg += f"\n\nYou should now be able to click to move along the sample without refocusing.\n\n"
+
+        msg = f"{stage_msg}\n{obj_msg}\n{pretilt_msg}\n\n{instruction_msg}"
+
+        self.label_info.setText(msg)
 
     def reset_calibration(self):
-
         logging.info("reset_calibration")
 
         self._cum_dy = 0.0
         self._cum_dy_corrected = 0.0
         self._cum_dz_corrected = 0.0
-        self.dpretilt = 0.0 
+        self.dpretilt = 0.0
 
         self.obj_z0 = self.microscope._objective.position
         self.obj_z1 = self.obj_z0
@@ -91,10 +104,8 @@ class OpenLMCalibrationWidget(OpenLMCalibrationWidget.Ui_Form, QtWidgets.QWidget
 
         self.update_ui()
 
-
     def move_stage(self):
         logging.info("move_stage")
-
 
         if self.microscope.fibsem_microscope is None:
             msg = f"Stage Movement is disabled (No OpenFIBSEM)"
@@ -112,7 +123,7 @@ class OpenLMCalibrationWidget(OpenLMCalibrationWidget.Ui_Form, QtWidgets.QWidget
             dy=dy,
             beam_type=BeamType.ION,
         )
-        
+
         self._cum_dy += dy
         self._cum_dy_corrected += stage_position.y
         self._cum_dz_corrected += stage_position.z
@@ -120,7 +131,6 @@ class OpenLMCalibrationWidget(OpenLMCalibrationWidget.Ui_Form, QtWidgets.QWidget
         self.calculate_pretilt()
 
         self.update_ui()
-
 
     def calculate_pretilt(self):
         logging.info("calculate_pretilt")
@@ -130,40 +140,41 @@ class OpenLMCalibrationWidget(OpenLMCalibrationWidget.Ui_Form, QtWidgets.QWidget
         # divided by cum_dy
         # pretilt is the arctan of that
 
-        self.obj_dz = -(self.obj_z1 - self.obj_z0) # sign is  because coord sysstems are opposite
+        self.obj_dz = -(
+            self.obj_z1 - self.obj_z0
+        )  # sign is  because coord sysstems are opposite
 
-        self.dpretilt = np.rad2deg(np.arctan(self.obj_dz / self._cum_dy))
+        self.dpretilt = np.rad2deg(np.arctan(self.obj_dz / self._cum_dy+1e-20))
 
         self.update_ui()
 
     def save_calibration(self):
         logging.info("save_calibration")
 
-
         # save the pretilt
-        # self.microscope.fibsem_settings.system.stage.tilt_flat_to_electron += self.dpretilt
-        self.parent.microscope.fibsem_settings.system.stage.tilt_flat_to_electron += self.dpretilt
+        self.parent.microscope.fibsem_settings.system.stage.pre_tilt += self.dpretilt
 
         self.update_ui()
 
 
 # TODO:
 # - give access to system pre-tilt through UI
-# - live update when objective changes or stage moves
 # - write changes to system.yaml
 # - button: update stage tilt to flat to beam when pre-tilt changes
 # - safety checks
 
 
 def main():
-
     # create the viewer and window
     viewer = napari.Viewer(ndisplay=2)
-    
+
     openlm_calibration = OpenLMCalibrationWidget(viewer=viewer)
 
     viewer.window.add_dock_widget(
-        openlm_calibration, area="right", add_vertical_stretch=False, name="OpenLM Calibration"
+        openlm_calibration,
+        area="right",
+        add_vertical_stretch=False,
+        name="OpenLM Calibration",
     )
     napari.run()
 

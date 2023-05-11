@@ -3,7 +3,7 @@ import logging
 import napari
 import napari.utils.notifications
 import numpy as np
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 
 from openlm import constants, utils
 from openlm.detector import Detector
@@ -17,6 +17,8 @@ from openlm.ui.qt import OpenLMHardwareWidget, OpenLMObjectiveWidget
 
 
 class OpenLMHardwareWidget(OpenLMHardwareWidget.Ui_Form, QtWidgets.QWidget):
+    objective_moved = QtCore.pyqtSignal()
+    
     def __init__(
         self,
         microscope: LightMicroscope,
@@ -217,6 +219,7 @@ class OpenLMHardwareWidget(OpenLMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         position = self.microscope._objective.saved_position
         logging.info(f"Moving to saved position: {position:.2e}")
         self.microscope._objective.absolute_move(position)
+        self.objective_moved.emit()
         self.update_ui()
 
     def move_absolute(self):
@@ -227,6 +230,7 @@ class OpenLMHardwareWidget(OpenLMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         logging.info(f"Absolute position: {abs_position:.2e}")
 
         self.microscope._objective.absolute_move(abs_position)
+        self.objective_moved.emit()
         self.update_ui()
 
     def move_relative(self):
@@ -244,6 +248,8 @@ class OpenLMHardwareWidget(OpenLMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         logging.info(f"Relative position: {relative_position:.2e}, ({direction})")
 
         self.microscope._objective.relative_move(relative_position)
+        
+        self.objective_moved.emit()
 
         self.update_ui()
 

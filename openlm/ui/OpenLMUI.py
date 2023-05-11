@@ -147,9 +147,12 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
 
 def main():
     viewer = napari.Viewer(ndisplay=2)
-    image_settings_ui = OpenLMUI(viewer=viewer)
+    openlm_ui = OpenLMUI(viewer=viewer)
     viewer.window.add_dock_widget(
-        image_settings_ui, area="right", add_vertical_stretch=False
+        openlm_ui, 
+        area="right", 
+        add_vertical_stretch=True, 
+        name = "OpenLM"
     )
     napari.run()
 
