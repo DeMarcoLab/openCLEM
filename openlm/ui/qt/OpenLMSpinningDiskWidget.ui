@@ -14,10 +14,33 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="6" column="0">
+   <item row="7" column="0">
     <widget class="QLabel" name="label_disk_position">
      <property name="text">
       <string>Disk Position</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="1">
+    <widget class="QSpinBox" name="spinBox_disk_position"/>
+   </item>
+   <item row="4" column="0" colspan="2">
+    <widget class="QPushButton" name="pushButton_disk_connect">
+     <property name="text">
+      <string>Connect</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QComboBox" name="comboBox_disk_type"/>
+   </item>
+   <item row="8" column="1">
+    <widget class="QSpinBox" name="spinBox_disk_emission_filter"/>
+   </item>
+   <item row="10" column="0" colspan="2">
+    <widget class="QLabel" name="label_disk_status">
+     <property name="text">
+      <string>Status</string>
      </property>
     </widget>
    </item>
@@ -35,10 +58,21 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="1">
-    <widget class="QSpinBox" name="spinBox_disk_position"/>
+   <item row="9" column="0" colspan="2">
+    <widget class="QPushButton" name="pushButton_disk_apply">
+     <property name="text">
+      <string>Apply Settings</string>
+     </property>
+    </widget>
    </item>
-   <item row="10" column="0" colspan="2">
+   <item row="8" column="0">
+    <widget class="QLabel" name="label_disk_emission_filter">
+     <property name="text">
+      <string>Emission Filter</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="0" colspan="2">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -51,13 +85,6 @@
      </property>
     </spacer>
    </item>
-   <item row="4" column="0" colspan="2">
-    <widget class="QPushButton" name="pushButton_disk_connect">
-     <property name="text">
-      <string>Connect</string>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label_disk_type">
      <property name="text">
@@ -65,32 +92,22 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
-    <widget class="QComboBox" name="comboBox_disk_type"/>
-   </item>
-   <item row="5" column="0">
+   <item row="6" column="0">
     <widget class="QCheckBox" name="checkBox_disk_onoff">
      <property name="text">
       <string>Disk On</string>
      </property>
     </widget>
    </item>
-   <item row="9" column="0" colspan="2">
-    <widget class="QLabel" name="label_disk_status">
+   <item row="5" column="1">
+    <widget class="QComboBox" name="comboBox_disk_mode"/>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="label_disk_mode">
      <property name="text">
-      <string>Status</string>
+      <string>Mode</string>
      </property>
     </widget>
-   </item>
-   <item row="7" column="0">
-    <widget class="QLabel" name="label_disk_emission_filter">
-     <property name="text">
-      <string>Emission Filter</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="1">
-    <widget class="QSpinBox" name="spinBox_disk_emission_filter"/>
    </item>
   </layout>
  </widget>
