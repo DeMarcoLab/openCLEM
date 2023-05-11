@@ -32,6 +32,7 @@ except ImportError:
 import time
 from openlm.workflow import _gen_tiling_workflow, _gen_volume_workflow, _gen_workflow, generate_workflow
 from openlm.structures import WorkflowSettings
+from collections import Counter
 
 
 class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
@@ -75,12 +76,24 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         # workflows
         self.pushButton_run_tiling.clicked.connect(self.run_workflow)
 
-        self.spinBox_tile_n_rows.valueChanged.connect(self.update_workflow_ui)
-        self.spinBox_tile_n_cols.valueChanged.connect(self.update_workflow_ui)
-        self.doubleSpinBox_tile_dx.valueChanged.connect(self.update_workflow_ui)
-        self.doubleSpinBox_tile_dy.valueChanged.connect(self.update_workflow_ui)
-        self.spinBox_vol_n_slices.valueChanged.connect(self.update_workflow_ui)
-        self.doubleSpinBox_vol_dz.valueChanged.connect(self.update_workflow_ui) 
+        self.spinBox_tile_n_rows.valueChanged.connect(self.setup_workflow)
+        self.spinBox_tile_n_cols.valueChanged.connect(self.setup_workflow)
+        self.doubleSpinBox_tile_dx.valueChanged.connect(self.setup_workflow)
+        self.doubleSpinBox_tile_dy.valueChanged.connect(self.setup_workflow)
+        self.spinBox_vol_n_slices.valueChanged.connect(self.setup_workflow)
+        self.doubleSpinBox_vol_dz.valueChanged.connect(self.setup_workflow)
+        self.checkBox_workflow_return_to_origin.stateChanged.connect(self.setup_workflow)
+
+        # setKeyboardTracking(False) for all
+        self.spinBox_tile_n_rows.setKeyboardTracking(False)
+        self.spinBox_tile_n_cols.setKeyboardTracking(False)
+        self.doubleSpinBox_tile_dx.setKeyboardTracking(False)
+        self.doubleSpinBox_tile_dy.setKeyboardTracking(False)
+        self.spinBox_vol_n_slices.setKeyboardTracking(False)
+        self.doubleSpinBox_vol_dz.setKeyboardTracking(False)
+
+        self.setup_workflow()
+
 
     def save_image(self):
         if self.image is None:
@@ -172,7 +185,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.idx = 0
         self.run_workflow_step()
 
-    def update_workflow_ui(self):
+    def get_workflow_from_ui(self):
         
         workflow_settings = WorkflowSettings(
             n_rows = self.spinBox_tile_n_rows.value(),
@@ -181,6 +194,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             dy = self.doubleSpinBox_tile_dy.value() * constants.MICRO_TO_SI,
             n_slices = self.spinBox_vol_n_slices.value(),
             dz = self.doubleSpinBox_vol_dz.value() * constants.MICRO_TO_SI,
+            return_to_origin=self.checkBox_workflow_return_to_origin.isChecked(),
         )
 
         return workflow_settings
@@ -192,38 +206,38 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         image_settings.mode = mode
         image_settings.n_images = len([v for v in sync_message.exposures if v > 0])
 
+        # all images in workflow get saved to same folder (TODO: convert to chunked storage)
         image_settings.path = os.path.join(cfg.LOG_PATH, f"workflow_{utils.current_timestamp()}")
         os.makedirs(image_settings.path, exist_ok=True)
 
-        image_settings.workflow = self.update_workflow_ui()
-
+        image_settings.workflow = self.get_workflow_from_ui()
 
         wf = image_settings.workflow
+
+        # it probably makes more sense for the workflow to have image_settings, and a sync_message
+        # but for now, we'll just pass the sync_message
+
+        # e.g. workflow.sync_message = sync_message
+        # e.g. workflow.image_settings = image_settings
 
         _NEW_WORKFLOW = False
         if _NEW_WORKFLOW:
             # TODO: turn on
             self.workflow = generate_workflow(wf, image_settings, sync_message)
         else:
-            # This gives us the relative x, y coordinates for each imaging position
             tile_coords = _gen_tiling_workflow(n_rows=wf.n_rows, n_cols=wf.n_cols, dx=wf.dx, dy=wf.dy)
-
-            # This gives us the relative z coordinates for each imaging position
             volume_coords = _gen_volume_workflow(n_slices=wf.n_slices, dz=wf.dz)
-
             self.workflow = _gen_workflow(tile_coords, volume_coords, 
                                     image_settings=image_settings, 
                                     sync_message=sync_message,
                                     )
         
-
         logging.info(f"Workflow Length: {len(self.workflow)}")
 
-        from collections import Counter
+        # workflow info
         c = Counter([step["type"] for step in self.workflow])
-
-        self.label_info_1.setText(f"Workflow Length: {len(self.workflow)}")
-        self.label_info_2.setText(f"Workflow Steps: {[f'{k}:{c[k]}' for k in c.keys()]}")
+        c_str = "".join([f"{k.title()}: {v}, " for k, v in c.items()])
+        self.label_workflow_info.setText(f"{len(self.workflow)} Workflow Steps: ({c_str})")
 
     def run_workflow_step(self):
         step = self.workflow[self.idx]
@@ -266,10 +280,17 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         self.idx += 1
 
         if self.idx < len(self.workflow):
-            logging.info(f"Workflow: {self.idx+1}/{len(self.workflow)}")
+            
+            msg = f"Workflow Step: {self.idx+1}/{len(self.workflow)} ({self.workflow[self.idx]['type'].title()})"
+            logging.info(msg)
+            self.label_workflow_run_info.setText(msg)
+
             self.run_workflow_step()
         else:
-            logging.info("Finished Workflow")
+            msg = f"Workflow Step: {self.idx}/{len(self.workflow)} (Finished)"
+            logging.info(msg)
+            self.label_workflow_run_info.setText(msg)
+
 
     def update_image(self, dat: dict):
         self.image = dat["image"]
