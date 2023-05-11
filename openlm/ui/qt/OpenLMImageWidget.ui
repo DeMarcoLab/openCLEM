@@ -14,18 +14,17 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="9" column="0" colspan="3">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
+   <item row="0" column="0" colspan="2">
+    <widget class="QLabel" name="label_title">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
+     <property name="text">
+      <string>Imaging</string>
      </property>
-    </spacer>
+    </widget>
    </item>
    <item row="8" column="0">
     <widget class="QTabWidget" name="tabWidget">
@@ -75,10 +74,34 @@
        <string>Workflow</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_3">
-       <item row="3" column="2">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_tile_dy">
-         <property name="maximum">
-          <double>10000000.000000000000000</double>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_tile_rows">
+         <property name="text">
+          <string>n_rows, n_cols</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QSpinBox" name="spinBox_tile_n_rows">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="value">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0" colspan="3">
+        <widget class="QPushButton" name="pushButton_run_tiling">
+         <property name="text">
+          <string>Run Workflow</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0" colspan="3">
+        <widget class="QLabel" name="label_workflow_info">
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </item>
@@ -89,34 +112,10 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="2">
-        <widget class="QSpinBox" name="spinBox_tile_n_cols">
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="value">
-          <number>1</number>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0" colspan="3">
-        <widget class="QPushButton" name="pushButton_run_tiling">
-         <property name="text">
-          <string>Run Workflow</string>
-         </property>
-        </widget>
-       </item>
        <item row="5" column="2">
         <widget class="QDoubleSpinBox" name="doubleSpinBox_vol_dz">
          <property name="maximum">
           <double>1000000.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_tile_dx">
-         <property name="maximum">
-          <double>100000000.000000000000000</double>
          </property>
         </widget>
        </item>
@@ -127,36 +126,15 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="1">
-        <widget class="QSpinBox" name="spinBox_vol_n_slices">
-         <property name="minimum">
-          <number>1</number>
+       <item row="3" column="2">
+        <widget class="QDoubleSpinBox" name="doubleSpinBox_tile_dy">
+         <property name="maximum">
+          <double>10000000.000000000000000</double>
          </property>
         </widget>
        </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="label_info_1">
-         <property name="text">
-          <string>TextLabel</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1" colspan="2">
-        <widget class="QLabel" name="label_info_2">
-         <property name="text">
-          <string>TextLabel</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_tile_rows">
-         <property name="text">
-          <string>n_rows, n_cols</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QSpinBox" name="spinBox_tile_n_rows">
+       <item row="1" column="2">
+        <widget class="QSpinBox" name="spinBox_tile_n_cols">
          <property name="minimum">
           <number>1</number>
          </property>
@@ -191,6 +169,48 @@
          </property>
         </widget>
        </item>
+       <item row="3" column="1">
+        <widget class="QDoubleSpinBox" name="doubleSpinBox_tile_dx">
+         <property name="maximum">
+          <double>100000000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QCheckBox" name="checkBox_workflow_return_to_origin">
+         <property name="text">
+          <string>Return to origin</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QSpinBox" name="spinBox_vol_n_slices">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0" colspan="3">
+        <widget class="QLabel" name="label_workflow_run_info">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_3">
+      <attribute name="title">
+       <string>Movement</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_4">
+       <item row="0" column="0">
+        <widget class="QPushButton" name="pushButton_move_microscope">
+         <property name="text">
+          <string>Move to Microscope</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </widget>
@@ -199,25 +219,6 @@
     <widget class="Line" name="line">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="0" colspan="2">
-    <widget class="QLabel" name="label_title">
-     <property name="font">
-      <font>
-       <pointsize>12</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>Imaging</string>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="0">
-    <widget class="QPushButton" name="pushButton_move_microscope">
-     <property name="text">
-      <string>Move to Microscope</string>
      </property>
     </widget>
    </item>

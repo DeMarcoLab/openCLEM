@@ -154,6 +154,7 @@ class WorkflowSettings:
     dy: float = 0.0
     n_slices: int = 1
     dz: float = 0.0
+    return_to_origin: bool = True
 
     def __to_dict__(self) -> dict:
         return dict(
@@ -163,6 +164,7 @@ class WorkflowSettings:
             dy=self.dy,
             n_slices=self.n_slices,
             dz=self.dz,
+            return_to_origin=self.return_to_origin,
         )
     
     @staticmethod
@@ -174,6 +176,7 @@ class WorkflowSettings:
             dy=settings["dy"],
             n_slices=settings["n_slices"],
             dz=settings["dz"],
+            return_to_origin=settings["return_to_origin"],
         )
         return workflow_settings
 
