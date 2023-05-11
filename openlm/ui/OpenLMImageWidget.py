@@ -30,7 +30,7 @@ except ImportError:
     FIBSEM = False
 
 import time
-from openlm.workflow import _gen_tiling_workflow, _gen_volume_workflow, _gen_workflow, generate_workflow
+from openlm.workflow import _gen_tiling_workflow, _gen_volume_workflow, _gen_workflow, generate_workflow, generate_workflow_v2
 from openlm.structures import WorkflowSettings
 from collections import Counter
 
@@ -220,10 +220,11 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         # e.g. workflow.sync_message = sync_message
         # e.g. workflow.image_settings = image_settings
 
-        _NEW_WORKFLOW = False
+        _NEW_WORKFLOW = True
         if _NEW_WORKFLOW:
             # TODO: turn on
-            self.workflow = generate_workflow(wf, image_settings, sync_message)
+            # self.workflow = generate_workflow(wf, image_settings, sync_message)
+            self.workflow = generate_workflow_v2(wf, image_settings, sync_message)
         else:
             tile_coords = _gen_tiling_workflow(n_rows=wf.n_rows, n_cols=wf.n_cols, dx=wf.dx, dy=wf.dy)
             volume_coords = _gen_volume_workflow(n_slices=wf.n_slices, dz=wf.dz)
@@ -235,7 +236,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         logging.info(f"Workflow Length: {len(self.workflow)}")
 
         # workflow info
-        c = Counter([step["type"] for step in self.workflow])
+        c = Counter([step.type for step in self.workflow])
         c_str = "".join([f"{k.title()}: {v}, " for k, v in c.items()])
         self.label_workflow_info.setText(f"{len(self.workflow)} Workflow Steps: ({c_str})")
 
@@ -244,36 +245,40 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         logging.info(f"Running Workflow Step: {step}")
 
-        if step["type"] == "acquire_image":
-            self.stop_event.clear()
-            self.microscope.setup_acquisition()
+        step.params["parent_ui"] = self
+        step.run(microscope=self.microscope, return_fn = self.finish_workflow_step)
 
-            # TODO: disable other microscope interactions
-            worker = self.microscope.consume_image_queue(save=True, parent_ui=self)
-            worker.returned.connect(self.finish_workflow_step)  # type: ignore
-            worker.start()
 
-            time.sleep(1)
+        # if step["type"] == "acquire_image":
+        #     self.stop_event.clear()
+        #     self.microscope.setup_acquisition()
 
-            # acquire image
-            self.image_queue, self.stop_event = self.microscope.acquire_image(
-                image_settings=step["settings"],
-                sync_message=step["sync"],
-                stop_event=self.stop_event,
-            )
+        #     # TODO: disable other microscope interactions
+        #     worker = self.microscope.consume_image_queue(save=True, parent_ui=self)
+        #     worker.returned.connect(self.finish_workflow_step)  # type: ignore
+        #     worker.start()
 
-        if step["type"] == "move_stage":
-            worker = self.microscope.move_stage(dx=step["dx"], dy=step["dy"])
-            worker.returned.connect(self.finish_workflow_step)  # type: ignore
-            worker.start()
+        #     time.sleep(1)
 
-        if step["type"] == "move_objective":
-            worker = self.microscope.move_objective_stage(dz=step["dz"])
-            worker.returned.connect(self.finish_workflow_step)  # type: ignore
-            worker.start()
+        #     # acquire image
+        #     self.image_queue, self.stop_event = self.microscope.acquire_image(
+        #         image_settings=step["settings"],
+        #         sync_message=step["sync"],
+        #         stop_event=self.stop_event,
+        #     )
 
-        if step["type"] == "restore_state":
-            logging.info("Restoring Microscope")
+        # if step["type"] == "move_stage":
+        #     worker = self.microscope.move_stage(dx=step["dx"], dy=step["dy"])
+        #     worker.returned.connect(self.finish_workflow_step)  # type: ignore
+        #     worker.start()
+
+        # if step["type"] == "move_objective":
+        #     worker = self.microscope.move_objective_stage(dz=step["dz"])
+        #     worker.returned.connect(self.finish_workflow_step)  # type: ignore
+        #     worker.start()
+
+        # if step["type"] == "restore_state":
+        #     logging.info("Restoring Microscope")
 
     def finish_workflow_step(self):
         logging.info(f"Finished Workflow Step {self.idx+1}")
@@ -281,7 +286,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         if self.idx < len(self.workflow):
             
-            msg = f"Workflow Step: {self.idx+1}/{len(self.workflow)} ({self.workflow[self.idx]['type'].title()})"
+            msg = f"Workflow Step: {self.idx+1}/{len(self.workflow)} ({self.workflow[self.idx].type.title()})"
             logging.info(msg)
             self.label_workflow_run_info.setText(msg)
 
