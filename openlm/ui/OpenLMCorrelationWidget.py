@@ -49,19 +49,25 @@ class OpenLMCorrelationWidget(OpenLMCorrelationWidget.Ui_Form, QtWidgets.QWidget
         self.pushButton_correlate.clicked.connect(self.correlate)
 
     def correlate(self):
-        if len(self.points_1) > 2 and len(self.points_2) > 2:
-            print("Correlating")
-            matched_points = self.convert_points_to_matched_arrays()
-            self.blended_image = correlate_images(self.image_1, self.image_2, matched_points)
-            if 'blended_image' in self.viewer.layers:
-                self.viewer.layers['blended_image'].data = self.blended_image
-            else:
-                self.viewer.add_image(self.blended_image, name='blended_image', colormap="gray", visible=True, translate=[0, self.viewer.layers['image_1'].data.shape[1] + self.viewer.layers['image_2'].data.shape[1]])
+        # Need at least 3 points to correlate
+        if not(len(self.points_1) > 2 and len(self.points_2) > 2):
+            return
+        
+        # Check if points are in the same order
+        if not(len(self.points_1) == len(self.points_2)):
+            return
+
+        print("Correlating")
+        matched_points = self.convert_points_to_matched_arrays()
+        self.blended_image = correlate_images(self.image_1, self.image_2, matched_points)
+        if 'blended_image' in self.viewer.layers:
+            self.viewer.layers['blended_image'].data = self.blended_image
+        else:
+            self.viewer.add_image(self.blended_image, name='blended_image', colormap="gray", visible=True, translate=[0, self.viewer.layers['image_1'].data.shape[1] + self.viewer.layers['image_2'].data.shape[1]])
 
     def update_cpoints_table(self):
         n_points = np.max([len(self.points_1), len(self.points_2)])
         self.tableWidget_cpoints.setRowCount(0)
-
 
         for i in range(n_points):
             if i > len(self.points_1)-1:
@@ -152,37 +158,35 @@ class OpenLMCorrelationWidget(OpenLMCorrelationWidget.Ui_Form, QtWidgets.QWidget
 
     def _single_click(self, layer, event):
 
+        # Use right clicking for adding points
         if event.button == 1:
             return
 
+        # Check if the click is on a layer
         clicked_layer = self._check_layer_clicked(event)
-        if clicked_layer is None:
+        
+        # Set properties based on layer click
+        if clicked_layer == self.viewer.layers['image_1'] and self._check_cpoints_list() in ['points_1', True]:
+            new_layer  = 'points_1'
+            data = self.points_1
+            color = 'blue'
+        elif clicked_layer == self.viewer.layers['image_2'] and self._check_cpoints_list() in ['points_2', True]:
+            new_layer = 'points_2'
+            data = self.points_2
+            color = 'red'
+        else:
             return
+        
+        # Add point to layer, or create layer if it doesn't exist
+        if new_layer in self.viewer.layers:
+            data.append(event.position)
+            self.viewer.layers[new_layer].data = data
+        else:
+            self.viewer.add_points(event.position, name=new_layer, symbol='cross', size=20, face_color=color, edge_color=color)
+            data = [event.position]
+            self.setup_callbacks(self.viewer.layers[new_layer])
 
-        if clicked_layer == self.viewer.layers['image_1']:
-            if self._check_cpoints_list() not in ["points_1", True]:
-                return
-            if 'points_1' in self.viewer.layers:
-                self.points_1.append(event.position[-2:])
-                print(f"points_1: {self.points_1}")
-                self.viewer.layers['points_1'].data = self.points_1
-            else:
-                self.viewer.add_points(event.position, name='points_1')
-                self.points_1 = [event.position[-2:]]
-                self.setup_callbacks(self.viewer.layers['points_1'])
-
-        if clicked_layer == self.viewer.layers['image_2']:
-            if self._check_cpoints_list() not in ["points_2", True]:
-                return
-            if 'points_2' in self.viewer.layers:
-                print(f"Points2: {self.points_2}")
-                self.points_2.append(event.position[-2:])
-                self.viewer.layers['points_2'].data = self.points_2
-            else:
-                self.viewer.add_points(event.position, name='points_2')
-                self.points_2 = [event.position[-2:]]
-                self.setup_callbacks(self.viewer.layers['points_2'])
-
+        # Update the cpoints table
         self.update_cpoints_table()
 
     def _check_layer_clicked(self, event):
@@ -230,9 +234,9 @@ def correlate_images(fluorescence_image_rgb, fibsem_image, matched_points_dict):
     matched_points_dict : dict
     Dictionary of points selected in the correlation window
     """
-    if matched_points_dict == []:
-        logging.error('No control points selected, exiting.')
-        return
+    # if matched_points_dict = []:
+    #     logging.error('No control points selected, exiting.')
+    #     return
 
     src, dst = point_coords(matched_points_dict)
     transformation = calculate_transform(src, dst)
@@ -337,6 +341,7 @@ def apply_transform(image, transformation, inverse=True, multichannel=True):
     image = np.expand_dims(image, axis=0)
     warped_img = np.array([ndi.affine_transform((img_channel), transformation)
                            for img_channel in image])
+    warped_img = warped_img[0]
     # warped_img = np.moveaxis(warped_img, 0, -1)
 
     return warped_img
