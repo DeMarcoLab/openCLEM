@@ -220,7 +220,8 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         # e.g. workflow.sync_message = sync_message
         # e.g. workflow.image_settings = image_settings
 
-        _NEW_WORKFLOW = True
+        _NEW_WORKFLOW = False
+
         if _NEW_WORKFLOW:
             # TODO: turn on
             # self.workflow = generate_workflow(wf, image_settings, sync_message)
@@ -237,6 +238,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         # workflow info
         c = Counter([step.type for step in self.workflow])
+
         c_str = "".join([f"{k.title()}: {v}, " for k, v in c.items()])
         self.label_workflow_info.setText(f"{len(self.workflow)} Workflow Steps: ({c_str})")
 
@@ -287,6 +289,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         if self.idx < len(self.workflow):
             
             msg = f"Workflow Step: {self.idx+1}/{len(self.workflow)} ({self.workflow[self.idx].type.title()})"
+
             logging.info(msg)
             self.label_workflow_run_info.setText(msg)
 
