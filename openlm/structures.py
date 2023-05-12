@@ -606,3 +606,68 @@ class TileSettings:
     n_cols: int
     shift: float
 
+
+
+# TODO: move to PIEDISC
+import yaml
+
+from fibsem import utils as fibsem_utils
+from fibsem.structures import MicroscopeState
+
+class Experiment: 
+    def __init__(self, path: Path = None, name: str = "default") -> None:
+
+        self.name: str = name
+        self.path: Path = fibsem_utils.make_logging_directory(path=path, name=name)
+        self.log_path: Path = fibsem_utils.configure_logging(
+            path=self.path, log_filename="logfile"
+        )
+
+        self.positions: list[MicroscopeState] = []
+
+    def __to_dict__(self) -> dict:
+
+        state_dict = {
+            "name": self.name,
+            "path": self.path,
+            "log_path": self.log_path,
+            "positions": [state.__to_dict__() for state in self.positions],
+        }
+
+        return state_dict
+
+    def save(self) -> None:
+        """Save the experiment data to yaml file"""
+
+        with open(os.path.join(self.path, f"{self.name}.yaml"), "w") as f:
+            yaml.safe_dump(self.__to_dict__(), f, indent=4)
+
+    def __repr__(self) -> str:
+
+        return f"""Experiment: 
+        Path: {self.path}
+        Positions: {len(self.positions)}
+        """
+    
+    @staticmethod
+    def load(fname: Path) -> 'Experiment':
+        """Load an experiment from disk."""
+
+        # read and open existing yaml file
+        path = Path(fname).with_suffix(".yaml")
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                ddict = yaml.safe_load(f)
+        else:
+            raise FileNotFoundError(f"No file with name {path} found.")
+
+        # create sample
+        path = os.path.dirname(ddict["path"])
+        name = ddict["name"]
+        experiment = Experiment(path=path, name=name)
+
+        # load position from dict
+        for pdict in ddict["positions"]:
+            experiment.positions.append(MicroscopeState.__from_dict__(pdict))
+
+        return experiment

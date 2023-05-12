@@ -7,6 +7,12 @@ LOG_PATH = os.path.join(BASE_PATH, "log")
 os.makedirs(LOG_PATH, exist_ok=True)
 
 
+_TRANSLATION = {
+    "x": 49.6167e-3,
+    "y": -0.339e-3,
+    "z": 0.137e-3,
+} 
+
 # structure is: {config_name: [folder_name.file_name, class_name]}
 AVAILABLE_LASERS = {"demo": ["demo.demo", "DemoLaser"],
                     "89North_ldi_Laser": ["89north.ldi", "LdiLaser"],

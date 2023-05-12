@@ -14,49 +14,38 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="2" column="0">
-    <widget class="QPushButton" name="pushButton_add_coordinate">
+   <item row="7" column="0" colspan="3">
+    <widget class="QPushButton" name="pushButton_move_to_position">
      <property name="text">
-      <string>Add Coordinate</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="label_title">
-     <property name="text">
-      <string>Stage Coordinates</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_current_position">
-     <property name="text">
-      <string>TextLabel</string>
+      <string>Move To Position</string>
      </property>
     </widget>
    </item>
    <item row="2" column="1">
     <widget class="QPushButton" name="pushButton_remove_coordinate">
      <property name="text">
-      <string>Remove Coordinate</string>
+      <string>Remove Position</string>
      </property>
     </widget>
    </item>
-   <item row="4" column="0" colspan="2">
-    <widget class="QPushButton" name="pushButton_save_coordinate">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label_title">
      <property name="text">
-      <string>Save Coordinates</string>
+      <string>Experiment Positions</string>
      </property>
     </widget>
    </item>
-   <item row="3" column="0" colspan="2">
-    <widget class="QLabel" name="label_coordinate_list">
+   <item row="6" column="1">
+    <widget class="QComboBox" name="comboBox_move_to_system"/>
+   </item>
+   <item row="2" column="0">
+    <widget class="QPushButton" name="pushButton_add_coordinate">
      <property name="text">
-      <string>TextLabel</string>
+      <string>Add Position</string>
      </property>
     </widget>
    </item>
-   <item row="5" column="0" colspan="2">
+   <item row="9" column="0" colspan="2">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -68,6 +57,30 @@
       </size>
      </property>
     </spacer>
+   </item>
+   <item row="6" column="2">
+    <widget class="QComboBox" name="comboBox_positions"/>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_position_list">
+     <property name="text">
+      <string>Selected Position</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2">
+    <widget class="QPushButton" name="pushButton_save_coordinate">
+     <property name="text">
+      <string>Save Positions</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0" colspan="3">
+    <widget class="QLabel" name="label_coordinate_list">
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
