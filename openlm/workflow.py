@@ -70,7 +70,8 @@ from copy import deepcopy
 def _gen_workflow(tile_coords:list, 
                   volume_coords:list,
                   image_settings:ImageSettings,
-                  sync_message:SynchroniserMessage, 
+                  sync_message:SynchroniserMessage,
+                  return_to_origin: bool = True 
                   ) -> list[dict]:
     workflow = []
 
@@ -86,7 +87,6 @@ def _gen_workflow(tile_coords:list,
 
         current_position[0] = tile_coord[0]
         current_position[1] = tile_coord[1]
-        # print("--"*20)
 
         for volume_coord in volume_coords:
             dz = volume_coord - current_position[2]
@@ -100,14 +100,15 @@ def _gen_workflow(tile_coords:list,
                              "settings": deepcopy(image_settings), 
                              "stop_event": None})
 
-    # move back to begining
-    dx = -current_position[0]
-    dy = current_position[1]
-    dz = -current_position[2]
-    if not (dx == 0 and dy == 0):
-        workflow.append({"type": "move_stage", "dx": dx, "dy": dy})
-    if not (dz == 0):
-        workflow.append({"type": "move_objective", "dz": dz})
+    if return_to_origin:
+        # move back to begining
+        dx = -current_position[0]
+        dy = current_position[1]
+        dz = -current_position[2]
+        if not (dx == 0 and dy == 0):
+            workflow.append({"type": "move_stage", "dx": dx, "dy": dy})
+        if not (dz == 0):
+            workflow.append({"type": "move_objective", "dz": dz})
 
     return workflow
 
@@ -116,11 +117,120 @@ def generate_workflow(workflow_settings: WorkflowSettings, image_settings: Image
     """Generate a workflow based on the workflow settings"""
     tile_coords = _gen_tiling_workflow(workflow_settings.n_rows, workflow_settings.n_cols, workflow_settings.dx, workflow_settings.dy)
     volume_coords = _gen_volume_workflow(workflow_settings.n_slices, workflow_settings.dz)
-    workflow = _gen_workflow(tile_coords, volume_coords, image_settings, sync_message)
+    workflow = _gen_workflow(tile_coords, volume_coords, image_settings, sync_message, return_to_origin=workflow_settings.return_to_origin)
     return workflow
 
 
 
 
 
+################### v2 #####################
 
+from dataclasses import dataclass
+
+from openlm.microscope import LightMicroscope
+from abc import ABC, abstractmethod
+
+@dataclass
+class OpenLMWorkflowStep(ABC):
+    type: str
+    name: str
+    params: dict
+
+    @abstractmethod
+    def run(self, microscope: LightMicroscope, return_fn=None, *args, **kwargs):
+        pass
+
+class OpenLMWorkflowStepMoveStage(OpenLMWorkflowStep):
+    def __init__(self, name: str, params: dict):
+        super().__init__(type="move_stage", name=name, params=params)
+
+    def run(self,microscope: LightMicroscope, return_fn=None):
+        worker = microscope.move_stage(dx=self.params["dx"], dy=self.params["dy"])
+        worker.returned.connect(return_fn)  # type: ignore
+        worker.start()
+
+class OpenLMWorkflowStepAcquireImage(OpenLMWorkflowStep):
+    def __init__(self, name: str, params: dict):
+        super().__init__(type="acquire_image", name=name, params=params)
+
+    def run(self, microscope: LightMicroscope, return_fn=None ):
+        self.params["parent_ui"].stop_event.clear()
+        microscope.setup_acquisition()
+
+        # TODO: disable other microscope interactions
+        worker = microscope.consume_image_queue(save=True, parent_ui=self.params["parent_ui"])
+        worker.returned.connect(return_fn)  # type: ignore
+        worker.start()
+
+        time.sleep(1)
+
+        # acquire image
+        self.params["parent_ui"].image_queue, self.params["parent_ui"].stop_event = microscope.acquire_image(
+            image_settings=self.params["settings"],
+            sync_message=self.params["sync"],
+            stop_event=self.params["parent_ui"].stop_event,
+        )
+
+class OpenLMWorkflowStepMoveObjective(OpenLMWorkflowStep):
+    def __init__(self, name: str, params: dict):
+        super().__init__(type="move_objective", name=name, params=params)
+
+    def run(self, microscope: LightMicroscope, return_fn=None, ):
+        logging.info(f"Objective Move: {self.params['dz']}")
+        worker = microscope.move_objective_stage(dz=self.params["dz"])
+        worker.returned.connect(return_fn)  # type: ignore
+        worker.start()
+
+from typing import Callable
+
+def _gen_workflow_v2(tile_coords:list, 
+                  volume_coords:list,
+                  image_settings:ImageSettings,
+                  sync_message:SynchroniserMessage,
+                  return_to_origin: bool = True, 
+                  ) -> list[OpenLMWorkflowStep]:
+    workflow = []
+
+    current_position = [0, 0, 0]
+
+    for tile_coord in tile_coords:
+        dx = tile_coord[0] - current_position[0]
+        dy = -(tile_coord[1] - current_position[1])
+
+        if not(dx == 0 and dy == 0):
+            workflow.append(OpenLMWorkflowStepMoveStage(name="move_stage", params={"dx": dx, "dy": dy}))
+
+        current_position[0] = tile_coord[0]
+        current_position[1] = tile_coord[1]
+
+        for volume_coord in volume_coords:
+            dz = volume_coord - current_position[2]
+            if not (dz == 0):
+                workflow.append(OpenLMWorkflowStepMoveObjective(name="move_objective", params={"dz": dz}))
+            current_position[2] = volume_coord
+
+            ## REPLACE THIS WITH IMAGE DAT ## 
+            workflow.append(OpenLMWorkflowStepAcquireImage(name="acquire_image", params={"sync": deepcopy(sync_message), 
+                                "settings": deepcopy(image_settings), 
+                                "stop_event": None}))
+
+    if return_to_origin:
+        # move back to begining
+        dx = -current_position[0]
+        dy = current_position[1]
+        dz = -current_position[2]
+        if not (dx == 0 and dy == 0):
+            workflow.append(OpenLMWorkflowStepMoveStage(name="move_stage", params={"dx": dx, "dy": dy}))
+        if not (dz == 0):
+            workflow.append(OpenLMWorkflowStepMoveObjective(name="move_objective", params={"dz": dz}))
+
+    return workflow
+
+
+def generate_workflow_v2(workflow_settings: WorkflowSettings, image_settings: ImageSettings, sync_message: SynchroniserMessage):
+    """Generate a workflow based on the workflow settings"""
+    tile_coords = _gen_tiling_workflow(workflow_settings.n_rows, workflow_settings.n_cols, workflow_settings.dx, workflow_settings.dy)
+    volume_coords = _gen_volume_workflow(workflow_settings.n_slices, workflow_settings.dz)
+    workflow = _gen_workflow_v2(tile_coords, volume_coords, image_settings, sync_message, return_to_origin=workflow_settings.return_to_origin)
+    return workflow
