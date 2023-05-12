@@ -220,7 +220,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         # e.g. workflow.sync_message = sync_message
         # e.g. workflow.image_settings = image_settings
 
-        _NEW_WORKFLOW = False
+        _NEW_WORKFLOW = True
 
         if _NEW_WORKFLOW:
             # TODO: turn on
@@ -249,38 +249,6 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         step.params["parent_ui"] = self
         step.run(microscope=self.microscope, return_fn = self.finish_workflow_step)
-
-
-        # if step["type"] == "acquire_image":
-        #     self.stop_event.clear()
-        #     self.microscope.setup_acquisition()
-
-        #     # TODO: disable other microscope interactions
-        #     worker = self.microscope.consume_image_queue(save=True, parent_ui=self)
-        #     worker.returned.connect(self.finish_workflow_step)  # type: ignore
-        #     worker.start()
-
-        #     time.sleep(1)
-
-        #     # acquire image
-        #     self.image_queue, self.stop_event = self.microscope.acquire_image(
-        #         image_settings=step["settings"],
-        #         sync_message=step["sync"],
-        #         stop_event=self.stop_event,
-        #     )
-
-        # if step["type"] == "move_stage":
-        #     worker = self.microscope.move_stage(dx=step["dx"], dy=step["dy"])
-        #     worker.returned.connect(self.finish_workflow_step)  # type: ignore
-        #     worker.start()
-
-        # if step["type"] == "move_objective":
-        #     worker = self.microscope.move_objective_stage(dz=step["dz"])
-        #     worker.returned.connect(self.finish_workflow_step)  # type: ignore
-        #     worker.start()
-
-        # if step["type"] == "restore_state":
-        #     logging.info("Restoring Microscope")
 
     def finish_workflow_step(self):
         logging.info(f"Finished Workflow Step {self.idx+1}")

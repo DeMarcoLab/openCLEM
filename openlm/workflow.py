@@ -201,7 +201,6 @@ def _gen_workflow_v2(tile_coords:list,
         if not(dx == 0 and dy == 0):
             workflow.append(OpenLMWorkflowStepMoveStage(name="move_stage", params={"dx": dx, "dy": dy}))
 
-
         current_position[0] = tile_coord[0]
         current_position[1] = tile_coord[1]
 
