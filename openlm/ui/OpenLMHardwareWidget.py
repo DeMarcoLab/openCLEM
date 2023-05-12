@@ -18,7 +18,8 @@ from openlm.ui.qt import OpenLMHardwareWidget, OpenLMObjectiveWidget
 
 class OpenLMHardwareWidget(OpenLMHardwareWidget.Ui_Form, QtWidgets.QWidget):
     objective_moved = QtCore.pyqtSignal()
-    
+    laser_settings_changed = QtCore.pyqtSignal()
+
     def __init__(
         self,
         microscope: LightMicroscope,
@@ -194,6 +195,7 @@ class OpenLMHardwareWidget(OpenLMHardwareWidget.Ui_Form, QtWidgets.QWidget):
             laser.apply_settings(settings)
         
         napari.utils.notifications.show_info(f"Applied laser settings.")
+        self.laser_settings_changed.emit()
 
 
     def set_ui_from_laser_controller_settings(self, lc_settings: LaserControllerSettings):

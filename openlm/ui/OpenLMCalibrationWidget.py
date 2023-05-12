@@ -153,7 +153,10 @@ class OpenLMCalibrationWidget(OpenLMCalibrationWidget.Ui_Form, QtWidgets.QWidget
             self.obj_z1 - self.obj_z0
         )  # sign is  because coord sysstems are opposite
 
-        self.dpretilt = np.rad2deg(np.arctan(self.obj_dz / self._cum_dy+1e-20))
+        if np.isclose(self.obj_dz, 0.0) or np.isclose(self._cum_dy, 0.0):
+            return
+
+        self.dpretilt = np.rad2deg(np.arctan(self.obj_dz / (self._cum_dy+1e-20)))
 
         self.update_ui()
 
@@ -173,7 +176,6 @@ class OpenLMCalibrationWidget(OpenLMCalibrationWidget.Ui_Form, QtWidgets.QWidget
 # TODO:
 # - give access to system pre-tilt through UI
 # - write changes to system.yaml
-# - button: update stage tilt to flat to beam when pre-tilt changes
 # - safety checks
 
 

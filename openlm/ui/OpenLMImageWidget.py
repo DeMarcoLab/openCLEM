@@ -73,6 +73,8 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
 
         self.image_signal.connect(self.update_image)
 
+        self.hardware_widget.laser_settings_changed.connect(self.laser_settings_changed)
+
         # workflows
         self.pushButton_run_tiling.clicked.connect(self.run_workflow)
 
@@ -146,24 +148,47 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         microscope.get_synchroniser().stop_sync()
         microscope.get_synchroniser().sync_image(sync_message)
 
-    def pushButton_acquire_image_clicked(self, single_image: bool = False, save=False):
+
+
+    def _toggle_image_acq(self):
+
+        # if img acq is running: 
+        # stop it and return True
+        # else:
+        # return False
+
         # check if acquisition is already running
         if not self.stop_event.is_set():
             self.stop_event.set()
             self.microscope.get_synchroniser().stop_sync()
             logging.info("Stopping Image Acquistion")
-            return
-        else:
-            self.stop_event.clear()
-            self.pushButton_acquire_image.setText("Acquiring...")
-            self.pushButton_acquire_image.setStyleSheet("background-color: orange")
+            time.sleep(1)
+            return True # was imaging stopped?
+        
+        return False
+
+    def laser_settings_changed(self):
+
+        logging.info(f"Updating laser settings - ")
+        ret = self._toggle_image_acq()
+        if ret:
+            self._acquire_image()
+
+    def pushButton_acquire_image_clicked(self):
+        
+        ret = self._toggle_image_acq()
+        if not ret:
+            self._acquire_image()
+
+    def _acquire_image(self):
+        logging.info(f"Acquiring image")
+
+        # reset stop event
+        self.stop_event.clear()
+
 
         image_settings, sync_message = self.get_settings_from_ui()
-        # self.microscope: LightMicroscope = self.hardware_widget.microscope
         self.microscope.setup_acquisition()
-
-        if single_image:
-            image_settings.mode = ImageMode.SINGLE
 
         # TODO: disable other microscope interactions
         worker = self.microscope.consume_image_queue(parent_ui=self)
@@ -176,6 +201,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
             sync_message=sync_message,
             stop_event=self.stop_event,
         )
+
 
     def run_workflow(self):
         logging.info(f"Running Workflow")
@@ -220,19 +246,7 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
         # e.g. workflow.sync_message = sync_message
         # e.g. workflow.image_settings = image_settings
 
-        _NEW_WORKFLOW = True
-
-        if _NEW_WORKFLOW:
-            # TODO: turn on
-            # self.workflow = generate_workflow(wf, image_settings, sync_message)
-            self.workflow = generate_workflow_v2(wf, image_settings, sync_message)
-        else:
-            tile_coords = _gen_tiling_workflow(n_rows=wf.n_rows, n_cols=wf.n_cols, dx=wf.dx, dy=wf.dy)
-            volume_coords = _gen_volume_workflow(n_slices=wf.n_slices, dz=wf.dz)
-            self.workflow = _gen_workflow(tile_coords, volume_coords, 
-                                    image_settings=image_settings, 
-                                    sync_message=sync_message,
-                                    )
+        self.workflow = generate_workflow_v2(wf, image_settings, sync_message)
         
         logging.info(f"Workflow Length: {len(self.workflow)}")
 
@@ -269,6 +283,10 @@ class OpenLMImageWidget(OpenLMImageWidget.Ui_Form, QtWidgets.QWidget):
 
 
     def update_image(self, dat: dict):
+        
+        self.pushButton_acquire_image.setText("Acquiring...")
+        self.pushButton_acquire_image.setStyleSheet("background-color: orange")
+
         self.image = dat["image"]
         info = {}
 
