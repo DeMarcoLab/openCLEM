@@ -182,12 +182,10 @@ class Ui_Form(object):
         spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.gridLayout_3.addItem(spacerItem2, 7, 1, 1, 3)
         self.tabWidget.addTab(self.tab_detector, "")
-        self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 3)
-        spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.gridLayout.addItem(spacerItem3, 4, 0, 1, 3)
+        self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 2)
 
         self.retranslateUi(Form)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
