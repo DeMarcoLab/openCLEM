@@ -624,6 +624,7 @@ class Experiment:
         )
 
         self.positions: list[MicroscopeState] = []
+        self.translation: dict = {"x": 0, "y": 0, "z": 0} # translation from fibsem to lm
 
     def __to_dict__(self) -> dict:
 
@@ -632,6 +633,7 @@ class Experiment:
             "path": self.path,
             "log_path": self.log_path,
             "positions": [state.__to_dict__() for state in self.positions],
+            "translation": self.translation,
         }
 
         return state_dict
@@ -669,5 +671,7 @@ class Experiment:
         # load position from dict
         for pdict in ddict["positions"]:
             experiment.positions.append(MicroscopeState.__from_dict__(pdict))
+
+        experiment.translation = ddict["translation"]
 
         return experiment

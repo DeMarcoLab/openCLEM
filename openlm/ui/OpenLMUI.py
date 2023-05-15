@@ -11,7 +11,7 @@ from openlm.ui.OpenLMImageWidget import OpenLMImageWidget
 from openlm.ui.OpenLMHardwareWidget import OpenLMHardwareWidget
 from openlm.ui.OpenLMSpinningDiskWidget import OpenLMSpinningDiskWidget
 from openlm.ui.OpenLMCalibrationWidget import OpenLMCalibrationWidget
-from openlm.ui.OpenLMCoordinateWidget import OpenLMCoordinateWidget
+from openlm.ui.OpenLMPositionWidget import OpenLMPositionWidget
 from openlm import config as cfg
 import os
 
@@ -36,8 +36,8 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         self.image_widget, self.hardware_widget = None, None
         self._hardware_connected = False
 
-        CFG_PATH = os.path.join(cfg.BASE_PATH, "config", "piedisc.yaml")
-        # CFG_PATH = os.path.join(cfg.BASE_PATH, "config", "system.yaml")        
+        # CFG_PATH = os.path.join(cfg.BASE_PATH, "config", "piedisc.yaml")
+        CFG_PATH = os.path.join(cfg.BASE_PATH, "config", "system.yaml")        
         self.lineEdit_config_filename.setText(CFG_PATH)
 
         self.setup_connections()
@@ -60,7 +60,7 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
                 self.microscope, self.settings = utils.setup_session(config_path=config_filename)
 
                 if FIBSEM:
-                    self.microscope.fibsem_microscope, self.microscope.fibsem_settings = fibsem_utils.setup_session()
+                    self.microscope.fibsem_microscope, self.microscope.fibsem_settings = fibsem_utils.setup_session(manufacturer="Demo")
 
                 logging.info("Connected to hardware")
                 napari.utils.notifications.show_info("Connected to hardware")
@@ -94,7 +94,7 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
                 parent=self
             )
 
-            self.coordinate_widget = OpenLMCoordinateWidget(
+            self.positions_widget = OpenLMPositionWidget(
                 microscope=self.microscope.fibsem_microscope,
                 settings=self.microscope.fibsem_settings,
                 viewer=self.viewer,
@@ -106,7 +106,7 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
 
             self.tabWidget.addTab(self.hardware_widget, "Hardware")
             self.tabWidget.addTab(self.calibration_widget, "Calibration")
-            self.tabWidget.addTab(self.coordinate_widget, "Coordinates")
+            self.tabWidget.addTab(self.positions_widget, "Positions")
             self.pushButton_connect_hardware.setText("Connected")
             self.pushButton_connect_hardware.setStyleSheet("background-color: green")
 
@@ -133,7 +133,7 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             self.image_widget.deleteLater()
             self.hardware_widget.deleteLater()
             self.calibration_widget.deleteLater()
-            self.coordinate_widget.deleteLater()
+            self.positions_widget.deleteLater()
 
             self.pushButton_connect_hardware.setText("Connect Hardware")
             self.pushButton_connect_hardware.setStyleSheet("background-color: gray")
