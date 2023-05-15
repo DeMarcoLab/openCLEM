@@ -14,7 +14,7 @@ from openlm.structures import (DetectorSettings, ExposureMode, ImageSettings,
                                  LaserControllerSettings, LaserSettings,
                                  TriggerEdge, TriggerSource)
 from openlm.ui.qt import OpenLMHardwareWidget, OpenLMObjectiveWidget
-
+from openlm.ui.OpenLMSpinningDiskWidget import OpenLMSpinningDiskWidget
 
 class OpenLMHardwareWidget(OpenLMHardwareWidget.Ui_Form, QtWidgets.QWidget):
     objective_moved = QtCore.pyqtSignal()
@@ -67,6 +67,14 @@ class OpenLMHardwareWidget(OpenLMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         # dont allow editing
         self.doubleSpinBox_current_position.setEnabled(False)
         self.doubleSpinBox_saved_position.setEnabled(False)
+
+
+        # spinning disk
+        self.disk_widget = OpenLMSpinningDiskWidget(
+                self.viewer
+            )
+        self.tabWidget.addTab(self.disk_widget, "Spinning Disk")
+
 
     def setup_laser_ui(self):
         self.laser_ui = []

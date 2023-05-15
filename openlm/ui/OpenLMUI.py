@@ -87,10 +87,7 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
                 viewer=self.viewer,
                 hardware_widget=self.hardware_widget,
             )
-            self.disk_widget = OpenLMSpinningDiskWidget(
-                self.viewer
-            )
-
+ 
             self.calibration_widget = OpenLMCalibrationWidget(
                 microscope=self.microscope,
                 viewer=self.viewer,
@@ -108,7 +105,6 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             self.gridLayout.addWidget(self.image_widget, r, 0, 1, c)
 
             self.tabWidget.addTab(self.hardware_widget, "Hardware")
-            self.tabWidget.addTab(self.disk_widget, "Spinning Disk")
             self.tabWidget.addTab(self.calibration_widget, "Calibration")
             self.tabWidget.addTab(self.coordinate_widget, "Coordinates")
             self.pushButton_connect_hardware.setText("Connected")
@@ -127,7 +123,6 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             # remove self.image_widget from self.gridLayout
             self.gridLayout.removeWidget(self.image_widget)
 
-            self.tabWidget.removeTab(4)
             self.tabWidget.removeTab(3)
             self.tabWidget.removeTab(2)
             self.tabWidget.removeTab(1)
@@ -137,7 +132,6 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
 
             self.image_widget.deleteLater()
             self.hardware_widget.deleteLater()
-            self.disk_widget.deleteLater()
             self.calibration_widget.deleteLater()
             self.coordinate_widget.deleteLater()
 
