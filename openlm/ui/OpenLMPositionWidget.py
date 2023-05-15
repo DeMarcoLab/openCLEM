@@ -25,6 +25,7 @@ try:
         FibsemStagePosition,
         MicroscopeSettings,
         Point,
+        MicroscopeState
     )
 
     FIBSEM = True
@@ -108,15 +109,19 @@ class OpenLMPositionWidget(OpenLMPositionWidget.Ui_Form, QtWidgets.QWidget):
 
         msg = "Saved Positions: \n"
         msg += "LM Position \t\t\t\t FIBSEM Position \n"
-        for state in self.experiment.positions:
-            pos = state.absolute_position  # assume in LM coordinates
+        pos: list[tuple[MicroscopeState, MicroscopeState]]
+        for pos in self.experiment.positions:
 
-            fibsem_pos = deepcopy(pos)
-            _translation = _get_req_translation(self._update_translation(), "LM")
-            fibsem_pos.x += _translation["x"]
-            fibsem_pos.y += _translation["y"]
-            fibsem_pos.z += _translation["z"]
-            msg += f"{pos._scale_repr(constants.SI_TO_MILLI)}"
+            lm_pos = pos[0].absolute_position  # assume in LM coordinates
+            fibsem_pos = pos[1].absolute_position  # assume in LM coordinates
+
+            # fibsem_pos = deepcopy(pos)
+            # _translation = _get_req_translation(self._update_translation(), "LM")
+            # fibsem_pos.x += _translation["x"]
+            # fibsem_pos.y += _translation["y"]
+            # fibsem_pos.z += _translation["z"]
+
+            msg += f"{lm_pos._scale_repr(constants.SI_TO_MILLI)}"
             msg += "\t\t\t"
             msg += f"{fibsem_pos._scale_repr(constants.SI_TO_MILLI)}\n"
 
@@ -139,8 +144,27 @@ class OpenLMPositionWidget(OpenLMPositionWidget.Ui_Form, QtWidgets.QWidget):
         # get the current stage position
         state = self.microscope.get_current_microscope_state()
 
-        # add the stage position to the list
-        self.experiment.positions.append(deepcopy(state))
+        _current_microscope = self._get_current_microscope()
+
+        if _current_microscope not in ["FIBSEM", "LM"]:
+            logging.warning(f"Unknown microscope: {_current_microscope}")
+            return
+
+        _translation = _get_req_translation(self._update_translation(), _current_microscope)
+
+        other = deepcopy(state)
+        other.absolute_position.x += _translation["x"]
+        other.absolute_position.y += _translation["y"]
+        other.absolute_position.z += _translation["z"]
+
+        # if the microscope is in FIBSEM coordinates, convert to LM coordinates
+        if _current_microscope == "LM":
+            dat = [state, other]
+        if _current_microscope == "FIBSEM":
+            dat = [other, state]
+
+        # add the positions to the lists
+        self.experiment.positions.append(deepcopy(dat))
 
         self.update_ui()
 
@@ -176,19 +200,24 @@ class OpenLMPositionWidget(OpenLMPositionWidget.Ui_Form, QtWidgets.QWidget):
         idx = self.comboBox_positions.currentIndex()
         coord_system = self.comboBox_move_to_system.currentText()
 
+        if coord_system == "Light Microscope":
+            coord = 0
+        elif coord_system == "FIBSEM":
+            coord = 1
+
         pos = deepcopy(
-            self.experiment.positions[idx].absolute_position
-        )  # assume in LM coordinates
+            self.experiment.positions[idx][coord].absolute_position
+        )  
         
-        if coord_system == "FIBSEM":        
-            _start = "LM"
-            _translation = _get_req_translation(self._update_translation(), _start)
-            pos.x += _translation["x"]
-            pos.y += _translation["y"]
-            pos.z += _translation["z"]
-        else:
-            _start = "FIBSEM"
-            pass
+        # if coord_system == "FIBSEM":        
+        #     # _start = "LM"
+        #     # _translation = _get_req_translation(self._update_translation(), _start)
+        #     # pos.x += _translation["x"]
+        #     # pos.y += _translation["y"]
+        #     # pos.z += _translation["z"]
+        # else:
+        #     _start = "FIBSEM"
+        #     pass
 
         print(f"Moving to {coord_system} position: {pos}")
         self.microscope.move_stage_absolute(pos)

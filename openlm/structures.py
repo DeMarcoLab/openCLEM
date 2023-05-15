@@ -623,7 +623,7 @@ class Experiment:
             path=self.path, log_filename="logfile"
         )
 
-        self.positions: list[MicroscopeState] = []
+        self.positions: list[tuple[MicroscopeState, MicroscopeState]] = []
         self.translation: dict = {"x": 0, "y": 0, "z": 0} # translation from fibsem to lm
 
     def __to_dict__(self) -> dict:
@@ -632,7 +632,7 @@ class Experiment:
             "name": self.name,
             "path": self.path,
             "log_path": self.log_path,
-            "positions": [state.__to_dict__() for state in self.positions],
+            "positions": [[pos[0].__to_dict__(), pos[1].__to_dict__()] for pos in self.positions],
             "translation": self.translation,
         }
 
@@ -670,7 +670,10 @@ class Experiment:
 
         # load position from dict
         for pdict in ddict["positions"]:
-            experiment.positions.append(MicroscopeState.__from_dict__(pdict))
+            experiment.positions.append((
+                MicroscopeState.__from_dict__(pdict[0]), # lm
+                MicroscopeState.__from_dict__(pdict[1])  # fibsem
+            ))
 
         experiment.translation = ddict["translation"]
 
