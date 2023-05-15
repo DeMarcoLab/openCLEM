@@ -40,7 +40,7 @@ class Ui_MainWindow(object):
         self.label_hardware_status.setText("")
         self.label_hardware_status.setWordWrap(True)
         self.label_hardware_status.setObjectName("label_hardware_status")
-        self.gridLayout_2.addWidget(self.label_hardware_status, 2, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.label_hardware_status, 2, 0, 1, 2)
         self.tabWidget.addTab(self.tab, "")
         self.gridLayout.addWidget(self.tabWidget, 2, 0, 1, 2)
         self.label = QtWidgets.QLabel(self.centralwidget)
