@@ -36,8 +36,8 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
         self.image_widget, self.hardware_widget = None, None
         self._hardware_connected = False
 
-        # CFG_PATH = os.path.join(cfg.BASE_PATH, "config", "piedisc.yaml")
-        CFG_PATH = os.path.join(cfg.BASE_PATH, "config", "system.yaml")        
+        CFG_PATH = os.path.join(cfg.BASE_PATH, "config", "piedisc.yaml")
+        # CFG_PATH = os.path.join(cfg.BASE_PATH, "config", "system.yaml")        
         self.lineEdit_config_filename.setText(CFG_PATH)
 
         self.setup_connections()
@@ -60,7 +60,7 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
                 self.microscope, self.settings = utils.setup_session(config_path=config_filename)
 
                 if FIBSEM:
-                    self.microscope.fibsem_microscope, self.microscope.fibsem_settings = fibsem_utils.setup_session(manufacturer="Demo")
+                    self.microscope.fibsem_microscope, self.microscope.fibsem_settings = fibsem_utils.setup_session()
 
                 logging.info("Connected to hardware")
                 napari.utils.notifications.show_info("Connected to hardware")
