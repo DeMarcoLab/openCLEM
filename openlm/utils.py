@@ -92,7 +92,9 @@ def current_timestamp():
         String: Current time
     """
     # timestamp with ms
-    return datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d-%I-%M-%S-%f%p")
+    
+    return datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d-%H-%M-%S-%f")
+    # return datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d-%I-%M-%S-%f%p")
     # return datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d-%I-%M-%S%p")
 
 
