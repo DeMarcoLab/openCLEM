@@ -678,3 +678,28 @@ class Experiment:
         experiment.translation = ddict["translation"]
 
         return experiment
+    
+# TODO: check if this is used
+@dataclass
+class StitchingParameters:
+    folder_path: str
+    n_rows: int
+    n_cols: int
+    debug: bool = False
+
+    @staticmethod
+    def __from_dict__(data: dict) -> "StitchingParameters":
+        return StitchingParameters(
+            folder_path=data["folder_path"],
+            n_rows=data["n_rows"],
+            n_cols=data["n_cols"],
+            debug=data["debug"],
+        )
+    
+    def __to_dict__(self) -> dict:
+        return dict(
+            folder_path=self.folder_path,
+            n_rows=self.n_rows,
+            n_cols=self.n_cols,
+            debug=self.debug,
+        )

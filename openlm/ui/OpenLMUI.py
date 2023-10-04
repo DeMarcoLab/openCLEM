@@ -21,7 +21,7 @@ try:
 except ImportError:
     FIBSEM = False
 
-
+FIBSEM = False
 class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
     def __init__(
         self,
