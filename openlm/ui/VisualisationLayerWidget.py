@@ -18,8 +18,8 @@ from fibsem.structures import (
     Point,
 )
 from PyQt5.QtCore import pyqtSignal
-from juno_custom.scratch.ui.qt import VisualisationLayerWidget
-from juno_custom.scratch.ui.IndividualLayerWidget import IndividualLayerWidget
+from openlm.ui.qt import VisualisationLayerWidget
+from openlm.ui.IndividualLayerWidget import IndividualLayerWidget
 
 
 import logging
@@ -36,9 +36,12 @@ class VisualisationLayerWidget(VisualisationLayerWidget.Ui_Form, QtWidgets.QDial
         self.setup_connections()
 
     def setup_connections(self):
-        self.pushButton_VIEW_EM.clicked.connect(lambda: v_utils.set_camera_angle(self.viewer, v_utils.ANGLES_EM))
-        self.pushButton_VIEW_FIB.clicked.connect(lambda: v_utils.set_camera_angle(self.viewer, v_utils.ANGLES_FIB))
-
+        self.pushButton_VIEW_EM.clicked.connect(
+            lambda: v_utils.set_camera_angle(self.viewer, v_utils.ANGLES_EM)
+        )
+        self.pushButton_VIEW_FIB.clicked.connect(
+            lambda: v_utils.set_camera_angle(self.viewer, v_utils.ANGLES_FIB)
+        )
 
     def add_tab(self, viewer: napari.Viewer, visualisation_plane: VisualisationPlane):
         tab = IndividualLayerWidget(
@@ -50,11 +53,16 @@ class VisualisationLayerWidget(VisualisationLayerWidget.Ui_Form, QtWidgets.QDial
         qslider = QSlider()
 
         qslider.valueChanged.connect(tab.horizontalSlider_x.setValue)
-        self.setup_tab_connections(tab=tab, visualisation_plane=visualisation_plane, viewer=viewer)
+        self.setup_tab_connections(
+            tab=tab, visualisation_plane=visualisation_plane, viewer=viewer
+        )
         self.tabWidget_Layers.addTab(tab, tab.name)
 
     def setup_tab_connections(
-        self, tab: IndividualLayerWidget, visualisation_plane: VisualisationPlane, viewer: napari.Viewer
+        self,
+        tab: IndividualLayerWidget,
+        visualisation_plane: VisualisationPlane,
+        viewer: napari.Viewer,
     ):
         tab.horizontalSlider_x.valueChanged.connect(
             lambda: self.move_plane(
@@ -76,11 +84,19 @@ class VisualisationLayerWidget(VisualisationLayerWidget.Ui_Form, QtWidgets.QDial
         tab.pushButton_y.clicked.connect(lambda: tab.horizontalSlider_y.setValue(50))
         tab.pushButton_z.clicked.connect(lambda: tab.horizontalSlider_z.setValue(50))
 
-
-    def move_plane(self, tab: IndividualLayerWidget, visualisation_plane: VisualisationPlane, viewer: napari.Viewer):
+    def move_plane(
+        self,
+        tab: IndividualLayerWidget,
+        visualisation_plane: VisualisationPlane,
+        viewer: napari.Viewer,
+    ):
         # read all three sliders
         # convert to percentage
-        x, y, z = tab.horizontalSlider_x.value(), tab.horizontalSlider_y.value(), tab.horizontalSlider_z.value()
+        x, y, z = (
+            tab.horizontalSlider_x.value(),
+            tab.horizontalSlider_y.value(),
+            tab.horizontalSlider_z.value(),
+        )
         tab.move_plane(x, y, z, visualisation_plane=visualisation_plane, viewer=viewer)
 
 

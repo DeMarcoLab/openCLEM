@@ -191,6 +191,7 @@ class ImageSettings:
     mode: ImageMode = ImageMode.SINGLE
     path: Path = None
     workflow: WorkflowSettings = None
+    label: str = None
 
     @staticmethod
     def __from_dict__(settings: dict) -> "ImageSettings":
@@ -200,7 +201,8 @@ class ImageSettings:
             n_images=settings["n_images"],
             mode=ImageMode[settings.get("mode", "SINGLE")],
             path=Path(settings.get("path", None)),
-            workflow = settings.get("workflow", None)
+            workflow = settings.get("workflow", None),
+            label=settings.get("label", None),
         )
 
     def __to_dict__(self) -> dict:
@@ -211,6 +213,7 @@ class ImageSettings:
             "mode": self.mode.name,
             "path": str(self.path) if self.path is not None else None,
             "workflow": self.workflow.__to_dict__() if self.workflow is not None else None,
+            "label": self.label,
         }
 
 

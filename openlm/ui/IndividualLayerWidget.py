@@ -5,6 +5,8 @@ from PyQt5 import QtWidgets
 
 from juno_custom.scratch.ui.qt import IndividualLayerWidget
 from juno_custom.scratch.visualisation_utils import VisualisationPlane
+from openlm.structures import LightImage
+from fibsem.structures import FibsemImage
 
 
 class IndividualLayerWidget(IndividualLayerWidget.Ui_Form, QtWidgets.QDialog):
@@ -15,7 +17,11 @@ class IndividualLayerWidget(IndividualLayerWidget.Ui_Form, QtWidgets.QDialog):
         self.parent = parent
         self.viewer = viewer
         self.visualisation_plane = visualisation_plane
-        self.name = self.visualisation_plane.image.metadata.image_settings.label
+        if isinstance(self.visualisation_plane.image, FibsemImage):
+            self.name = self.visualisation_plane.image.metadata.image_settings.label
+        elif isinstance(self.visualisation_plane.image, LightImage):
+            self.name = self.visualisation_plane.image.metadata.image.label
+
 
     def move_plane(
             self, x: float, y: float, z: float, visualisation_plane: VisualisationPlane, viewer: napari.Viewer
@@ -36,4 +42,7 @@ class IndividualLayerWidget(IndividualLayerWidget.Ui_Form, QtWidgets.QDialog):
         move_z = shift_y * np.cos(angle) + shift_z * np.sin(angle)
 
         # 'x' is along axis 2
-        viewer.layers[visualisation_plane.image.metadata.image_settings.label].translate = origin_position + (move_z, move_y, move_x)
+        if isinstance(self.visualisation_plane.image, FibsemImage): 
+            viewer.layers[visualisation_plane.image.metadata.image_settings.label].translate = origin_position + (move_z, move_y, move_x)
+        elif isinstance(self.visualisation_plane.image, LightImage):
+            viewer.layers[visualisation_plane.image.metadata.image.label].translate = origin_position + (move_z, move_y, move_x)
