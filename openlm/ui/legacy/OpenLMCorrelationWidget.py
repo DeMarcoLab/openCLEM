@@ -21,7 +21,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
 from openlm.microscope import LightMicroscope
 
-from openlm.ui.qt import OpenLMCorrelationWidget
+from openlm.ui.qt.legacy import OpenLMCorrelationWidget
 
 
 class OpenLMCorrelationWidget(OpenLMCorrelationWidget.Ui_Form, QtWidgets.QWidget):
