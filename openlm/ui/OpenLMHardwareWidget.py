@@ -3,7 +3,7 @@ import logging
 import napari
 import napari.utils.notifications
 import numpy as np
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 
 from openlm import constants, utils
 from openlm.detector import Detector
@@ -14,9 +14,12 @@ from openlm.structures import (DetectorSettings, ExposureMode, ImageSettings,
                                  LaserControllerSettings, LaserSettings,
                                  TriggerEdge, TriggerSource)
 from openlm.ui.qt import OpenLMHardwareWidget, OpenLMObjectiveWidget
-
+from openlm.ui.OpenLMSpinningDiskWidget import OpenLMSpinningDiskWidget
 
 class OpenLMHardwareWidget(OpenLMHardwareWidget.Ui_Form, QtWidgets.QWidget):
+    objective_moved = QtCore.pyqtSignal()
+    laser_settings_changed = QtCore.pyqtSignal()
+
     def __init__(
         self,
         microscope: LightMicroscope,
@@ -64,6 +67,14 @@ class OpenLMHardwareWidget(OpenLMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         # dont allow editing
         self.doubleSpinBox_current_position.setEnabled(False)
         self.doubleSpinBox_saved_position.setEnabled(False)
+
+
+        # spinning disk
+        self.disk_widget = OpenLMSpinningDiskWidget(
+                self.viewer
+            )
+        self.tabWidget.addTab(self.disk_widget, "Spinning Disk")
+
 
     def setup_laser_ui(self):
         self.laser_ui = []
@@ -143,12 +154,6 @@ class OpenLMHardwareWidget(OpenLMHardwareWidget.Ui_Form, QtWidgets.QWidget):
 
         laser = self.laser_ui[idx]
 
-        # info = laser[0].text()
-        # name = info.split(" - ")[0].strip()
-        # serial_id = str(info.split(" - ")[1].strip()[1:-1])
-        # color = info.split(" - ")[2].strip()
-        # color = list(map(float, color[1:-1].split(",")))
-
         # extra info (not shown to user)
         info = laser[4]
         name = info["name"]
@@ -198,6 +203,7 @@ class OpenLMHardwareWidget(OpenLMHardwareWidget.Ui_Form, QtWidgets.QWidget):
             laser.apply_settings(settings)
         
         napari.utils.notifications.show_info(f"Applied laser settings.")
+        self.laser_settings_changed.emit()
 
 
     def set_ui_from_laser_controller_settings(self, lc_settings: LaserControllerSettings):
@@ -223,6 +229,7 @@ class OpenLMHardwareWidget(OpenLMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         position = self.microscope._objective.saved_position
         logging.info(f"Moving to saved position: {position:.2e}")
         self.microscope._objective.absolute_move(position)
+        self.objective_moved.emit()
         self.update_ui()
 
     def move_absolute(self):
@@ -233,6 +240,7 @@ class OpenLMHardwareWidget(OpenLMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         logging.info(f"Absolute position: {abs_position:.2e}")
 
         self.microscope._objective.absolute_move(abs_position)
+        self.objective_moved.emit()
         self.update_ui()
 
     def move_relative(self):
@@ -250,6 +258,8 @@ class OpenLMHardwareWidget(OpenLMHardwareWidget.Ui_Form, QtWidgets.QWidget):
         logging.info(f"Relative position: {relative_position:.2e}, ({direction})")
 
         self.microscope._objective.relative_move(relative_position)
+        
+        self.objective_moved.emit()
 
         self.update_ui()
 

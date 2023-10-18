@@ -10,10 +10,18 @@ from openlm.ui.qt import OpenLMUI
 from openlm.ui.OpenLMImageWidget import OpenLMImageWidget
 from openlm.ui.OpenLMHardwareWidget import OpenLMHardwareWidget
 from openlm.ui.OpenLMSpinningDiskWidget import OpenLMSpinningDiskWidget
+from openlm.ui.OpenLMCalibrationWidget import OpenLMCalibrationWidget
+from openlm.ui.OpenLMPositionWidget import OpenLMPositionWidget
 from openlm import config as cfg
 import os
 
+try:
+    from fibsem import utils as fibsem_utils
+    FIBSEM = True
+except ImportError:
+    FIBSEM = False
 
+FIBSEM = False
 class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
     def __init__(
         self,
@@ -51,6 +59,9 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             try:
                 self.microscope, self.settings = utils.setup_session(config_path=config_filename)
 
+                if FIBSEM:
+                    self.microscope.fibsem_microscope, self.microscope.fibsem_settings = fibsem_utils.setup_session()
+
                 logging.info("Connected to hardware")
                 napari.utils.notifications.show_info("Connected to hardware")
             except Exception as e:
@@ -76,16 +87,26 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
                 viewer=self.viewer,
                 hardware_widget=self.hardware_widget,
             )
-            self.disk_widget = OpenLMSpinningDiskWidget(
-                self.viewer
+ 
+            self.calibration_widget = OpenLMCalibrationWidget(
+                microscope=self.microscope,
+                viewer=self.viewer,
+                parent=self
             )
+
+            self.positions_widget = OpenLMPositionWidget(
+                microscope=self.microscope.fibsem_microscope,
+                settings=self.microscope.fibsem_settings,
+                viewer=self.viewer,
+            )   
 
             r = self.gridLayout.rowCount()
             c = self.gridLayout.columnCount()
             self.gridLayout.addWidget(self.image_widget, r, 0, 1, c)
 
             self.tabWidget.addTab(self.hardware_widget, "Hardware")
-            self.tabWidget.addTab(self.disk_widget, "Spinning Disk")
+            self.tabWidget.addTab(self.calibration_widget, "Calibration")
+            self.tabWidget.addTab(self.positions_widget, "Positions")
             self.pushButton_connect_hardware.setText("Connected")
             self.pushButton_connect_hardware.setStyleSheet("background-color: green")
 
@@ -102,15 +123,17 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
             # remove self.image_widget from self.gridLayout
             self.gridLayout.removeWidget(self.image_widget)
 
+            self.tabWidget.removeTab(3)
+            self.tabWidget.removeTab(2)
             self.tabWidget.removeTab(1)
-            self.tabWidget.removeTab(0)
 
             if self.image_widget is None:
                 return
 
             self.image_widget.deleteLater()
             self.hardware_widget.deleteLater()
-            self.disk_widget.deleteLater()
+            self.calibration_widget.deleteLater()
+            self.positions_widget.deleteLater()
 
             self.pushButton_connect_hardware.setText("Connect Hardware")
             self.pushButton_connect_hardware.setStyleSheet("background-color: gray")
@@ -128,9 +151,12 @@ class OpenLMUI(OpenLMUI.Ui_MainWindow, QtWidgets.QMainWindow):
 
 def main():
     viewer = napari.Viewer(ndisplay=2)
-    image_settings_ui = OpenLMUI(viewer=viewer)
+    openlm_ui = OpenLMUI(viewer=viewer)
     viewer.window.add_dock_widget(
-        image_settings_ui, area="right", add_vertical_stretch=False
+        openlm_ui, 
+        area="right", 
+        add_vertical_stretch=True, 
+        name = "OpenLM"
     )
     napari.run()
 

@@ -146,6 +146,40 @@ class ConnectionSettings:
             raise ValueError(f"Invalid connection type: {connection_type}")
         return connection_settings
 
+@dataclass
+class WorkflowSettings:
+    n_rows: int = 1
+    n_cols: int = 1
+    dx: float = 0.0
+    dy: float = 0.0
+    n_slices: int = 1
+    dz: float = 0.0
+    return_to_origin: bool = True
+
+    def __to_dict__(self) -> dict:
+        return dict(
+            n_rows=self.n_rows,
+            n_cols=self.n_cols,
+            dx=self.dx,
+            dy=self.dy,
+            n_slices=self.n_slices,
+            dz=self.dz,
+            return_to_origin=self.return_to_origin,
+        )
+    
+    @staticmethod
+    def __from_dict__(settings: dict) -> "WorkflowSettings":
+        workflow_settings = WorkflowSettings(
+            n_rows=settings["n_rows"],
+            n_cols=settings["n_cols"],
+            dx=settings["dx"],
+            dy=settings["dy"],
+            n_slices=settings["n_slices"],
+            dz=settings["dz"],
+            return_to_origin=settings["return_to_origin"],
+        )
+        return workflow_settings
+
 
 @dataclass
 class ImageSettings:
@@ -155,6 +189,9 @@ class ImageSettings:
     exposure: float = 0.0
     n_images: int = 1
     mode: ImageMode = ImageMode.SINGLE
+    path: Path = None
+    workflow: WorkflowSettings = None
+    label: str = None
 
     @staticmethod
     def __from_dict__(settings: dict) -> "ImageSettings":
@@ -163,6 +200,9 @@ class ImageSettings:
             exposure=settings["exposure"],
             n_images=settings["n_images"],
             mode=ImageMode[settings.get("mode", "SINGLE")],
+            path=Path(settings.get("path", None)),
+            workflow = settings.get("workflow", None),
+            label=settings.get("label", None),
         )
 
     def __to_dict__(self) -> dict:
@@ -171,6 +211,9 @@ class ImageSettings:
             "exposure": self.exposure,
             "n_images": self.n_images,
             "mode": self.mode.name,
+            "path": str(self.path) if self.path is not None else None,
+            "workflow": self.workflow.__to_dict__() if self.workflow is not None else None,
+            "label": self.label,
         }
 
 
@@ -397,6 +440,64 @@ class MicroscopeSettings:
             "online": self.online,
         }
 
+@dataclass
+class OpenLMStagePosition:
+    x: float
+    y: float
+    z: float
+    r: float
+    t: float
+
+    def __to_dict__(self) -> dict:
+        return {
+            "x": self.x,
+            "y": self.y,
+            "z": self.z,
+            "r": self.r,
+            "t": self.t,
+        }
+    
+    @staticmethod
+    def __from_dict__(settings: dict) -> "OpenLMStagePosition":
+        stage_position = OpenLMStagePosition(
+            x=settings["x"],
+            y=settings["y"],
+            z=settings["z"],
+            r=settings["r"],
+            t=settings["t"],
+        )
+        return stage_position
+
+@dataclass
+class UserMetadata:
+    username: str = "Default"
+    name: str = "Default"
+    email: str = "Default"
+    institution: str = "Default"
+    date: str = None
+
+    def __to_dict__(self) -> dict:
+        return dict(
+            username=self.username,
+            name=self.name,
+            email=self.email,
+            institution=self.institution,
+            date=self.date,
+        )
+    
+    @staticmethod
+    def __from_dict__(settings: dict) -> "UserMetadata":
+        user_metadata = UserMetadata(
+            username=settings["username"],
+            name=settings["name"],
+            email=settings["email"],
+            institution=settings["institution"],
+            date=settings["date"],
+
+        )
+        return user_metadata
+
+
 
 @dataclass
 class LightImageMetadata:
@@ -408,6 +509,8 @@ class LightImageMetadata:
     objective: ObjectiveSettings  # objective settings
     image: ImageSettings  # image settings
     sync: SynchroniserMessage  # sync settings
+    stage: OpenLMStagePosition # stage position
+    user: UserMetadata # user metadata
 
     def __to_dict__(self) -> dict:
         return dict(
@@ -419,6 +522,8 @@ class LightImageMetadata:
             objective=self.objective,  # TODO: this is only the position currently
             image=self.image.__to_dict__(),
             sync=self.sync.__to_dict__(),
+            stage=self.stage.__to_dict__(),
+            user=self.user.__to_dict__(),
         )
 
     @classmethod
@@ -432,10 +537,14 @@ class LightImageMetadata:
             objective=data["objective"],  # TODO: this is only the position currently
             image=ImageSettings.__from_dict__(data["image"]),
             sync=SynchroniserMessage.__from_dict__(data["sync"]),
+            stage=OpenLMStagePosition.__from_dict__(data["stage"]),
+            user=None, #UserMetadata.__from_dict__(data["user"]) TODO: update
         )
 
     def __repr__(self) -> str:
         return f"LightImageMetadata(n_channels={self.n_channels}, channels={self.channels}, time={self.time}, lasers={self.lasers}, detector={self.detector}, objective={self.objective}, image={self.image}, sync={self.sync})"
+
+
 
 
 @dataclass
@@ -491,3 +600,109 @@ class LightImage:
                 metadata = None
                 print(traceback.format_exc())
         return cls(data=data, metadata=metadata)
+
+
+
+@dataclass
+class TileSettings:
+    n_rows: int
+    n_cols: int
+    shift: float
+
+
+
+# TODO: move to PIEDISC
+import yaml
+
+from fibsem import utils as fibsem_utils
+from fibsem.structures import MicroscopeState
+
+class Experiment: 
+    def __init__(self, path: Path = None, name: str = "default") -> None:
+
+        self.name: str = name
+        self.path: Path = fibsem_utils.make_logging_directory(path=path, name=name)
+        self.log_path: Path = fibsem_utils.configure_logging(
+            path=self.path, log_filename="logfile"
+        )
+
+        self.positions: list[tuple[MicroscopeState, MicroscopeState]] = []
+        self.translation: dict = {"x": 0, "y": 0, "z": 0} # translation from fibsem to lm
+
+    def __to_dict__(self) -> dict:
+
+        state_dict = {
+            "name": self.name,
+            "path": self.path,
+            "log_path": self.log_path,
+            "positions": [[pos[0].__to_dict__(), pos[1].__to_dict__()] for pos in self.positions],
+            "translation": self.translation,
+        }
+
+        return state_dict
+
+    def save(self) -> None:
+        """Save the experiment data to yaml file"""
+
+        with open(os.path.join(self.path, f"{self.name}.yaml"), "w") as f:
+            yaml.safe_dump(self.__to_dict__(), f, indent=4)
+
+    def __repr__(self) -> str:
+
+        return f"""Experiment: 
+        Path: {self.path}
+        Positions: {len(self.positions)}
+        """
+    
+    @staticmethod
+    def load(fname: Path) -> 'Experiment':
+        """Load an experiment from disk."""
+
+        # read and open existing yaml file
+        path = Path(fname).with_suffix(".yaml")
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                ddict = yaml.safe_load(f)
+        else:
+            raise FileNotFoundError(f"No file with name {path} found.")
+
+        # create sample
+        path = os.path.dirname(ddict["path"])
+        name = ddict["name"]
+        experiment = Experiment(path=path, name=name)
+
+        # load position from dict
+        for pdict in ddict["positions"]:
+            experiment.positions.append((
+                MicroscopeState.__from_dict__(pdict[0]), # lm
+                MicroscopeState.__from_dict__(pdict[1])  # fibsem
+            ))
+
+        experiment.translation = ddict["translation"]
+
+        return experiment
+    
+# TODO: check if this is used
+@dataclass
+class StitchingParameters:
+    folder_path: str
+    n_rows: int
+    n_cols: int
+    debug: bool = False
+
+    @staticmethod
+    def __from_dict__(data: dict) -> "StitchingParameters":
+        return StitchingParameters(
+            folder_path=data["folder_path"],
+            n_rows=data["n_rows"],
+            n_cols=data["n_cols"],
+            debug=data["debug"],
+        )
+    
+    def __to_dict__(self) -> dict:
+        return dict(
+            folder_path=self.folder_path,
+            n_rows=self.n_rows,
+            n_cols=self.n_cols,
+            debug=self.debug,
+        )

@@ -1,0 +1,40 @@
+images:
+- name: EB Tilt
+  path: C:\Users\User\\Desktop\25-08-23 - Waffle\ref_MillTrench_final_low_res_eb.tif
+  hfw: 400.e-6
+  beam_type: ELECTRON
+  position:
+    t: 17.0
+    r: -131.
+
+- name: IB Flat
+  path: C:\Users\User\\Desktop\25-08-23 - Waffle\ref_MillTrench_final_low_res_ib.tif
+  beam_type: ION
+  hfw: 400.e-6
+  position:
+    t: 17
+    r: -131.  
+
+- name: EB Flat
+  path: C:\Users\User\\Desktop\25-08-23 - Waffle\ref_MillUndercut_align_ml_01_eb.tif
+  beam_type: ELECTRON
+  hfw: 150.e-6
+  position:
+    t: 35.0
+    r: 49.  
+
+- name: IB Tilt
+  path: C:\Users\User\\Desktop\25-08-23 - Waffle\ref_MillUndercut_align_ml_01_ib.tif
+  beam_type: ION
+  hfw: 150.e-6
+  position:
+    t: 35.0
+    r: 49.
+
+- name: LM Volume
+  path: C:\Users\User\Documents\CorrelationImages\workflow_2023-08-25-14-10-22-830461/
+  beam_type: ION
+  hfw: 400.e-6
+  position:
+    t: 17
+    r: -131.  

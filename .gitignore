@@ -90,3 +90,4 @@ openlm/_version.py
 *.npy
 *.png
 *.code-workspace
+openlm/log/*

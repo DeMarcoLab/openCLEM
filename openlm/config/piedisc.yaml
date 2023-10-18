@@ -46,15 +46,15 @@ lasers:
   exposure_time: 0.5
   enabled: False
   # color: [1, 0.56, 0.2]
-  color: [0, 1, 0]
+  color: [0, 0, 1]
 - name: 'laser_4'
   serial_id: '405'
   wavelength: 405.
   power: 0.
   exposure_time: 0.0
   enabled: False
-  color: [0.58, 0.168, 0.137]
-
+  # color: [0.58, 0.168, 0.137]
+  color: [0.5, 0, 0.5]
 synchroniser:
   name: leonardo
   connection:
@@ -81,3 +81,8 @@ objective_stage:
       timeout: 5.0
 # TODO: make timeouts/timings in general universal
 # TODO: make socket and serial a single comm setting?
+
+translation:
+  x: 49.6167e-3
+  y: -0.339e-3
+  z: 0.137e-3
